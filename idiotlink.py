@@ -50,7 +50,6 @@ for it in sys.argv[2:]:
 print('All symbols loaded (found %d)' % (len(symbols)))
 bank_id = 0
 for it in sys.argv[2:]:
-	bank_id += 1
 	bank = bytearray(open(it + '.bin', 'rb').read())
 	pad_count = 0x4000 - len(bank)
 	print('Bank ID %d - %s (%d bytes, %d free)' % (bank_id, it, len(bank), pad_count))
@@ -59,6 +58,7 @@ for it in sys.argv[2:]:
 	bank = bank + bytearray([ 0xEA ] * pad_count)
 	resolve_undef(bank, symbols, it + '.und')
 	prg = prg + bank
+	bank_id += 1
 
 open(outfile, 'wb').write(ines + prg + gfx)
 
