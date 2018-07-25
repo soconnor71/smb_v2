@@ -14,9 +14,13 @@ practice.bin: practice.asm
 	$(ASM) $^ $(AFLAGS)
 sound.bin: sound.asm
 	$(ASM) $^ $(AFLAGS)
+loader.bin: loader.asm
+	$(ASM) $^ $(AFLAGS)
+dummy.bin: dummy.asm
+	$(ASM) $^ $(AFLAGS)
 
-$(NESFILE): sound.bin practice.bin vanilla.bin main.bin
-	$(LINK) $(NESFILE) sound practice vanilla main
+$(NESFILE): sound.bin practice.bin vanilla.bin loader.bin dummy.bin main.bin
+	$(LINK) $(NESFILE) sound practice vanilla loader dummy dummy dummy main
 
 clean:
 	$(RM) $(NESFILE) *.deb *.map *.bin *.und

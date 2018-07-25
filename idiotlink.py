@@ -12,7 +12,10 @@ print("Running Shit Link")
 prg = bytearray([])
 ines = open('ines.raw', 'rb').read()
 outfile = sys.argv[1]
-gfx = open('vanilla.chr', 'rb').read() + open('practice.chr', 'rb').read()
+gfx = open('vanilla.chr', 'rb').read() \
+	+ open('practice.chr', 'rb').read() \
+	+ open('loader.chr', 'rb').read() \
+	+ open('loader.chr', 'rb').read()
 
 def resolve_undef(bank, symbols, undfile):
 	if not os.path.isfile(undfile):
