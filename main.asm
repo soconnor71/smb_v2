@@ -207,6 +207,10 @@ VBlank1:     lda PPU_STATUS               ;wait two frames
              bpl VBlank1
 VBlank2:     lda PPU_STATUS
              bpl VBlank2
+             ;
+             ; Load correct CHR rom
+             ;
+             jsr LoadChrROM
              ldy #ColdBootOffset          ;load default cold boot pointer
              ldx #$05                     ;this is where we check for a warm boot
 WBootCheck:  lda TopScoreDisplay,x        ;check each score digit in the top score
@@ -8188,6 +8192,9 @@ HandlePipeEntry:
 GiveOneCoin:
 	jmp (PTR_GiveOneCoin)
 
+LoadChrROM:
+	jmp (PTR_LoadChrROM)
+
 ;
 ; Transition routines
 ;
@@ -8195,7 +8202,7 @@ EnterSoundEngine:
 	lda #BANK_SOUND
 	jsr SetBankFromA
 	jsr SoundEngine
-	lda #BANK_SMB_NORMAL
+	lda #BANK_SELECTED
 	jmp SetBankFromA
 
 SetBankFromA:
@@ -8208,6 +8215,10 @@ SetBankFromA:
 	sta $E000
 	lsr
 	sta $E000
+	rts
+
+SetChrFromA:
+	sta $A000
 	rts
 
 ;
@@ -8227,7 +8238,7 @@ InitMapper:
 	sta $8000
 	lsr
 	sta $8000
-	lda #BANK_SMB_NORMAL
+	lda #BANK_SELECTED
 	jsr SetBankFromA
 	jmp Start
 

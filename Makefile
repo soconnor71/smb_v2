@@ -16,7 +16,7 @@ sound.bin: sound.asm
 	$(ASM) $^ $(AFLAGS)
 
 $(NESFILE): sound.bin practice.bin smb-todo.bin main.bin
-	$(LINK) $(NESFILE) vanilla.chr sound practice smb-todo main
+	$(LINK) $(NESFILE) sound practice smb-todo main
 
 clean:
 	$(RM) $(NESFILE) *.deb *.map *.bin *.und

@@ -42,6 +42,8 @@ PTR_HandlePipeEntry:
         .dw SMB_HandlePipeEntry
 PTR_GiveOneCoin:
         .dw SMB_GiveOneCoin
+PRAC_LoadChrROM:
+        .dw SMB_LoadChrROM
 
 ;-----------------------------------------------------------------
 
@@ -181,6 +183,10 @@ VRAM_Buffer_Offset:
       .db <VRAM_Buffer1_Offset, <VRAM_Buffer2_Offset
 
 ;-------------------------------------------------------------------------------------
+SMB_LoadChrROM:
+      lda #CHR_SMB
+      jmp SetChrFromA
+
 
 PauseRoutine:
                lda OperMode           ;are we in victory mode?
