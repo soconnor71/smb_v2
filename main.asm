@@ -210,7 +210,6 @@ VBlank2:     lda PPU_STATUS
              ;
              ; Load correct CHR rom
              ;
-             jsr LoadChrROM
              ldy #ColdBootOffset          ;load default cold boot pointer
              ldx #$05                     ;this is where we check for a warm boot
 WBootCheck:  lda TopScoreDisplay,x        ;check each score digit in the top score
@@ -8219,6 +8218,14 @@ SetBankFromA:
 
 SetChrFromA:
 	sta $A000
+	lsr 
+	sta $A000
+	lsr 
+	sta $A000
+	lsr 
+	sta $A000
+	lsr 
+	sta $A000
 	rts
 
 ;
@@ -8240,6 +8247,7 @@ InitMapper:
 	sta $8000
 	lda #BANK_SELECTED
 	jsr SetBankFromA
+	jsr LoadChrROM
 	jmp Start
 
 	.seekoff $3ffa $ea
