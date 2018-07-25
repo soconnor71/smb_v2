@@ -2072,6 +2072,8 @@ PrimaryGameSetup:
       sta PlayerSize              ;set player's size to small
 
 SecondaryGameSetup:
+			jsr AdvanceToRule
+			jsr HandleSaveState
              lda #$00
              sta DisableScreenFlag     ;enable screen output
              tay
