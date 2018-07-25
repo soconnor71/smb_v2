@@ -8,15 +8,15 @@ all: $(NESFILE)
 
 main.bin: main.asm
 	$(ASM) $^ $(AFLAGS)
-smb-todo.bin: smb-todo.asm
+vanilla.bin: vanilla.asm
 	$(ASM) $^ $(AFLAGS)
 practice.bin: practice.asm
 	$(ASM) $^ $(AFLAGS)
 sound.bin: sound.asm
 	$(ASM) $^ $(AFLAGS)
 
-$(NESFILE): sound.bin practice.bin smb-todo.bin main.bin
-	$(LINK) $(NESFILE) sound practice smb-todo main
+$(NESFILE): sound.bin practice.bin vanilla.bin main.bin
+	$(LINK) $(NESFILE) sound practice vanilla main
 
 clean:
 	$(RM) $(NESFILE) *.deb *.map *.bin *.und

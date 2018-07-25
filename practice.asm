@@ -26,18 +26,20 @@ SaveFrame					= $07fd ; Previously ContinueWorld
 ;
 ; Identity-mapped swap-table
 ;
+PTR_Start:
+		.dw PRAC_Start
 PTR_GetAreaDataAddrs:
-        .dw PRAC_GetAreaDataAddrs
+		.dw PRAC_GetAreaDataAddrs
 PTR_AddToScore:
-        .dw PRAC_AddToScore
+		.dw PRAC_AddToScore
 PTR_DigitsMathRoutine:
-        .dw PRAC_DigitsMathRoutine
+		.dw PRAC_DigitsMathRoutine
 PTR_UpdateNumber:
-        .dw PRAC_UpdateNumber
+		.dw PRAC_UpdateNumber
 PTR_HandlePipeEntry:
-        .dw PRAC_HandlePipeEntry
+		.dw PRAC_HandlePipeEntry
 PTR_GiveOneCoin:
-        .dw PRAC_GiveOneCoin
+		.dw PRAC_GiveOneCoin
 PTR_LoadChrROM:
 		.dw PRAC_LoadChrROM
 
@@ -691,11 +693,13 @@ MenuInitialized:
 		jsr GetPlayerColors
 		ldy #$58
 		jsr DrawPlayer_Intermediate
-
-		lda SavedJoypad1Bits
+		lda JoypadBitMask
+		ora SavedJoypadBits
 		beq NukeTimer
 		ldx SelectTimer
 		bne CantMove
+		ldx #32
+		stx SelectTimer
 		cmp #B_Button
 		bne IsSelectPressed
 		jsr EraseStartRule
@@ -703,11 +707,13 @@ MenuInitialized:
 IsSelectPressed:
 		cmp #Select_Button
 		beq ChangeSelection
+		cmp #Start_Button|A_Button
+		beq LetsPlayMarioSecondQuest
 		cmp #Start_Button
 		beq LetsPlayMario
-		ldx #20
-		stx SelectTimer
 		jmp SelectionInput
+LetsPlayMarioSecondQuest:
+		inc PrimaryHardMode
 LetsPlayMario:
 		ldx LevelNumber
 		ldy WorldNumber
@@ -1028,6 +1034,7 @@ IncMsgCounter: lda SecondaryMsgCounter
                sta PrimaryMsgCounter
                cmp #$07                      ;check primary counter one more time
 SetEndTimer:   bcc ExitMsgs                  ;if not reached value yet, branch to leave
+               jsr RedrawAll
                lda #$06
                sta WorldEndTimer             ;otherwise set world end timer
 IncModeTask_A: inc OperMode_Task             ;move onto next task in mode
@@ -1101,19 +1108,9 @@ DecNumTimer:  dec FloateyNum_Timer,x       ;decrement value here
               bne ChkTallEnemy
               cpy #$0b                     ;check offset for $0b
               bne LoadNumTiles             ;branch ahead if not found
-              inc NumberofLives            ;give player one extra life (1-up)
               lda #Sfx_ExtraLife
               sta Square2SoundQueue        ;and play the 1-up sound
-LoadNumTiles: lda ScoreUpdateData,y        ;load point value here
-              lsr                          ;move high nybble to low
-              lsr
-              lsr
-              lsr
-              tax                          ;use as X offset, essentially the digit
-              lda ScoreUpdateData,y        ;load again and this time
-              and #%00001111               ;mask out the high nybble
-              sta DigitModifier,x          ;store as amount to add to the digit
-              jsr PRAC_AddToScore           ;update the score accordingly
+LoadNumTiles: jsr PRAC_AddToScore
 ChkTallEnemy: ldy Enemy_SprDataOffset,x    ;get OAM data offset for enemy object
               lda Enemy_ID,x               ;get enemy object identifier
               cmp #Spiny
@@ -1223,29 +1220,6 @@ WriteTopStatusLine:
 
 WriteBottomStatusLine:
       jsr GetSBNybbles        ;write player's score and coin tally to screen
-      ldx VRAM_Buffer1_Offset
-      lda #$20                ;write address for world-area number on screen
-      sta VRAM_Buffer1,x
-      lda #$73
-      sta VRAM_Buffer1+1,x
-      lda #$03                ;write length for it
-      sta VRAM_Buffer1+2,x
-      ldy WorldNumber         ;first the world number
-      iny
-      tya
-      sta VRAM_Buffer1+3,x
-      lda #$28                ;next the dash
-      sta VRAM_Buffer1+4,x
-      ldy LevelNumber         ;next the level number
-      iny                     ;increment for proper number display
-      tya
-      sta VRAM_Buffer1+5,x    
-      lda #$00                ;put null terminator on
-      sta VRAM_Buffer1+6,x
-      txa                     ;move the buffer offset up by 6 bytes
-      clc
-      adc #$06
-      sta VRAM_Buffer1_Offset
       jmp IncSubtask
 
 ;-------------------------------------------------------------------------------------
@@ -1360,10 +1334,20 @@ IncModeTask_B: inc OperMode_Task  ;move onto next mode
 
 GameText:
 TopStatusBarLine:
-  .db $20, $43, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
-  .db $20, $52, $0b, $20, $18, $1b, $15, $0d ; "WORLD  TIME"
-  .db $24, $24, $1d, $12, $16, $0e
-  .db $20, $68, $05, $00, $24, $24, $2e, $29 ; score trailing digit and coin display
+  ; <off, size>
+  .db $20, $44, $0c
+  ;
+  .db $1b, $1e, $15, $0e      ; "RULE"
+  .db $24, $29, $24           ; "x"
+  .db $0f, $1b, $0a, $16, $0e ; "FRAME"
+  ; <off, size>
+  .db $20, $52, $0d
+  ; 'RM POS  TIME J'
+  .db $1b, $16, $24, $19, $18, $1c, $24, $1d, $12, $16, $0e, $24, $13
+   ; <off, size>
+  .db $20, $68, $05, $24, $fe, $24, $2e, $29 ; score trailing digit and coin display
+  .db $20, $7e, $01, $fd
+
   .db $23, $c0, $7f, $aa ; attribute table data, clears name table 0 to palette 2
   .db $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
   .db $ff ; end of data block
@@ -1378,17 +1362,11 @@ WorldLivesDisplay:
   .db $ff
 
 TwoPlayerTimeUp:
-  .db $21, $cd, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
 OnePlayerTimeUp:
-  .db $22, $0c, $07, $1d, $12, $16, $0e, $24, $1e, $19 ; "TIME UP"
-  .db $ff
+  .db $22, $0c, $01, $1d
 
 TwoPlayerGameOver:
-  .db $21, $cd, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
 OnePlayerGameOver:
-  .db $22, $0b, $09, $10, $0a, $16, $0e, $24 ; "GAME OVER"
-  .db $18, $1f, $0e, $1b
-  .db $ff
 
 WarpZoneWelcome:
   .db $25, $84, $15, $20, $0e, $15, $0c, $18, $16 ; "WELCOME TO WARP ZONE!"
@@ -1402,19 +1380,17 @@ WarpZoneWelcome:
   .db $ff
 
 LuigiName:
-  .db $15, $1e, $12, $10, $12    ; "LUIGI", no address or length
-
 WarpZoneNumbers:
   .db $04, $03, $02, $00         ; warp zone numbers, note spaces on middle
   .db $24, $05, $24, $00         ; zone, partly responsible for
   .db $08, $07, $06, $00         ; the minus world
 
 GameTextOffsets:
-  .db TopStatusBarLine-GameText, TopStatusBarLine-GameText
-  .db WorldLivesDisplay-GameText, WorldLivesDisplay-GameText
-  .db TwoPlayerTimeUp-GameText, OnePlayerTimeUp-GameText
-  .db TwoPlayerGameOver-GameText, OnePlayerGameOver-GameText
-  .db WarpZoneWelcome-GameText, WarpZoneWelcome-GameText
+  .db TopStatusBarLine-GameText
+  .db WorldLivesDisplay-GameText
+  .db TwoPlayerTimeUp-GameText
+  .db TwoPlayerGameOver-GameText
+  .db WarpZoneWelcome-GameText
 
 WriteGameText:
                pha                      ;save text number to stack
@@ -2094,9 +2070,6 @@ PrimaryGameSetup:
       lda #$01
       sta FetchNewGameTimerFlag   ;set flag to load game timer from header
       sta PlayerSize              ;set player's size to small
-      lda #$02
-      sta NumberofLives           ;give each player three lives
-      sta OffScr_NumberofLives
 
 SecondaryGameSetup:
              lda #$00
@@ -2263,13 +2236,6 @@ PlayerLoseLife:
              sta Sprite0HitDetectFlag
              lda #Silence             ;silence music
              sta EventMusicQueue
-             dec NumberofLives        ;take one life from player
-             bpl StillInGame          ;if player still has lives, branch
-             lda #$00
-             sta OperMode_Task        ;initialize mode task,
-             lda #GameOverModeValue   ;switch to game over mode
-             sta OperMode             ;and leave
-             rts
 StillInGame: lda WorldNumber          ;multiply world number by 2 and use
              asl                      ;as offset
              tax
@@ -2292,10 +2258,25 @@ MaskHPNyb:   and #%00001111           ;mask out all but lower nybble
              bcc SetHalfway           ;otherwise player must start at the
              lda #$00                 ;beginning of the level
 SetHalfway:  sta HalfwayPage          ;store as halfway page for player
-             ;
-             ; TODO : LOTS of code here
-             ;
-             jmp ContinueGame         ;continue the game
+			;
+			; TODO XXX What does this do? :)
+			;
+			jsr LoadAreaPointer       ;update level pointer with
+			lda #$01                  ;actual world and area numbers, then
+			sta PlayerSize            ;reset player's size, status, and
+			inc FetchNewGameTimerFlag ;set game timer flag to reload
+			lda #$00                  ;game timer from header
+			sta TimerControl          ;also set flag for timers to count again
+			sta PlayerStatus
+			sta GameEngineSubroutine  ;reset task for game core
+			sta OperMode_Task         ;set modes and leave
+			lda #$01                  ;if in game over mode, switch back to
+			sta OperMode   
+			rts
+			;
+			; Old code
+			;
+			;jmp ContinueGame         ;continue the game
 
 ;-------------------------------------------------------------------------------------
 
@@ -6651,4 +6632,125 @@ InitEnemyFrenzy:
 
 ;--------------------------------
 
+IntermediatePlayerData:
+        .db $58, $01, $00, $60, $ff, $04
+
+DrawPlayer_Intermediate:
+          lda IntermediatePlayerData
+          sty $02
+          clc
+          adc $02
+          sta $02
+          ldx #$04                       ;store data into zero page memory
+PIntLoop: lda IntermediatePlayerData+1,x   ;load data to display player as he always
+          sta $03,x                      ;appears on world/lives display
+          dex
+          bpl PIntLoop                   ;do this until all data is loaded
+          ldx #$b8                       ;load offset for small standing
+          ldy #$04                       ;load sprite data offset
+          jsr DrawPlayerLoop             ;draw player accordingly
+          lda Sprite_Attributes+36       ;get empty sprite attributes
+          ora #%01000000                 ;set horizontal flip bit for bottom-right sprite
+          sta Sprite_Attributes+32       ;store and leave
+          rts
+
+;-------------------------------------------------------------------------------------
+
+InitializeGame:
+             ldy #$6f              ;clear all memory as in initialization procedure,
+             jsr InitializeMemory  ;but this time, clear only as far as $076f
+             ldy #$1f
+ClrSndLoop:  sta SoundMemory,y     ;clear out memory used
+             dey                   ;by the sound engines
+             bpl ClrSndLoop
+             jsr LoadAreaPointer
+
+InitializeArea:
+               ldy #$4b                 ;clear all memory again, only as far as $074b
+               jsr InitializeMemory     ;this is only necessary if branching from
+               ldx #$21
+               lda #$00
+ClrTimersLoop: sta Timers,x             ;clear out memory between
+               dex                      ;$0780 and $07a1
+               bpl ClrTimersLoop
+               lda HalfwayPage
+               ldy AltEntranceControl   ;if AltEntranceControl not set, use halfway page, if any found
+               beq StartPage
+               lda EntrancePage         ;otherwise use saved entry page number here
+StartPage:     sta ScreenLeft_PageLoc   ;set as value here
+               sta CurrentPageLoc       ;also set as current page
+               sta BackloadingFlag      ;set flag here if halfway page or saved entry page number found
+               jsr GetScreenPosition    ;get pixel coordinates for screen borders
+               ldy #$20                 ;if on odd numbered page, use $2480 as start of rendering
+               and #%00000001           ;otherwise use $2080, this address used later as name table
+               beq SetInitNTHigh        ;address for rendering of game area
+               ldy #$24
+SetInitNTHigh: sty CurrentNTAddr_High   ;store name table address
+               ldy #$80
+               sty CurrentNTAddr_Low
+               asl                      ;store LSB of page number in high nybble
+               asl                      ;of block buffer column position
+               asl
+               asl
+               sta BlockBufferColumnPos
+               dec AreaObjectLength     ;set area object lengths for all empty
+               dec AreaObjectLength+1
+               dec AreaObjectLength+2
+               lda #$0b                 ;set value for renderer to update 12 column sets
+               sta ColumnSets           ;12 column sets = 24 metatile columns = 1 1/2 screens
+               jsr GetAreaDataAddrs     ;get enemy and level addresses and load header
+               lda PrimaryHardMode      ;check to see if primary hard mode has been activated
+               bne SetSecHard           ;if so, activate the secondary no matter where we're at
+               lda WorldNumber          ;otherwise check world number
+               cmp #World5              ;if less than 5, do not activate secondary
+               bcc CheckHalfway
+               bne SetSecHard           ;if not equal to, then world > 5, thus activate
+               lda LevelNumber          ;otherwise, world 5, so check level number
+               cmp #Level3              ;if 1 or 2, do not set secondary hard mode flag
+               bcc CheckHalfway
+SetSecHard:    inc SecondaryHardMode    ;set secondary hard mode flag for areas 5-3 and beyond
+CheckHalfway:  lda HalfwayPage
+               beq DoneInitArea
+               lda #$02                 ;if halfway page set, overwrite start position from header
+               sta PlayerEntranceCtrl
+DoneInitArea:  lda #Silence             ;silence music
+               sta AreaMusicQueue
+               lda #$01                 ;disable screen output
+               sta DisableScreenFlag
+               inc OperMode_Task        ;increment one of the modes
+               ldx #4
+               stx RuleIndex
+               rts
+
+;-------------------------------------------------------------------------------------
+
+PRAC_Start:
+             lda #%00010000               ;init PPU control register 1 
+             sta PPU_CTRL_REG1
+             ldx #$ff                     ;reset stack pointer
+             txs
+VBlank1:     lda PPU_STATUS               ;wait two frames
+             bpl VBlank1
+VBlank2:     lda PPU_STATUS
+             bpl VBlank2
+             ldy #ColdBootOffset          ;load default cold boot pointer
+ColdBoot:    jsr InitializeMemory         ;clear memory using pointer in Y
+             sta SND_DELTA_REG+1          ;reset delta counter load register
+             sta OperMode                 ;reset primary mode of operation
+             lda #$a5                     ;set warm boot flag
+             sta WarmBootValidation     
+             sta PseudoRandomBitReg       ;set seed for pseudorandom register
+             lda #%00001111
+             sta SND_MASTERCTRL_REG       ;enable all sound channels except dmc
+             lda #%00000110
+             sta PPU_CTRL_REG2            ;turn off clipping for OAM and background
+             jsr MoveAllSpritesOffscreen
+             jsr InitializeNameTables     ;initialize both name tables
+             inc DisableScreenFlag        ;set flag to disable screen output
+             lda Mirror_PPU_CTRL_REG1
+             ora #%10000000               ;enable NMIs
+             jsr WritePPUReg1
+EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
+
+;-------------------------------------------------------------------------------------
 

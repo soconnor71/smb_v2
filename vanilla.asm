@@ -25,11 +25,13 @@
        .mem 8
        .vars vars.inc
        .org $8000
-		.db $ba, BANK_SMB_NORMAL
+		.db $ba, BANK_VANILLA
 
 ;
 ; Identity-mapped swap-table
 ;
+PTR_Start:
+        .dw SMB_Start
 PTR_GetAreaDataAddrs:
         .dw SMB_GetAreaDataAddrs
 PTR_AddToScore:
@@ -6263,5 +6265,135 @@ InitEnemyFrenzy:
       .dw BulletBillCheepCheep
 
 ;--------------------------------
+
+IntermediatePlayerData:
+        .db $58, $01, $00, $60, $ff, $04
+
+DrawPlayer_Intermediate:
+          ldx #$05                       ;store data into zero page memory
+PIntLoop: lda IntermediatePlayerData,x   ;load data to display player as he always
+          sta $02,x                      ;appears on world/lives display
+          dex
+          bpl PIntLoop                   ;do this until all data is loaded
+          ldx #$b8                       ;load offset for small standing
+          ldy #$04                       ;load sprite data offset
+          jsr DrawPlayerLoop             ;draw player accordingly
+          lda Sprite_Attributes+36       ;get empty sprite attributes
+          ora #%01000000                 ;set horizontal flip bit for bottom-right sprite
+          sta Sprite_Attributes+32       ;store and leave
+          rts
+
+;-------------------------------------------------------------------------------------
+
+InitializeGame:
+             ldy #$6f              ;clear all memory as in initialization procedure,
+             jsr InitializeMemory  ;but this time, clear only as far as $076f
+             ldy #$1f
+ClrSndLoop:  sta SoundMemory,y     ;clear out memory used
+             dey                   ;by the sound engines
+             bpl ClrSndLoop
+             lda #$18              ;set demo timer
+             sta DemoTimer
+             jsr LoadAreaPointer
+
+InitializeArea:
+               ldy #$4b                 ;clear all memory again, only as far as $074b
+               jsr InitializeMemory     ;this is only necessary if branching from
+               ldx #$21
+               lda #$00
+ClrTimersLoop: sta Timers,x             ;clear out memory between
+               dex                      ;$0780 and $07a1
+               bpl ClrTimersLoop
+               lda HalfwayPage
+               ldy AltEntranceControl   ;if AltEntranceControl not set, use halfway page, if any found
+               beq StartPage
+               lda EntrancePage         ;otherwise use saved entry page number here
+StartPage:     sta ScreenLeft_PageLoc   ;set as value here
+               sta CurrentPageLoc       ;also set as current page
+               sta BackloadingFlag      ;set flag here if halfway page or saved entry page number found
+               jsr GetScreenPosition    ;get pixel coordinates for screen borders
+               ldy #$20                 ;if on odd numbered page, use $2480 as start of rendering
+               and #%00000001           ;otherwise use $2080, this address used later as name table
+               beq SetInitNTHigh        ;address for rendering of game area
+               ldy #$24
+SetInitNTHigh: sty CurrentNTAddr_High   ;store name table address
+               ldy #$80
+               sty CurrentNTAddr_Low
+               asl                      ;store LSB of page number in high nybble
+               asl                      ;of block buffer column position
+               asl
+               asl
+               sta BlockBufferColumnPos
+               dec AreaObjectLength     ;set area object lengths for all empty
+               dec AreaObjectLength+1
+               dec AreaObjectLength+2
+               lda #$0b                 ;set value for renderer to update 12 column sets
+               sta ColumnSets           ;12 column sets = 24 metatile columns = 1 1/2 screens
+               jsr GetAreaDataAddrs     ;get enemy and level addresses and load header
+               lda PrimaryHardMode      ;check to see if primary hard mode has been activated
+               bne SetSecHard           ;if so, activate the secondary no matter where we're at
+               lda WorldNumber          ;otherwise check world number
+               cmp #World5              ;if less than 5, do not activate secondary
+               bcc CheckHalfway
+               bne SetSecHard           ;if not equal to, then world > 5, thus activate
+               lda LevelNumber          ;otherwise, world 5, so check level number
+               cmp #Level3              ;if 1 or 2, do not set secondary hard mode flag
+               bcc CheckHalfway
+SetSecHard:    inc SecondaryHardMode    ;set secondary hard mode flag for areas 5-3 and beyond
+CheckHalfway:  lda HalfwayPage
+               beq DoneInitArea
+               lda #$02                 ;if halfway page set, overwrite start position from header
+               sta PlayerEntranceCtrl
+DoneInitArea:  lda #Silence             ;silence music
+               sta AreaMusicQueue
+               lda #$01                 ;disable screen output
+               sta DisableScreenFlag
+               inc OperMode_Task        ;increment one of the modes
+               rts
+
+;-------------------------------------------------------------------------------------
+
+SMB_Start:
+             lda #%00010000               ;init PPU control register 1 
+             sta PPU_CTRL_REG1
+             ldx #$ff                     ;reset stack pointer
+             txs
+VBlank1:     lda PPU_STATUS               ;wait two frames
+             bpl VBlank1
+VBlank2:     lda PPU_STATUS
+             bpl VBlank2
+             ;
+             ; Load correct CHR rom
+             ;
+             ldy #ColdBootOffset          ;load default cold boot pointer
+             ldx #$05                     ;this is where we check for a warm boot
+WBootCheck:  lda TopScoreDisplay,x        ;check each score digit in the top score
+             cmp #10                      ;to see if we have a valid digit
+             bcs ColdBoot                 ;if not, give up and proceed with cold boot
+             dex                      
+             bpl WBootCheck
+             lda WarmBootValidation       ;second checkpoint, check to see if 
+             cmp #$a5                     ;another location has a specific value
+             bne ColdBoot   
+             ldy #WarmBootOffset          ;if passed both, load warm boot pointer
+ColdBoot:    jsr InitializeMemory         ;clear memory using pointer in Y
+             sta SND_DELTA_REG+1          ;reset delta counter load register
+             sta OperMode                 ;reset primary mode of operation
+             lda #$a5                     ;set warm boot flag
+             sta WarmBootValidation     
+             sta PseudoRandomBitReg       ;set seed for pseudorandom register
+             lda #%00001111
+             sta SND_MASTERCTRL_REG       ;enable all sound channels except dmc
+             lda #%00000110
+             sta PPU_CTRL_REG2            ;turn off clipping for OAM and background
+             jsr MoveAllSpritesOffscreen
+             jsr InitializeNameTables     ;initialize both name tables
+             inc DisableScreenFlag        ;set flag to disable screen output
+             lda Mirror_PPU_CTRL_REG1
+             ora #%10000000               ;enable NMIs
+             jsr WritePPUReg1
+EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
+
+;-------------------------------------------------------------------------------------
 
 
