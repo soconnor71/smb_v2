@@ -238,6 +238,20 @@ RedrawAll:
 
 ;-------------------------------------------------------------------------------------
 
+RedrawPosition:
+		lda Player_Rel_XPos
+		jsr DivByTen
+		sta DisplayDigits+POSITION_OFFSET
+		txa
+		jsr DivByTen
+		sta DisplayDigits+POSITION_OFFSET-1
+		stx DisplayDigits+POSITION_OFFSET-2
+		lda #$a5
+		jsr PrintStatusBarNumbers
+		rts
+
+;-------------------------------------------------------------------------------------
+
 DivByTen:
 		ldx #$00
 DivMore:
@@ -1110,7 +1124,7 @@ DecNumTimer:  dec FloateyNum_Timer,x       ;decrement value here
               bne LoadNumTiles             ;branch ahead if not found
               lda #Sfx_ExtraLife
               sta Square2SoundQueue        ;and play the 1-up sound
-LoadNumTiles: jsr PRAC_AddToScore
+LoadNumTiles: jsr RedrawFrameNumbers
 ChkTallEnemy: ldy Enemy_SprDataOffset,x    ;get OAM data offset for enemy object
               lda Enemy_ID,x               ;get enemy object identifier
               cmp #Spiny
@@ -2217,6 +2231,7 @@ ChkSwimE: ldy AreaType                ;if level not water-type,
           jsr SetupBubble             ;otherwise, execute sub to set up air bubbles
 SetPESub: lda #$07                    ;set to run player entrance subroutine
           sta GameEngineSubroutine    ;on the next frame of game engine
+          jsr RedrawFrameNumbers
           rts
 
 ;-------------------------------------------------------------------------------------
@@ -4455,6 +4470,10 @@ ProcELoop:    stx ObjectOffset           ;put incremented offset in X as enemy o
               jsr ProcessWhirlpools      ;process whirlpools
               jsr FlagpoleRoutine        ;process the flagpole
               jsr RunGameTimer           ;count down the game timer
+              lda VRAM_Buffer1_Offset
+              bne DontRedrawPosition
+              jsr RedrawPosition
+DontRedrawPosition:
               jsr ColorRotation          ;cycle one of the background colors
               lda Player_Y_HighPos
               cmp #$02                   ;if player is below the screen, don't bother with the music
@@ -5192,7 +5211,8 @@ ProcJumping:
            lda Player_Y_Speed         ;check player's vertical speed
            bpl InitJS                 ;if player's vertical speed motionless or down, branch
            jmp X_Physics              ;if timer at zero and player still rising, do not swim
-InitJS:    lda #$20                   ;set jump/swim timer
+InitJS:    jsr RedrawFrameNumbers
+           lda #$20                   ;set jump/swim timer
            sta JumpSwimTimer
            ldy #$00                   ;initialize vertical force and dummy variable
            sty Player_YMF_Dummy
@@ -5707,12 +5727,7 @@ FlagpoleRoutine:
            sbc #$01                  ;subtract one plus borrow to move floatey number,
            sta FlagpoleFNum_Y_Pos    ;and store vertical coordinate here
 SkipScore: jmp FPGfx                 ;jump to skip ahead and draw flag and floatey number
-GiveFPScr: ldy FlagpoleScore         ;get score offset from earlier (when player touched flagpole)
-           lda FlagpoleScoreMods,y   ;get amount to award player points
-           ldx FlagpoleScoreDigits,y ;get digit with which to award points
-           sta DigitModifier,x       ;store in digit modifier
-           jsr PRAC_AddToScore        ;do sub to award player points depending on height of collision
-           lda #$05
+GiveFPScr: lda #$05
            sta GameEngineSubroutine  ;set to run end-of-level subroutine on next frame
 FPGfx:     jsr GetEnemyOffscreenBits ;get offscreen information
            jsr RelativeEnemyPosition ;get relative coordinates
@@ -6071,6 +6086,7 @@ PRAC_HandlePipeEntry:
          sta ChangeAreaTimer       ;set timer for change of area
          lda #$03
          sta GameEngineSubroutine  ;set to run vertical pipe entry routine on next frame
+         jsr RedrawAll
          lda #Sfx_PipeDown_Injury
          sta Square1SoundQueue     ;load pipedown/injury sound
          lda #%00100000
