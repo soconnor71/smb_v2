@@ -1,2 +1,6 @@
 badassm
 fceux
+*.bin
+*.map
+*.und
+*.nes

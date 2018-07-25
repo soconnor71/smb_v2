@@ -10,14 +10,14 @@ main.bin: main.asm
 	$(ASM) $^ $(AFLAGS)
 smb-todo.bin: smb-todo.asm
 	$(ASM) $^ $(AFLAGS)
-dummy.bin: dummy.asm
+practice.bin: practice.asm
 	$(ASM) $^ $(AFLAGS)
 sound.bin: sound.asm
 	$(ASM) $^ $(AFLAGS)
 
-$(NESFILE): sound.bin dummy.bin smb-todo.bin main.bin
-	$(LINK) $(NESFILE) vanilla.chr sound dummy smb-todo main
+$(NESFILE): sound.bin practice.bin smb-todo.bin main.bin
+	$(LINK) $(NESFILE) vanilla.chr sound practice smb-todo main
 
 clean:
-	$(RM) *.map *.bin *.und
+	$(RM) $(NESFILE) *.deb *.map *.bin *.und
 

@@ -18,6 +18,7 @@ def resolve_undef(bank, symbols, undfile):
 	if not os.path.isfile(undfile):
 		return
 	und = json.loads(open(undfile, 'r').read())
+	print('Locating %d undefined symbols...' % (len(und)))
 	for it in und:
 		if not it['ref'] in symbols:
 			raise Exception("Unable to resolve %s (referenced in %s)" % (it['ref'], undfile))
@@ -36,9 +37,10 @@ for it in sys.argv[3:]:
 			if 2 != len(v):
 				raise Exception('Malformed map file')
 			sym = v[0].strip()
-			if sym in symbols:
-				raise Exception('Symbol %s defined multiple times' % (sym))
-			symbols[sym] = int(v[1].strip(), 16)
+			val = int(v[1].strip(), 16)
+			if (sym in symbols) and val != symbols[sym]:
+				raise Exception('Symbol %s defined multiple times with different values' % (sym))
+			symbols[sym] = val
 	else:
 		print('Warning: %s does not exist' % (sym_file))
 
