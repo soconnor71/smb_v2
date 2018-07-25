@@ -3,6 +3,7 @@
 ;
 	.vars vars.inc
 	.org $8000
+        .db $ba, BANK_SOUND
 
 SoundEngine:
          lda OperMode              ;are we in title screen mode?

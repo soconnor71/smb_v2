@@ -10,7 +10,7 @@ symbols = {}
 print("Running Shit Link")
 
 prg = bytearray([])
-ines = open('ines.bin', 'rb').read()
+ines = open('ines.raw', 'rb').read()
 outfile = sys.argv[1]
 gfx = open(sys.argv[2], 'rb').read()
 
@@ -45,10 +45,10 @@ for it in sys.argv[3:]:
 print('All symbols loaded (found %d)' % (len(symbols)))
 bank_id = 0
 for it in sys.argv[3:]:
-	print('Bank ID %d - %s' % (bank_id, it))
 	bank_id += 1
 	bank = bytearray(open(it + '.bin', 'rb').read())
 	pad_count = 0x4000 - len(bank)
+	print('Bank ID %d - %s (%d bytes, %d free)' % (bank_id, it, len(bank), pad_count))
 	if pad_count < 0:
 		raise Exception('Image %s is too large' % it)
 	bank = bank + bytearray([ 0xEA ] * pad_count)
@@ -56,3 +56,4 @@ for it in sys.argv[3:]:
 	prg = prg + bank
 
 open(outfile, 'wb').write(ines + prg + gfx)
+

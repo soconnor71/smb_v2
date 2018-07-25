@@ -4,6 +4,8 @@
 	.vars vars.inc
 	.org $c000
 
+	.db $ba, BANK_MAIN
+
 ;-------------------------------------------------------------------------------------
 ;$04 - address low to jump address
 ;$05 - address high to jump address
@@ -8358,17 +8360,10 @@ SetHFAt: ora $04                    ;add other OAM attributes if necessary
 ; Transition routines
 ;
 EnterSoundEngine:
-	lda BANK_SOUND_ENGINE
+	lda #BANK_SOUND
 	jsr SetBankFromA
 	jsr SoundEngine
-	lda BANK_SMB_NORMAL
-	jmp SetBankFromA
-
-EnterGameMenuRoutine:
-	lda BANK_TITLE
-	jsr SetBankFromA
-	jsr GameMenuRoutine
-	lda BANK_SMB_NORMAL
+	lda #BANK_SMB_NORMAL
 	jmp SetBankFromA
 
 SetBankFromA:
@@ -8400,7 +8395,7 @@ InitMapper:
 	sta $8000
 	lsr
 	sta $8000
-	lda BANK_SMB_NORMAL
+	lda #BANK_SMB_NORMAL
 	jsr SetBankFromA
 	jmp Start
 
