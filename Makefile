@@ -20,7 +20,7 @@ dummy.bin: dummy.asm
 	$(ASM) $^ $(AFLAGS)
 
 $(NESFILE): sound.bin practice.bin vanilla.bin loader.bin dummy.bin main.bin
-	$(LINK) $(NESFILE) sound practice vanilla loader dummy dummy dummy main
+	$(LINK) $(NESFILE) vanilla sound practice dummy dummy dummy loader main
 
 clean:
 	$(RM) $(NESFILE) *.deb *.map *.bin *.und

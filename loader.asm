@@ -1,6 +1,8 @@
 LEADER_HEAD_SPRITE = 17*4
 KAPPA_SPRITE = 52*4
 STAR_INDEX = $700
+SEL_INDEX = $701
+SEL_START_Y = $8e
 
 	.vars vars.inc
 	.org $8000
@@ -15,7 +17,9 @@ PTR_GetAreaDataAddrs:
 		.dw LDR_Nop
 PTR_AddToScore:
 		.dw LDR_Nop
-PTR_DigitsMathRoutine:
+PTR_RunFireworks:
+		.dw LDR_Nop
+PTR_RunStarFlagObj:
 		.dw LDR_Nop
 PTR_UpdateNumber:
 		.dw LDR_Nop
@@ -71,7 +75,7 @@ no_rotate_stars:
 		;
 		;
 		lda FrameCounter
-		and #$0f
+		and #$07
 		bne dont_update_cursor
 		lda $201
 		cmp #$90
@@ -88,9 +92,30 @@ dont_update_cursor:
 		;
 		jsr EnterSoundEngine
 		jsr ReadJoypads
-
-		
-
+do_menu:
+		lda SavedJoypadBits
+		cmp #Select_Button
+		bne no_select
+		ldx SEL_INDEX
+		lda $200
+		inx 
+		cpx #3
+		bne no_loop_around
+		ldx #0
+		lda #SEL_START_Y-16
+no_loop_around:
+		clc
+		adc #16
+		sta $200
+		stx SEL_INDEX
+no_select:
+		cmp #Start_Button
+		bne no_start
+		ldx SEL_INDEX
+		lda bank_table, x
+		sta BANK_SELECTED
+		jmp InitMapper
+no_start:
 		;
 		; Reset
 		;
@@ -257,7 +282,7 @@ nametable_data_3:
 	.db $55, $08, $0A, $4A, $DE, $FF, $FF, $FF, $00, $00, $00, $00, $01, $0F, $0F, $0F
 
 static_sprite_data:
-	.db $8e, $90, $02, $30
+	.db SEL_START_Y, $90, $02, $30
 	;
 	; Mario
 	;
@@ -364,6 +389,9 @@ palette_star_shuffle:
 		.db $0f, $30, $2c, $11 ; Window
 		.db $0f, $10, $00, $0d ; Kappa head
 
+bank_table:
+		.db BANK_PRACTICE, BANK_FPS, BANK_VANILLA
+
 LDR_Start:
 		lda #$10	; Use 0x1000 for background (not that it matters, same in both)
 		sta PPU_CTRL_REG1
@@ -387,7 +415,10 @@ clear_memory:
 		sta $0400, x
 		sta $0500, x
 		sta $0600, x
+		cpx #<BANK_SELECTED
+		beq dont_wipe_bank_selection
 		sta $0700, x
+dont_wipe_bank_selection:
 		lda #$fe
 		sta $0200, x
 		inx
