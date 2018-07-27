@@ -7898,9 +7898,6 @@ RunFireworks:
 RunStarFlagObj:
   jmp (PTR_RunStarFlagObj)
 
-UpdateNumber:
-	jmp (PTR_UpdateNumber)
-
 HandlePipeEntry:
 	jmp (PTR_HandlePipeEntry)
 

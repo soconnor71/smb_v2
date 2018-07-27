@@ -40,8 +40,6 @@ PTR_RunFireworks:
         .dw SMB_RunFireworks
 PTR_RunStarFlagObj:
         .dw SMB_RunStarFlagObj
-PTR_UpdateNumber:
-        .dw SMB_UpdateNumber
 PTR_HandlePipeEntry:
         .dw SMB_HandlePipeEntry
 PTR_GiveOneCoin:
@@ -878,7 +876,7 @@ TScrClear:   sta VRAM_Buffer1-1,x
 
 WriteTopScore:
                lda #$fa           ;run display routine to display top score on title
-               jsr SMB_UpdateNumber
+               jsr UpdateNumber
 IncModeTask_B: inc OperMode_Task  ;move onto next mode
                rts
 
@@ -5598,7 +5596,7 @@ GetSBNybbles:
       ldy CurrentPlayer      ;get current player
       lda StatusBarNybbles,y ;get nybbles based on player, use to update score and coins
 
-SMB_UpdateNumber:
+UpdateNumber:
         jsr PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
         ldy VRAM_Buffer1_Offset   
         lda VRAM_Buffer1-6,y      ;check highest digit of score

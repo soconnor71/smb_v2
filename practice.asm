@@ -24,7 +24,7 @@ PowerUps					= $07e3 ; Previously unused?
 SaveStateFlags				= $07fc ; Previously WorldSelectEnableFlag
 SaveFrame					= $07fd ; Previously ContinueWorld
 SavedRandomData				= $07ed
-SockfolderData				= $07f4
+;SockfolderData				= $07f4
 ;
 ; Identity-mapped swap-table
 ;
@@ -38,8 +38,6 @@ PTR_RunFireworks:
 		.dw PRAC_RunFireworks
 PTR_RunStarFlagObj:
 		.dw PRAC_RunStarFlagObj
-PTR_UpdateNumber:
-		.dw PRAC_UpdateNumber
 PTR_HandlePipeEntry:
 		.dw PRAC_HandlePipeEntry
 PTR_GiveOneCoin:
@@ -1344,7 +1342,7 @@ TScrClear:   sta VRAM_Buffer1-1,x
 
 WriteTopScore:
                lda #$fa           ;run display routine to display top score on title
-               jsr PRAC_UpdateNumber
+               jsr UpdateNumber
 IncModeTask_B: inc OperMode_Task  ;move onto next mode
                rts
 
@@ -4522,6 +4520,7 @@ ExitEng:      rts                        ;and after all that, we're finally done
 ;-------------------------------------------------------------------------------------
 
 ScrollHandler:
+			jsr UpdateSockHash
             lda Player_X_Scroll       ;load value saved here
             clc
             adc Platform_X_Scroll     ;add value used by left/right platforms
@@ -5986,8 +5985,8 @@ GetSBNybbles:
 		;
 		; Print it i think...
 		;
-		lda #STATUS_BAR_OFFSET
-PRAC_UpdateNumber:
+		lda #82
+UpdateNumber:
 		jsr PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
 NoZSup: ldx ObjectOffset          ;get enemy object buffer offset
 		rts
@@ -6890,6 +6889,84 @@ DelayToAreaEnd:
 
 StarFlagExit2:
       rts                       ;otherwise leave
+
+;-------------------------------------------------------------------------------------
+PrintHexByte:
+		sta $0
+		lsr
+		lsr
+		lsr
+		lsr
+		jsr DoNibble
+		lda $0
+DoNibble:
+		and #$0f
+		sta VRAM_Buffer1+3,x
+		inx
+DontUpdateSockHash:
+		rts
+
+UpdateSockHash:
+		lda IntervalTimerControl
+		and #3
+		cmp #2
+		bne DontUpdateSockHash
+		lda SprObject_X_MoveForce ; Player force
+		sta $3
+		lda SprObject_X_Position ; Player X
+		sta $2
+		lda SprObject_PageLoc ; Player page
+		sta $1
+		lda SprObject_Y_Position ; Player Y
+		eor #$ff
+		lsr
+		lsr
+		lsr
+		bcc something_or_other
+		pha
+		clc
+		lda #$80
+		adc $3
+		sta $3
+		lda $2
+		adc #2
+		sta $2
+		lda $1
+		adc #0
+		sta $1
+		pla
+something_or_other:
+		sta $04
+		asl
+		asl
+		adc $04
+		adc $2
+		sta $2
+		lda $1
+		adc #0
+		sta $1
+		ldx VRAM_Buffer1_Offset 
+		bne skip_sock_hash
+draw_sock_hash:
+		lda #$20
+		sta VRAM_Buffer1
+		lda #$62 ; $4cb
+		sta VRAM_Buffer1+1
+		lda #$06 ; len
+		sta VRAM_Buffer1+2
+		ldx #0
+		lda $1
+		jsr PrintHexByte
+		lda $2
+		jsr PrintHexByte
+		lda $3
+		jsr PrintHexByte
+		lda #0
+		sta VRAM_Buffer1+3, x
+		lda #$09
+		sta VRAM_Buffer1_Offset
+skip_sock_hash:
+		rts
 
 ;-------------------------------------------------------------------------------------
 

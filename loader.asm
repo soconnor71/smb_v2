@@ -21,8 +21,6 @@ PTR_RunFireworks:
 		.dw LDR_Nop
 PTR_RunStarFlagObj:
 		.dw LDR_Nop
-PTR_UpdateNumber:
-		.dw LDR_Nop
 PTR_HandlePipeEntry:
 		.dw LDR_Nop
 PTR_GiveOneCoin:

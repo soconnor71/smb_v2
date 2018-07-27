@@ -10,6 +10,8 @@ main.bin: main.asm
 	$(ASM) $^ $(AFLAGS)
 vanilla.bin: vanilla.asm
 	$(ASM) $^ $(AFLAGS)
+fpg.bin: fpg.asm
+	$(ASM) $^ $(AFLAGS)
 practice.bin: practice.asm
 	$(ASM) $^ $(AFLAGS)
 sound.bin: sound.asm
@@ -19,8 +21,8 @@ loader.bin: loader.asm
 dummy.bin: dummy.asm
 	$(ASM) $^ $(AFLAGS)
 
-$(NESFILE): sound.bin practice.bin vanilla.bin loader.bin dummy.bin main.bin
-	$(LINK) $(NESFILE) vanilla sound practice dummy dummy dummy loader main
+$(NESFILE): sound.bin practice.bin vanilla.bin loader.bin dummy.bin main.bin fpg.bin
+	$(LINK) $(NESFILE) vanilla sound practice fpg dummy dummy loader main
 
 clean:
 	$(RM) $(NESFILE) *.deb *.map *.bin *.und
