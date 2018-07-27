@@ -24,7 +24,7 @@ PowerUps					= $07e3 ; Previously unused?
 SaveStateFlags				= $07fc ; Previously WorldSelectEnableFlag
 SaveFrame					= $07fd ; Previously ContinueWorld
 SavedRandomData				= $07ed
-;SockfolderData				= $07f4
+SavedEnterTimer				= $07f7
 ;
 ; Identity-mapped swap-table
 ;
@@ -218,7 +218,7 @@ UpdateFrameRule:
 		lda #$01
 		sta DigitModifier+5
 		ldy #RULE_COUNT_OFFSET
-		jsr DigitsMathRoutine
+		jsr DigitsMathRoutine3
 NotEvenFrameRule:
 		rts
 
@@ -1357,13 +1357,11 @@ TopStatusBarLine:
   .db $24, $29, $24           ; "x"
   .db $0f, $1b, $0a, $16, $0e ; "FRAME"
   ; <off, size>
-  .db $20, $52, $0d
+  .db $20, $52, $0c
   ; 'RM POS  TIME J'
-  .db $1b, $16, $24, $19, $18, $1c, $24, $1d, $12, $16, $0e, $24, $13
+  .db $1b, $16, $24, $19, $18, $1c, $24, $1d, $12, $16, $0e, $24
    ; <off, size>
   .db $20, $68, $05, $24, $fe, $24, $2e, $29 ; score trailing digit and coin display
-  .db $20, $7e, $01, $fd
-
   .db $23, $c0, $7f, $aa ; attribute table data, clears name table 0 to palette 2
   .db $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
   .db $ff ; end of data block
@@ -1422,16 +1420,29 @@ GameTextLoop:  lda GameText,x           ;load message data
                cmp #$ff                 ;check for terminator
                beq EndGameText          ;branch to end text if found
                cmp #$fe
-               bne CheckIsJudgeState
+               bne WriteTextByte
+               ;
+               ; Are we loading state?
+               ;
+               lda SaveStateFlags
+               and #$40
+               beq UseCurrentTimer
+               lda SavedEnterTimer
+               jmp WriteTextByte
+UseCurrentTimer:
                lda IntervalTimerControl
                sbc #1
-               bpl WriteTextByte
+               bpl SetEnterTimer
                lda #$14
-CheckIsJudgeState:
-               cmp #$fd
-               bne WriteTextByte
-               lda IntervalTimerControl
-               and #$3
+SetEnterTimer:
+               sta $0
+               lda SaveStateFlags
+               and #$80
+               bne TimerSavedAlready
+               lda $0
+               sta SavedEnterTimer
+TimerSavedAlready:
+               lda $0
 WriteTextByte:
                sta VRAM_Buffer1,y       ;otherwise write data to buffer
                inx
@@ -2018,8 +2029,41 @@ ExitOutputN: rts
 
 ;-------------------------------------------------------------------------------------
 
+DigitsMathRoutine3:
+            ldx #$05
+AddModLoop3:
+            lda DigitModifier,x       ;load digit amount to increment
+            clc
+            adc DisplayDigits,y       ;add to current digit
+            bmi BorrowOne3             ;if result is a negative number, branch to subtract
+            cmp #10
+            bcs CarryOne3              ;if digit greater than $09, branch to add
+StoreNewD3:
+            sta DisplayDigits,y       ;store as new score or game timer digit
+            dey                       ;move onto next digits in score or game timer
+            dex                       ;and digit amounts to increment
+            cpx #3
+            bpl AddModLoop3            ;loop back if we're not done yet
+            lda #$00                  ;store zero here
+            ldx #$06                  ;start with the last digit
+EraseMLoop3:
+            sta DigitModifier-1,x     ;initialize the digit amounts to increment
+            dex
+            bpl EraseMLoop3            ;do this until they're all reset, then leave
+            rts
+BorrowOne3:
+            dec DigitModifier-1,x     ;decrement the previous digit, then put $09 in
+            lda #$09                  ;the game timer digit we're currently on to "borrow
+            bne StoreNewD3             ;the one", then do an unconditional branch back
+CarryOne3:
+            sec                       ;subtract ten from our digit to make it a
+            sbc #10                   ;proper BCD number, then increment the digit
+            inc DigitModifier-1,x     ;preceding current digit to "carry the one" properly
+            jmp StoreNewD3             ;go back to just after we branched here
+
+;-------------------------------------------------------------------------------------
+
 DigitsMathRoutine:
-            ;beq EraseDMods            ;if in title screen mode, branch to lock score
             ldx #$05
 AddModLoop: lda DigitModifier,x       ;load digit amount to increment
             clc
@@ -2031,7 +2075,7 @@ StoreNewD:  sta DisplayDigits,y       ;store as new score or game timer digit
             dey                       ;move onto next digits in score or game timer
             dex                       ;and digit amounts to increment
             bpl AddModLoop            ;loop back if we're not done yet
-EraseDMods: lda #$00                  ;store zero here
+            lda #$00                  ;store zero here
             ldx #$06                  ;start with the last digit
 EraseMLoop: sta DigitModifier-1,x     ;initialize the digit amounts to increment
             dex
@@ -5597,7 +5641,7 @@ ResGTCtrl: lda #$18                   ;reset game timer control
            ldy #$23                   ;set offset for last digit
            lda #$ff                   ;set value to decrement game timer digit
            sta DigitModifier+5
-           jsr DigitsMathRoutine  ;do sub to decrement game timer slowly
+           jsr DigitsMathRoutine3 ;do sub to decrement game timer slowly
            lda #$a4                   ;set status nybbles to update game timer display
            jmp PrintStatusBarNumbers  ;do sub to update the display
 TimeUpOn:  sta PlayerStatus           ;init player status (note A will always be zero here)
@@ -6829,7 +6873,7 @@ AwardGameTimerPoints:
 NoTTick: ldy #$23               ;set offset here to subtract from game timer's last digit
          lda #$ff               ;set adder here to $ff, or -1, to subtract one
          sta DigitModifier+5    ;from the last digit of the game timer
-         jsr DigitsMathRoutine  ;subtract digit
+         jsr DigitsMathRoutine3  ;subtract digit
          lda #4
          jmp UpdateNumber
 
@@ -6950,7 +6994,7 @@ something_or_other:
 draw_sock_hash:
 		lda #$20
 		sta VRAM_Buffer1
-		lda #$62 ; $4cb
+		lda #$62 ;
 		sta VRAM_Buffer1+1
 		lda #$06 ; len
 		sta VRAM_Buffer1+2
