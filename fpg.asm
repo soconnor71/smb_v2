@@ -44,7 +44,7 @@ PTR_HandlePipeEntry:
         .dw SMB_HandlePipeEntry
 PTR_GiveOneCoin:
         .dw SMB_GiveOneCoin
-PRAC_LoadChrROM:
+PTR_LoadChrROM:
         .dw SMB_LoadChrROM
 
 ;-----------------------------------------------------------------
