@@ -25,6 +25,7 @@ SaveStateFlags				= $07fc ; Previously WorldSelectEnableFlag
 SaveFrame					= $07fd ; Previously ContinueWorld
 SavedRandomData				= $07ed
 SavedEnterTimer				= $07f7
+PracticeFlags				= $07f6
 ;
 ; Identity-mapped swap-table
 ;
@@ -465,6 +466,8 @@ HandleRestarts:
 		eor #Select_Button
 		cmp #Up_Dir
 		beq LoadGameState
+		cmp #Right_Dir
+		beq ToggleRenderMode
 		cmp #Down_Dir
 		bne ExitRestarts
 		jmp InitMapper
@@ -497,6 +500,35 @@ LoadNextRule:
 		and #$bf ; Nuke load flag :)
 		sta SaveStateFlags
 LuaHackDumpLoad: ; Euw...
+		rts
+
+ToggleRenderMode:
+		lda PracticeFlags
+		eor #$80
+		sta PracticeFlags
+		and #$80
+		bne SockMode
+		;
+		; If we change back to rule mode we must remove top sock bytes
+		;
+		ldx VRAM_Buffer_Offset
+		lda #$20
+		sta VRAM_Buffer1,x
+		lda #$62 ;
+		sta VRAM_Buffer1+1,x
+		lda #$02 ; len
+		sta VRAM_Buffer1+2,x
+		lda #$24
+		sta VRAM_Buffer1+3, x
+		sta VRAM_Buffer1+4, x
+		lda #$00
+		sta VRAM_Buffer1+5, x
+		lda VRAM_Buffer1_Offset
+		clc
+		adc #$05
+		sta VRAM_Buffer1_Offset
+		jmp RedrawFrameNumbers
+SockMode:
 		rts
 
 HandleSaveState:
@@ -6029,8 +6061,10 @@ GetSBNybbles:
 		;
 		; Print it i think...
 		;
-		lda #82
 UpdateNumber:
+		lda PracticeFlags
+		and #$80
+		ora #$02
 		jsr PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
 NoZSup: ldx ObjectOffset          ;get enemy object buffer offset
 		rts
@@ -6951,6 +6985,9 @@ DontUpdateSockHash:
 		rts
 
 UpdateSockHash:
+		lda PracticeFlags
+		and #$80
+		beq DontUpdateSockHash
 		lda IntervalTimerControl
 		and #3
 		cmp #2
