@@ -102,6 +102,8 @@ fpg_failed_input:
 		beq fpg_game_over_input
 		jmp fpg_validate_unsafe
 fpg_game_over_input:
+		lda SavedJoypad1Bits
+		sta FpgLastInput
 		ldx #$03
 fpg_set_death_flag:
 		stx FpgError

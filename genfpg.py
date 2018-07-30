@@ -136,7 +136,6 @@ def make_rules(name, rules):
 			if 'input' == rule['method']:
 				print(ind + 'cmp #$%02X' % (get_input(rule['input'])))
 				print(ind + 'beq %s_ruleset%d_rule%d' % (name, i, j +1))
-				print(ind + 'lda #$%02X' % (get_input(rule['input'])))
 				print(ind + 'jmp fpg_failed_input')
 			elif 'pixel' == rule['method']:
 				print(ind + 'ldx Player_X_Position')

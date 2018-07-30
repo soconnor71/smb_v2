@@ -91,6 +91,8 @@ InitBuffer:    ldx VRAM_Buffer_Offset,y
                jsr EnterSoundEngine      ;play sound
                jsr ReadJoypads           ;read joypads
                lda FpgFlags
+               asl
+               bcs PauseSkip
                beq RunPreInit
                and #$02
                beq PauseSkip
@@ -165,8 +167,13 @@ CheckFpgResetKey:
               lda SavedJoypadBits
               ora JoypadBitMask
               and #Select_Button
-              beq SkipMainOper
+              beq DeathRedrawShit
               jsr RestartFpg
+              jmp SkipMainOper
+DeathRedrawShit:
+              lda FpgLastInput
+              sta SavedJoypad1Bits
+              jsr RedrawStatusBar
               jmp SkipMainOper
 
 ;-------------------------------------------------------------------------------------
