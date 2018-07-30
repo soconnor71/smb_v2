@@ -34,6 +34,32 @@ fpg_load_player:
 		lda fpg_load_player_func+1, y
 		sta $1
 		jmp ($0)
+
+fpg_update_selected:
+		lda FpgSelected
+		cmp #0
+		bmi fpg_negative_sel
+		cmp fpg_num_configs
+		bmi fpg_render_it
+		lda #$0
+		sta FpgSelected
+		jmp fpg_render_it ; beq
+fpg_negative_sel:
+		ldx fpg_num_configs
+		dex
+		stx FpgSelected
+fpg_render_it:
+		jsr fpg_offset_to_y
+		lda #8
+		sta $0
+fpg_copy_more:
+		lda fpg_configs, y
+		sta VRAM_Buffer1+3, x
+		inx
+		iny
+		dec $0
+		bne fpg_copy_more
+		rts
 ;
 ; 
 ;
@@ -91,7 +117,7 @@ fpg_win:
 		jmp fpg_set_death_flag
 
 
-.seekoff $3fd0 $ea
+.seekoff $3fc0 $ea
 EnterFpgLoadArea:
 	lda #BANK_FPG_DATA
 	jsr SetBankFromA
@@ -113,7 +139,12 @@ EnterFpgValidate:
 	lda BANK_SELECTED
 	jmp SetBankFromA
 
-
+EnterFpgUpdateSelected:
+  lda #BANK_FPG_DATA
+  jsr SetBankFromA
+  jsr fpg_update_selected
+  lda BANK_SELECTED
+  jmp SetBankFromA
 
 
 

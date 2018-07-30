@@ -200,7 +200,7 @@ VRAM_Buffer_Offset:
 
 ;-------------------------------------------------------------------------------------
 FPG_LoadChrROM:
-      lda #CHR_SMB
+      lda #CHR_FPG
       jmp SetChrFromA
 
 
@@ -272,22 +272,53 @@ TitleScreenMode:
 ;-------------------------------------------------------------------------------------
 
 GameMenuRoutine:
-    ldx #0
-    stx LevelNumber
-    stx WorldNumber
-    stx OffScr_WorldNumber
-    stx AreaNumber
-    stx OffScr_AreaNumber
+    lda SavedJoypad1Bits
+    cmp FpgLastInput
+    beq PrintFpgName
+    sta FpgLastInput
+
+    cmp #Right_Dir
+    beq FpgSelRight
+    cmp #Left_Dir
+    beq FpgSelLeft
+    cmp #Start_Button
+    bne PrintFpgName
     ;
     ; Start it...
     ;
-    jsr LoadAreaPointer
+    ldx #0              ; nuke v?
+    stx LevelNumber
+    stx WorldNumber
+    stx AreaNumber
+    jsr LoadAreaPointer ; nuke ^?
     inc Hidden1UpFlag
     inc OffScr_Hidden1UpFlag
     inc FetchNewGameTimerFlag
     inc OperMode
     lda #$00
     sta OperMode_Task
+    rts
+
+FpgSelLeft:
+    dec FpgSelected
+    dec FpgSelected ; To negate the inc...
+FpgSelRight:
+    inc FpgSelected
+PrintFpgName:
+    ldx VRAM_Buffer1_Offset
+    lda #$22
+    sta VRAM_Buffer1+0, x
+    lda #$4b
+    sta VRAM_Buffer1+1, x
+    lda #$08
+    sta VRAM_Buffer1+2, x
+    jsr EnterFpgUpdateSelected
+    lda #0
+    sta VRAM_Buffer1+11, x
+    lda #11
+    clc
+    adc VRAM_Buffer1_Offset
+    sta VRAM_Buffer1_Offset
     rts
 
 ;-------------------------------------------------------------------------------------
@@ -6017,13 +6048,20 @@ ClrTimersLoop: sta Timers,x             ;clear out memory between
                ;
                ; FPG load level
                ;
+               lda FpgFlags
+               and #$40
+               bne LoadFpgStuff
+               ; title
+               lda #0
+               jmp LoadWorldStuff
+LoadFpgStuff:
                jsr EnterFpgLoadArea
                lda #$00
                sta FpgFlags
                sta FpgError
                sta FpgRuleset
-
                lda ScreenEdge_PageLoc
+LoadWorldStuff:
                sta CurrentPageLoc       ;also set as current page
                sta BackloadingFlag      ;set flag here if halfway page or saved entry page number found
                jsr LoadAreaPointer
@@ -6266,25 +6304,32 @@ EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 
 ;-------------------------------------------------------------------------------------
 
-.seekoff $3fd0 $ea
+.seekoff $3fc0 $ea
 EnterFpgLoadArea:
   lda #BANK_FPG_DATA
   jsr SetBankFromA
-  jsr fpg_load_area
+  jsr fpg_load_area ; never returns here
   lda BANK_SELECTED
   jmp SetBankFromA
 
 EnterFpgLoadPlayer:
   lda #BANK_FPG_DATA
   jsr SetBankFromA
-  jsr fpg_load_player
+  jsr fpg_load_player ; never returns here
   lda BANK_SELECTED
   jmp SetBankFromA
 
 EnterFpgValidate:
   lda #BANK_FPG_DATA
   jsr SetBankFromA
-  jsr fpg_validate
+  jsr fpg_validate ; never returns here
+  lda BANK_SELECTED
+  jmp SetBankFromA
+
+EnterFpgUpdateSelected:
+  lda #BANK_FPG_DATA
+  jsr SetBankFromA
+  jsr fpg_update_selected ; never returns here
   lda BANK_SELECTED
   jmp SetBankFromA
 

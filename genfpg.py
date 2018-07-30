@@ -191,6 +191,8 @@ def print_if_true(c, str):
 	if c:
 		print(str)
 
+print('fpg_num_configs: .db $%08X' % (len(configs)))
+
 for i in range(0, len(configs)):
 	name = configs[i]['name']
 	if (0 == i): print('fpg_configs:')

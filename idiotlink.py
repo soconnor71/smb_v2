@@ -14,7 +14,7 @@ ines = open('ines.raw', 'rb').read()
 outfile = sys.argv[1]
 gfx = open('vanilla.chr', 'rb').read() \
 	+ open('practice.chr', 'rb').read() \
-	+ open('loader.chr', 'rb').read() \
+	+ open('fpg.chr', 'rb').read() \
 	+ open('loader.chr', 'rb').read()
 
 def resolve_undef(bank, symbols, undfile):

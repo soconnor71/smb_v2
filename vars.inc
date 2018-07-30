@@ -11,13 +11,15 @@ BANK_SELECTED = $07f4
 
 CHR_SMB = 0
 CHR_PRACTICE = 2
-CHR_LOADER = 4
+CHR_FPG = 4
+CHR_LOADER = 6
 
-FpgRuleset = $0717	; DemoAction
-FpgSelected = $075a	; NumberOfLives
-FpgFlags  = $0761	; OffScr_NumberofLives
-FpgScrollTo = $07d7 ; TopScoreDisplay+0
-FpgError = $07d8	; TopScoreDisplay+1
+FpgRuleset = $0717		; DemoAction
+FpgSelected = $075a		; NumberOfLives
+FpgFlags  = $0761		; OffScr_NumberofLives
+FpgLastInput = $0762	; OffScr_HalfwayPage
+FpgScrollTo = $07d7 	; TopScoreDisplay+0
+FpgError = $07d8		; TopScoreDisplay+1
 
 PPU_CTRL_REG1         = $2000
 PPU_CTRL_REG2         = $2001
