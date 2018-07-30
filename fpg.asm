@@ -31,21 +31,21 @@
 ; Identity-mapped swap-table
 ;
 PTR_Start:
-        .dw SMB_Start
+        .dw FPG_Start
 PTR_GetAreaDataAddrs:
-        .dw SMB_GetAreaDataAddrs
+        .dw FPG_GetAreaDataAddrs
 PTR_AddToScore:
-        .dw SMB_AddToScore
+        .dw FPG_AddToScore
 PTR_RunFireworks:
-        .dw SMB_RunFireworks
+        .dw FPG_RunFireworks
 PTR_RunStarFlagObj:
-        .dw SMB_RunStarFlagObj
+        .dw FPG_RunStarFlagObj
 PTR_HandlePipeEntry:
-        .dw SMB_HandlePipeEntry
+        .dw FPG_HandlePipeEntry
 PTR_GiveOneCoin:
-        .dw SMB_GiveOneCoin
+        .dw FPG_GiveOneCoin
 PTR_LoadChrROM:
-        .dw SMB_LoadChrROM
+        .dw FPG_LoadChrROM
 
 ;-----------------------------------------------------------------
 
@@ -90,10 +90,11 @@ InitBuffer:    ldx VRAM_Buffer_Offset,y
                sta PPU_CTRL_REG2
                jsr EnterSoundEngine      ;play sound
                jsr ReadJoypads           ;read joypads
-               jsr PauseRoutine          ;handle pause
-               lda GamePauseStatus       ;check for pause status
-               lsr
-               bcs PauseSkip
+               lda FpgFlags
+               beq RunPreInit
+               and #$02
+               beq PauseSkip
+RunPreInit:
                lda TimerControl          ;if master timer control not set, decrement
                beq DecTimers             ;all frame and interval timers
                dec TimerControl
@@ -110,7 +111,7 @@ DecTimersLoop: lda Timers,x              ;check current timer
 SkipExpTimer:  dex                       ;move onto next timer
                bpl DecTimersLoop         ;do this until all timers are dealt with
 NoDecTimers:   inc FrameCounter          ;increment frame counter
-PauseSkip:     ldx #$00
+               ldx #$00
                ldy #$07
                lda PseudoRandomBitReg    ;get first memory location of LSFR bytes
                and #%00000010            ;mask out all but d1
@@ -125,13 +126,14 @@ RotPRandomBit: ror PseudoRandomBitReg,x  ;rotate carry into d7, and rotate last 
                inx                       ;increment to next byte
                dey                       ;decrement for loop
                bne RotPRandomBit
+PauseSkip:
                lda Sprite0HitDetectFlag  ;check for flag here
                beq SkipSprite0
 Sprite0Clr:    lda PPU_STATUS            ;wait for sprite 0 flag to clear, which will
                and #%01000000            ;not happen until vblank has ended
                bne Sprite0Clr
-               lda GamePauseStatus       ;if in pause mode, do not bother with sprites at all
-               lsr
+               lda FpgFlags
+               asl
                bcs Sprite0Hit
                jsr MoveSpritesOffscreen
                jsr SpriteShuffler
@@ -148,15 +150,28 @@ SkipSprite0:   lda HorizontalScroll      ;set scroll registers from variables
                lda Mirror_PPU_CTRL_REG1  ;load saved mirror of $2000
                pha
                sta PPU_CTRL_REG1
-               lda GamePauseStatus       ;if in pause mode, do not perform operation mode stuff
-               lsr
-               bcs SkipMainOper
+               lda FpgFlags
+               asl
+               bcs CheckFpgResetKey
                jsr OperModeExecutionTree ;otherwise do one of many, many possible subroutines
 SkipMainOper:  lda PPU_STATUS            ;reset flip-flop
                pla
                ora #%10000000            ;reactivate NMIs
                sta PPU_CTRL_REG1
                rti                       ;we are done until the next frame!
+CheckFpgResetKey:
+              lda SavedJoypadBits
+              ora JoypadBitMask
+              and #Select_Button
+              beq SkipMainOper
+              ldx #0
+              stx FpgError
+              stx FpgFlags
+              stx FpgRuleset
+              stx OperMode_Task
+              inx
+              stx OperMode
+              rti
 
 ;-------------------------------------------------------------------------------------
 ;$00 - vram buffer address table low, also used for pseudorandom bit
@@ -184,43 +199,10 @@ VRAM_Buffer_Offset:
       .db <VRAM_Buffer1_Offset, <VRAM_Buffer2_Offset
 
 ;-------------------------------------------------------------------------------------
-SMB_LoadChrROM:
+FPG_LoadChrROM:
       lda #CHR_SMB
       jmp SetChrFromA
 
-
-PauseRoutine:
-               lda OperMode           ;are we in victory mode?
-               cmp #VictoryModeValue  ;if so, go ahead
-               beq ChkPauseTimer
-               cmp #GameModeValue     ;are we in game mode?
-               bne ExitPause          ;if not, leave
-               lda OperMode_Task      ;if we are in game mode, are we running game engine?
-               cmp #$03
-               bne ExitPause          ;if not, leave
-ChkPauseTimer: lda GamePauseTimer     ;check if pause timer is still counting down
-               beq ChkStart
-               dec GamePauseTimer     ;if so, decrement and leave
-               rts
-ChkStart:      lda SavedJoypad1Bits   ;check to see if start is pressed
-               and #Start_Button      ;on controller 1
-               beq ClrPauseTimer
-               lda GamePauseStatus    ;check to see if timer flag is set
-               and #%10000000         ;and if so, do not reset timer (residual,
-               bne ExitPause          ;joypad reading routine makes this unnecessary)
-               lda #$2b               ;set pause timer
-               sta GamePauseTimer
-               lda GamePauseStatus
-               tay
-               iny                    ;set pause sfx queue for next pause mode
-               sty PauseSoundQueue
-               eor #%00000001         ;invert d0 and set d7
-               ora #%10000000
-               bne SetPause           ;unconditional branch
-ClrPauseTimer: lda GamePauseStatus    ;clear timer flag if timer is at zero and start button
-               and #%01111111         ;is not pressed
-SetPause:      sta GamePauseStatus
-ExitPause:     rts
 
 ;-------------------------------------------------------------------------------------
 ;$00 - used for preset value
@@ -525,7 +507,7 @@ LoadNumTiles: lda ScoreUpdateData,y        ;load point value here
               lda ScoreUpdateData,y        ;load again and this time
               and #%00001111               ;mask out the high nybble
               sta DigitModifier,x          ;store as amount to add to the digit
-              jsr SMB_AddToScore           ;update the score accordingly
+              jsr FPG_AddToScore           ;update the score accordingly
 ChkTallEnemy: ldy Enemy_SprDataOffset,x    ;get OAM data offset for enemy object
               lda Enemy_ID,x               ;get enemy object identifier
               cmp #Spiny
@@ -626,39 +608,44 @@ SetupIntermediate:
 
 ;-------------------------------------------------------------------------------------
 
+WriteFpgError:
+      ldx FpgError
+      inx
+      lda GameTextOffsets, x
+      tax
+      jsr DrawTilesFF
+      rts
+
 WriteTopStatusLine:
-      lda #$00          ;select main status bar
-      jsr WriteGameText ;output it
+      jsr WriteFpgError
+      ldx #$00          ; Sprite0 Crap
+      jsr DrawTilesFF
       jmp IncSubtask    ;onto the next task
 
 ;-------------------------------------------------------------------------------------
 
+InputText:
+  .db $20, $61, $0A, $12, $17, $19, $1e, $1d, $24, $28, $28, $28, $28 ; INPUT
+  .db $20, $6D, $05, $0f, $1b, $0a, $16, $0e  ; Frame
+  .db $00
+
 WriteBottomStatusLine:
-      jsr GetSBNybbles        ;write player's score and coin tally to screen
-      ldx VRAM_Buffer1_Offset
-      lda #$20                ;write address for world-area number on screen
-      sta VRAM_Buffer1,x
-      lda #$73
-      sta VRAM_Buffer1+1,x
-      lda #$03                ;write length for it
-      sta VRAM_Buffer1+2,x
-      ldy WorldNumber         ;first the world number
-      iny
-      tya
-      sta VRAM_Buffer1+3,x
-      lda #$28                ;next the dash
-      sta VRAM_Buffer1+4,x
-      ldy LevelNumber         ;next the level number
-      iny                     ;increment for proper number display
-      tya
-      sta VRAM_Buffer1+5,x    
-      lda #$00                ;put null terminator on
-      sta VRAM_Buffer1+6,x
-      txa                     ;move the buffer offset up by 6 bytes
-      clc
-      adc #$06
-      sta VRAM_Buffer1_Offset
-      jmp IncSubtask
+    ldx #0
+    ldy VRAM_Buffer1_Offset
+
+Rollerscates:
+    lda InputText, x
+    sta VRAM_Buffer1, y
+    beq InputTextCopied
+    inx
+    iny
+    bne Rollerscates;
+InputTextCopied:
+    tya
+    clc
+    adc VRAM_Buffer1_Offset
+    sta VRAM_Buffer1_Offset
+    jmp IncSubtask
 
 ;-------------------------------------------------------------------------------------
 
@@ -675,6 +662,7 @@ NoTimeUp: inc ScreenRoutineTask     ;increment control task 2 tasks forward
 ;-------------------------------------------------------------------------------------
 
 DisplayIntermediate:
+               jmp NoInter
                lda OperMode                 ;check primary mode of operation
                beq NoInter                  ;if in title screen mode, skip this
                cmp #GameOverModeValue       ;are we in game over mode?
@@ -770,137 +758,66 @@ IncModeTask_B: inc OperMode_Task  ;move onto next mode
 
 GameText:
 TopStatusBarLine:
-  .db $20, $43, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
-  .db $20, $52, $0b, $20, $18, $1b, $15, $0d ; "WORLD  TIME"
-  .db $24, $24, $1d, $12, $16, $0e
-  .db $20, $68, $05, $00, $24, $24, $2e, $29 ; score trailing digit and coin display
+  .db $20, $68, $05, $24, $24, $24, $2e, $24 ; score trailing digit and coin display
   .db $23, $c0, $7f, $aa ; attribute table data, clears name table 0 to palette 2
-  .db $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
+  ; .db $23, $c2, $01, $ea ; attribute table data, used for coin icon in status bar
   .db $ff ; end of data block
+FpgDefault:
+  .db $20, $41, $0a, $10, $18, $18, $0d, $24, $15, $1e, $0c, $14, $2b, $ff
+FpgBadPixel:
+  .db $20, $41, $1A, $17, $18, $1d, $24, $18, $17, $24, $01, $1c, $1d, $24, $19, $21, $24, $18, $0f, $24, $02, $17, $0d, $24, $0b, $15, $18, $0c, $14, $ff
+FpgNoRight:
+  .db $20, $41, $0A, $2b, $20, $0a, $17, $1d, $24, $28, $1b, $28, $28, $ff
+FpgNoRun:
+  .db $20, $41, $0A, $2b, $20, $0a, $17, $1d, $24, $28, $1b, $0b, $28, $ff
+FpgFullJump:
+  .db $20, $41, $0A, $2b, $20, $0a, $17, $1d, $24, $28, $1b, $0b, $0a, $ff
+FpgBadSpeed:
+  .db $20, $41, $10, $0b, $0a, $0d, $24, $1c, $19, $0e, $0e, $0d, $24, $1c, $1e, $0b, $28, $19, $21, $ff
+FpgLeftEarly:
+  .db $20, $41, $0F, $15, $0e, $0f, $1d, $24, $1d, $18, $18, $24, $0e, $0a, $1b, $15, $22, $2b, $ff
+FpgLeftOnly:
+  .db $20, $41, $0A, $2b, $20, $0a, $17, $1d, $24, $15, $28, $28, $28, $ff
+FpgLeftJump:
+  .db $20, $41, $0A, $2b, $20, $0a, $17, $1d, $24, $15, $28, $28, $0a, $ff
+FpgWin:
+  .db $20, $41, $14, $22, $18, $1e, $24, $0a, $1b, $0e, $24, $1c, $1e, $19, $0e, $1b, $24, $19, $15, $0a, $22, $0e, $1b, $ff
 
-WorldLivesDisplay:
-  .db $21, $cd, $07, $24, $24 ; cross with spaces used on
-  .db $29, $24, $24, $24, $24 ; lives display
-  .db $21, $4b, $09, $20, $18 ; "WORLD  - " used on lives display
-  .db $1b, $15, $0d, $24, $24, $28, $24
-  .db $22, $0c, $47, $24 ; possibly used to clear time up
-  .db $23, $dc, $01, $ba ; attribute table data for crown if more than 9 lives
-  .db $ff
-
-TwoPlayerTimeUp:
-  .db $21, $cd, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
-OnePlayerTimeUp:
-  .db $22, $0c, $07, $1d, $12, $16, $0e, $24, $1e, $19 ; "TIME UP"
-  .db $ff
-
-TwoPlayerGameOver:
-  .db $21, $cd, $05, $16, $0a, $1b, $12, $18 ; "MARIO"
-OnePlayerGameOver:
-  .db $22, $0b, $09, $10, $0a, $16, $0e, $24 ; "GAME OVER"
-  .db $18, $1f, $0e, $1b
-  .db $ff
-
-WarpZoneWelcome:
-  .db $25, $84, $15, $20, $0e, $15, $0c, $18, $16 ; "WELCOME TO WARP ZONE!"
-  .db $0e, $24, $1d, $18, $24, $20, $0a, $1b, $19
-  .db $24, $23, $18, $17, $0e, $2b
-  .db $26, $25, $01, $24         ; placeholder for left pipe
-  .db $26, $2d, $01, $24         ; placeholder for middle pipe
-  .db $26, $35, $01, $24         ; placeholder for right pipe
-  .db $27, $d9, $46, $aa         ; attribute data
-  .db $27, $e1, $45, $aa
-  .db $ff
-
-LuigiName:
-  .db $15, $1e, $12, $10, $12    ; "LUIGI", no address or length
-
-WarpZoneNumbers:
-  .db $04, $03, $02, $00         ; warp zone numbers, note spaces on middle
-  .db $24, $05, $24, $00         ; zone, partly responsible for
-  .db $08, $07, $06, $00         ; the minus world
 
 GameTextOffsets:
-  .db TopStatusBarLine-GameText, TopStatusBarLine-GameText
-  .db WorldLivesDisplay-GameText, WorldLivesDisplay-GameText
-  .db TwoPlayerTimeUp-GameText, OnePlayerTimeUp-GameText
-  .db TwoPlayerGameOver-GameText, OnePlayerGameOver-GameText
-  .db WarpZoneWelcome-GameText, WarpZoneWelcome-GameText
+  .db TopStatusBarLine - GameText
+  .db FpgDefault - GameText   ; 0
+  .db FpgBadPixel - GameText    ; 1
+  .db FpgNoRight - GameText   ; 2
+  .db FpgNoRun - GameText     ; 3
+  .db FpgFullJump - GameText    ; 4
+  .db FpgBadSpeed - GameText    ; 5
+  .db FpgLeftEarly - GameText   ; 6
+  .db FpgLeftOnly - GameText    ; 7
+  .db FpgLeftJump - GameText    ; 8
+  .db FpgWin - GameText     ; 9
+
+DrawTilesFF:
+    ldy VRAM_Buffer1_Offset
+GameTextLoop:
+    lda GameText, x
+    cmp #$ff
+    beq EndGameText
+    sta VRAM_Buffer1, y
+    inx
+    iny
+    bne GameTextLoop         ;do this for 256 bytes if no terminator found
+EndGameText:
+    lda #$00
+    sta VRAM_Buffer1, y
+    tya
+    clc
+    adc VRAM_Buffer1_Offset
+    sta VRAM_Buffer1_Offset
+    rts
 
 WriteGameText:
-               pha                      ;save text number to stack
-               asl
-               tay                      ;multiply by 2 and use as offset
-               cpy #$04                 ;if set to do top status bar or world/lives display,
-               bcc LdGameText           ;branch to use current offset as-is
-               cpy #$08                 ;if set to do time-up or game over,
-               bcc Chk2Players          ;branch to check players
-               ldy #$08                 ;otherwise warp zone, therefore set offset
-Chk2Players:   lda NumberOfPlayers      ;check for number of players
-               bne LdGameText           ;if there are two, use current offset to also print name
-               iny                      ;otherwise increment offset by one to not print name
-LdGameText:    ldx GameTextOffsets,y    ;get offset to message we want to print
-               ldy #$00
-GameTextLoop:  lda GameText,x           ;load message data
-               cmp #$ff                 ;check for terminator
-               beq EndGameText          ;branch to end text if found
-               sta VRAM_Buffer1,y       ;otherwise write data to buffer
-               inx                      ;and increment increment
-               iny
-               bne GameTextLoop         ;do this for 256 bytes if no terminator found
-EndGameText:   lda #$00                 ;put null terminator at end
-               sta VRAM_Buffer1,y
-               pla                      ;pull original text number from stack
-               tax
-               cmp #$04                 ;are we printing warp zone?
-               bcs PrintWarpZoneNumbers
-               dex                      ;are we printing the world/lives display?
-               bne CheckPlayerName      ;if not, branch to check player's name
-               lda $ce
-PutLives:      sta VRAM_Buffer1+8
-               ldy WorldNumber          ;write world and level numbers (incremented for display)
-               iny                      ;to the buffer in the spaces surrounding the dash
-               sty VRAM_Buffer1+19
-               ldy LevelNumber
-               iny
-               sty VRAM_Buffer1+21      ;we're done here
-               rts
-
-CheckPlayerName:
-             lda NumberOfPlayers    ;check number of players
-             beq ExitChkName        ;if only 1 player, leave
-             lda CurrentPlayer      ;load current player
-             dex                    ;check to see if current message number is for time up
-             bne ChkLuigi
-             ldy OperMode           ;check for game over mode
-             cpy #GameOverModeValue
-             beq ChkLuigi
-             eor #%00000001         ;if not, must be time up, invert d0 to do other player
-ChkLuigi:    lsr
-             bcc ExitChkName        ;if mario is current player, do not change the name
-             ldy #$04
-NameLoop:    lda LuigiName,y        ;otherwise, replace "MARIO" with "LUIGI"
-             sta VRAM_Buffer1+3,y
-             dey
-             bpl NameLoop           ;do this until each letter is replaced
-ExitChkName: rts
-
-PrintWarpZoneNumbers:
-             sbc #$04               ;subtract 4 and then shift to the left
-             asl                    ;twice to get proper warp zone number
-             asl                    ;offset
-             tax
-             ldy #$00
-WarpNumLoop: lda WarpZoneNumbers,x  ;print warp zone numbers into the
-             sta VRAM_Buffer1+27,y  ;placeholders from earlier
-             inx
-             iny                    ;put a number in every fourth space
-             iny
-             iny
-             iny
-             cpy #$0c
-             bcc WarpNumLoop
-             lda #$2c               ;load new buffer pointer at end of message
-             jmp SetVRAMOffset
+    rts 
 
 ;-------------------------------------------------------------------------------------
 
@@ -3829,14 +3746,101 @@ GameMode:
 
 ;-------------------------------------------------------------------------------------
 
+RedrawStatusBar:
+    ; $20, $61,
+    ldy VRAM_Buffer1_Offset
+    lda #$20
+    sta VRAM_Buffer1+0, y
+    lda #$67
+    sta VRAM_Buffer1+1, y
+    lda #$04
+    sta VRAM_Buffer1+2, y
+    ;
+    ; Left
+    ;
+    lda SavedJoypadBits
+    and #Left_Dir
+    beq NoLeftStatus
+    lda #$15
+    jmp WriteLeft
+NoLeftStatus:
+    lda #$28
+WriteLeft:
+    sta VRAM_Buffer1+3, y
+    ;
+    ; Right
+    ;
+    lda SavedJoypadBits
+    and #Right_Dir
+    beq NoRightStatus
+    lda #$1b
+    jmp WriteRight
+NoRightStatus:
+    lda #$28
+WriteRight:
+    sta VRAM_Buffer1+4, y
+    ;
+    ; B
+    ;
+    lda SavedJoypadBits
+    and #B_Button
+    beq NoBStatus
+    lda #$0b
+    jmp WriteB
+NoBStatus:
+    lda #$28
+WriteB:
+    sta VRAM_Buffer1+5, y
+    ;
+    ; A
+    ;
+    lda SavedJoypadBits
+    and #A_Button
+    beq NoAStatus
+    lda #$0a
+    jmp WriteA
+NoAStatus:
+    lda #$28
+WriteA:
+    sta VRAM_Buffer1+6, y
+    ;
+    ; Draw frame!
+    ;
+    lda #$20
+    sta VRAM_Buffer1+7, y
+    lda #$73
+    sta VRAM_Buffer1+8, y
+    lda #$3
+    sta VRAM_Buffer1+9, y
+
+    lda FrameCounter
+    jsr DivByTen
+    sta VRAM_Buffer1+12, y
+    txa
+    jsr DivByTen
+    sta VRAM_Buffer1+11, y
+    txa 
+    sta VRAM_Buffer1+10, y
+    ;
+    ; Finalize write command.
+    ;
+    lda #0
+    sta VRAM_Buffer1+13, y
+    tya
+    clc
+    adc #13
+    sta VRAM_Buffer1_Offset
+    rts
+
+;-------------------------------------------------------------------------------------
+
 GameCoreRoutine:
       lda FpgFlags
       and #$1
       bne FpgIsInitialized
-      lda FpgScrollTo
       lda #0
       sta ScrollFractional
-      lda #114                ;set 1 pixel per frame
+      lda FpgScrollTo         ;set 1 pixel per frame
       tay                     ;use as scroll amount
       jsr ScrollScreen        ;do sub to scroll the screen
       jsr UpdScrollVar        ;do another sub to update screen and scroll variables
@@ -3845,7 +3849,6 @@ GameCoreRoutine:
       sta FpgFlags
       jsr EnterFpgLoadPlayer
       rts
-
 FpgIsInitialized:
       ldx CurrentPlayer          ;get which player is on the screen
       lda SavedJoypadBits,x      ;use appropriate player's controller bits
@@ -3853,8 +3856,18 @@ FpgIsInitialized:
       jsr GameRoutines           ;execute one of many possible subs
       lda OperMode_Task          ;check major task of operating mode
       cmp #$03                   ;if we are supposed to be here,
-      bcs GameEngine             ;branch to the game engine itself
+      bcs DoGameEngine             ;branch to the game engine itself
+FpgKeepGoing:
       rts
+
+DoGameEngine:
+      jsr RedrawStatusBar
+      jsr GameEngine
+      jsr EnterFpgValidate
+      lda FpgFlags
+      asl
+      bcc FpgKeepGoing
+      jmp WriteFpgError
 
 GameEngine:
               jsr ProcFireball_Bubble    ;process fireballs and air bubbles
@@ -4038,6 +4051,18 @@ AutoControlPlayer:
       sta SavedJoypadBits         ;override controller bits with contents of A if executing here
 
 PlayerCtrlRoutine:
+            lda FpgFlags
+            and #$02
+            bne ProcessUserInputs
+            lda SavedJoypadBits
+            and #Left_Dir|Right_Dir
+            beq DontStartFpg
+            lda FpgFlags
+            ora #$02
+            sta FpgFlags
+DontStartFpg:
+            rts
+ProcessUserInputs:
             lda GameEngineSubroutine    ;check task here
             cmp #$0b                    ;if certain value is set, branch to skip controller bit loading
             beq SizeChk
@@ -5042,7 +5067,7 @@ GiveFPScr: ldy FlagpoleScore         ;get score offset from earlier (when player
            lda FlagpoleScoreMods,y   ;get amount to award player points
            ldx FlagpoleScoreDigits,y ;get digit with which to award points
            sta DigitModifier,x       ;store in digit modifier
-           jsr SMB_AddToScore        ;do sub to award player points depending on height of collision
+           jsr FPG_AddToScore        ;do sub to award player points depending on height of collision
            lda #$05
            sta GameEngineSubroutine  ;set to run end-of-level subroutine on next frame
 FPGfx:     jsr GetEnemyOffscreenBits ;get offscreen information
@@ -5281,55 +5306,18 @@ MiscLoopBack:
 
 ;-------------------------------------------------------------------------------------
 
-CoinTallyOffsets:
-      .db $17, $1d
-
-ScoreOffsets:
-      .db $0b, $11
-
-StatusBarNybbles:
-      .db $02, $13
-
-SMB_GiveOneCoin:
-      lda #$01               ;set digit modifier to add 1 coin
-      sta DigitModifier+5    ;to the current player's coin tally
-      ldx CurrentPlayer      ;get current player on the screen
-      ldy CoinTallyOffsets,x ;get offset for player's coin tally
-      jsr DigitsMathRoutine ;update the coin tally
-      inc CoinTally          ;increment onscreen player's coin amount
-      lda CoinTally
-      cmp #100               ;does player have 100 coins yet?
-      bne CoinPoints         ;if not, skip all of this
-      lda #$00
-      sta CoinTally          ;otherwise, reinitialize coin amount
-
+FPG_GiveOneCoin:
 CoinPoints:
-      lda #$02               ;set digit modifier to award
-      sta DigitModifier+4    ;200 points to the player
-
-SMB_AddToScore:
-      ldx CurrentPlayer      ;get current player
-      ldy ScoreOffsets,x     ;get offset for player's score
-      jsr DigitsMathRoutine ;update the score internally with value in digit modifier
-
+FPG_AddToScore:
 GetSBNybbles:
-      ldy CurrentPlayer      ;get current player
-      lda StatusBarNybbles,y ;get nybbles based on player, use to update score and coins
-
 UpdateNumber:
-        jsr PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
-        ldy VRAM_Buffer1_Offset   
-        lda VRAM_Buffer1-6,y      ;check highest digit of score
-        bne NoZSup                ;if zero, overwrite with space tile for zero suppression
-        lda #$24
-        sta VRAM_Buffer1-6,y
 NoZSup: ldx ObjectOffset          ;get enemy object buffer offset
         rts
 
 EnemyAddrHOffsets:
       .db $1f, $06, $1c, $00
 
-SMB_GetAreaDataAddrs:
+FPG_GetAreaDataAddrs:
             lda AreaPointer          ;use 2 MSB for Y
             jsr GetAreaType
             tay
@@ -5409,7 +5397,12 @@ StoreStyle: sta AreaStyle
             sta AreaDataHigh
             rts
 
-SMB_HandlePipeEntry:
+WarpZoneNumbers:
+  .db $04, $03, $02, $00         ; warp zone numbers, note spaces on middle
+  .db $24, $05, $24, $00         ; zone, partly responsible for
+  .db $08, $07, $06, $00         ; the minus world
+
+FPG_HandlePipeEntry:
          lda Up_Down_Buttons       ;check saved controller bits from earlier
          and #%00000100            ;for pressing down
          beq ExPipeE               ;if not pressing down, branch to leave
@@ -6025,6 +6018,11 @@ ClrTimersLoop: sta Timers,x             ;clear out memory between
                ; FPG load level
                ;
                jsr EnterFpgLoadArea
+               lda #$00
+               sta FpgFlags
+               sta FpgError
+               sta FpgRuleset
+
                lda ScreenEdge_PageLoc
                sta CurrentPageLoc       ;also set as current page
                sta BackloadingFlag      ;set flag here if halfway page or saved entry page number found
@@ -6072,7 +6070,7 @@ DoneInitArea:  lda #Silence             ;silence music
 
 ;--------------------------------
 
-SMB_RunFireworks:
+FPG_RunFireworks:
            dec ExplosionTimerCounter,x ;decrement explosion timing counter here
            bne SetupExpl               ;if not expired, skip this part
            lda #$08
@@ -6111,7 +6109,7 @@ StarFlagXPosAdder:
 StarFlagTileData:
       .db $54, $55, $56, $57
 
-SMB_RunStarFlagObj:
+FPG_RunStarFlagObj:
       lda #$00                 ;initialize enemy frenzy buffer
       sta EnemyFrenzyBuffer
       lda StarFlagTaskControl  ;check star flag object task number here
@@ -6235,7 +6233,7 @@ StarFlagExit2:
 
 ;-------------------------------------------------------------------------------------
 
-SMB_Start:
+FPG_Start:
              lda #%00010000               ;init PPU control register 1 
              sta PPU_CTRL_REG1
              ldx #$ff                     ;reset stack pointer

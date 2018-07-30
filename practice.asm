@@ -254,20 +254,6 @@ RedrawPosition:
 		rts
 
 ;-------------------------------------------------------------------------------------
-
-DivByTen:
-		ldx #$00
-DivMore:
- 		cmp #$0a
- 		bcc DivByTenDone
- 		sbc #$0a
- 		inx
- 		sec
- 		bcs DivMore
-DivByTenDone:
- 		rts
-
-;-------------------------------------------------------------------------------------
 ;$00 - vram buffer address table low, also used for pseudorandom bit
 ;$01 - vram buffer address table high
 

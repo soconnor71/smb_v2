@@ -7880,6 +7880,18 @@ NoHammer: ldx ObjectOffset         ;get original enemy object offset
           clc                      ;return with carry clear
           rts
 
+DivByTen:
+    ldx #$00
+DivMore:
+    cmp #$0a
+    bcc DivByTenDone
+    sbc #$0a
+    inx
+    sec
+    bcs DivMore
+DivByTenDone:
+    rts
+
 ;
 ; Exported from swappable banks
 ;

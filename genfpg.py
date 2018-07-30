@@ -14,6 +14,7 @@ player_vars = [
 	"DiffToHaltJump",
 	"HorizontalScroll",
 
+	"FrameCounter",
 	"FrictionAdderLow",
 	"FrictionAdderHigh",
 

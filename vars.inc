@@ -17,6 +17,7 @@ FpgRuleset = $0717	; DemoAction
 FpgSelected = $075a	; NumberOfLives
 FpgFlags  = $0761	; OffScr_NumberofLives
 FpgScrollTo = $07d7 ; TopScoreDisplay+0
+FpgError = $07d8	; TopScoreDisplay+1
 
 PPU_CTRL_REG1         = $2000
 PPU_CTRL_REG2         = $2001

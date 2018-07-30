@@ -8,11 +8,6 @@
         "frame": 108
       },
       {
-        "input": "r",
-        "frame": 108,
-        "method": "input"
-      },
-      {
         "y": 41,
         "x": 228,
         "method": "pixel",
