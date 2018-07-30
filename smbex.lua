@@ -60,9 +60,10 @@ function on_start_new()
 		Player_SprAttrib      = memory.readbyte(0x03c4),
 		Player_YMF_Dummy      = memory.readbyte(0x0416),
 		Player_Y_MoveForce    = memory.readbyte(0x0433),
-		--
-		-- 0x400
-		--
+		Player_CollisionBits  = memory.readbyte(0x0490),
+		Platform_X_Scroll     = memory.readbyte(0x03a1),
+		PlatformCollisionFlag = memory.readbyte(0x03a2),
+		SprObject_X_MoveForce = memory.readbyte(0x0400),
 		MaximumLeftSpeed      = memory.readbyte(0x0450),
 		MaximumRightSpeed     = memory.readbyte(0x0456),
 		--
