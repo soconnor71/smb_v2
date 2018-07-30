@@ -47,6 +47,7 @@ function on_start_new()
 		frame = memory.readbyte(0x09),
 			
 		Player_State          = memory.readbyte(0x1d),
+		PlayerFacingDir       = memory.readbyte(0x33),
 		Player_MovingDir      = memory.readbyte(0x45),
 		Player_X_Speed        = memory.readbyte(0x57),
 		Player_PageLoc        = memory.readbyte(0x6d),
@@ -88,12 +89,18 @@ function on_start_new()
 		ScreenLeft_X_Pos      = memory.readbyte(0x071c),
 		ScreenRight_X_Pos     = memory.readbyte(0x071d),
 
+		HorizontalScroll      = memory.readbyte(0x073f),
+		VerticalScroll        = memory.readbyte(0x0740),
+		ScrollLock            = memory.readbyte(0x0723),
+		ScrollThirtyTwo       = memory.readbyte(0x073d),
+		Player_X_Scroll       = memory.readbyte(0x06ff),
+		Player_Pos_ForScroll  = memory.readbyte(0x0755),
+		ScrollAmount          = memory.readbyte(0x0775),
+		ScrollFractional      = memory.readbyte(0x0768),
+		
 		LevelNumber           = memory.readbyte(0x075c),
 		WorldNumber           = memory.readbyte(0x075f),
 		AreaNumber            = memory.readbyte(0x0760),
-		
-		OffScr_WorldNumber    = memory.readbyte(0x0766),
-		OffScr_AreaNumber     = memory.readbyte(0x0767),
 		
 		IntervalTimerControl  = memory.readbyte(0x077f),
 		
