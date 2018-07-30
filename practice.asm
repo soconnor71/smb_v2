@@ -449,8 +449,8 @@ ExitRestarts:
 HandleRestarts:
 		lda JoypadBitMask
 		ora SavedJoypadBits
-      cmp #Up_Dir
-      beq ToggleRenderMode
+		cmp #Up_Dir
+		beq ToggleRenderMode
 		eor #Select_Button
 		cmp #Up_Dir
 		beq LoadGameState
@@ -459,6 +459,8 @@ HandleRestarts:
 		jmp InitMapper
 
 LoadSaveState:
+		lda #$0
+		sta PlayerChangeSizeFlag
 		lda SaveIntervalTimerControl
 		sta IntervalTimerControl
 		lda SaveFrame
@@ -517,12 +519,15 @@ ToggleRenderMode:
 SockMode:
 		rts
 
+LoadSaveStateProxy:
+		jmp LoadSaveState
+
 HandleSaveState:
 		lda OperMode
 		beq AlreadyHasSaveState
 		lda SaveStateFlags
 		and #$40
-		bne LoadSaveState
+		bne LoadSaveStateProxy
 		lda SaveStateFlags
 		and #$80
 		bne AlreadyHasSaveState

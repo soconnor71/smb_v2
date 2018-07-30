@@ -373,7 +373,7 @@ static_sprite_data:
 	;
 
 palette_data:
-		.db $0f, $26, $15, $20 ; White box, hightlight text
+		.db $0f, $2a, $1a, $20 ; White box, hightlight text
 		.db $0f                ; Star unused
 palette_star_shuffle:
 		.db $30, $2c, $00      ; Stars
