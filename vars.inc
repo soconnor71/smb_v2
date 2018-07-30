@@ -13,6 +13,11 @@ CHR_SMB = 0
 CHR_PRACTICE = 2
 CHR_LOADER = 4
 
+FpgRuleset = $0717	; DemoAction
+FpgSelected = $075a	; NumberOfLives
+FpgFlags  = $0761	; OffScr_NumberofLives
+FpgScrollTo = $07d7 ; TopScoreDisplay+0
+
 PPU_CTRL_REG1         = $2000
 PPU_CTRL_REG2         = $2001
 PPU_STATUS            = $2002

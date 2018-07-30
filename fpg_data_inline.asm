@@ -18,15 +18,15 @@ fpg_validate:
 		sta $1
 		jmp ($0)
 
-fpg_load_level:
+fpg_load_area:
 		jsr fpg_offset_to_y
-		lda fpg_load_level_func, y
+		lda fpg_load_area_func, y
 		sta $0
-		lda fpg_load_level_func+1, y
+		lda fpg_load_area_func+1, y
 		sta $1
 		jmp ($0)
 
-fpg_load_player_func:
+fpg_load_player:
 		jsr fpg_offset_to_y
 		lda fpg_load_player_func, y
 		sta $0
@@ -79,3 +79,33 @@ fpg_game_over_input:
 ;
 fpg_win:
 		rts
+
+
+.seekoff $3fd0 $ea
+EnterFpgLoadArea:
+	lda #BANK_FPG_DATA
+	jsr SetBankFromA
+	jsr fpg_load_area
+	lda BANK_SELECTED
+	jmp SetBankFromA
+
+EnterFpgLoadPlayer:
+	lda #BANK_FPG_DATA
+	jsr SetBankFromA
+	jsr fpg_load_player
+	lda BANK_SELECTED
+	jmp SetBankFromA
+
+EnterFpgValidate:
+	lda #BANK_FPG_DATA
+	jsr SetBankFromA
+	jsr fpg_validate
+	lda BANK_SELECTED
+	jmp SetBankFromA
+
+
+
+
+
+
+

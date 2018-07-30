@@ -463,11 +463,11 @@ ExitRestarts:
 HandleRestarts:
 		lda JoypadBitMask
 		ora SavedJoypadBits
+      cmp #Up_Dir
+      beq ToggleRenderMode
 		eor #Select_Button
 		cmp #Up_Dir
 		beq LoadGameState
-		cmp #Right_Dir
-		beq ToggleRenderMode
 		cmp #Down_Dir
 		bne ExitRestarts
 		jmp InitMapper

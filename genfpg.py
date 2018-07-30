@@ -1,59 +1,80 @@
 import sys
 import json
 
-level_vars = [
-	"ScreenRight_PageLoc",
-	"ScreenLeft_X_Pos",
-	"ScreenRight_X_Pos",
-	"OffScr_WorldNumber",
-	"WorldNumber",
-	"OffScr_AreaNumber",
-	"AreaNumber",
-	"LevelNumber",
+area_vars = [
 	"ScreenEdge_PageLoc",
 	"Player_PageLoc",
-	"FrameCounter",
+	"WorldNumber",
+	"AreaNumber",
+	"LevelNumber",
+]
+
+player_vars = [
+	"CrouchingFlag",
+	"DiffToHaltJump",
+	"HorizontalScroll",
+
+	"FrictionAdderLow",
+	"FrictionAdderHigh",
+
 	"IntervalTimerControl",
+	"JumpOrigin_Y_HighPos",
+	"JumpOrigin_Y_Position",
+
+	"MaximumLeftSpeed",
+	"MaximumRightSpeed",
+
+	"PlayerAnimCtrl",
+	"PlayerChangeSizeFlag",
+
+	"Player_MovingDir",
+	"Player_YMF_Dummy",
+	"Player_SprAttrib",
+	"Player_State",
+
+	"Player_Pos_ForScroll",
+	"Player_Rel_XPos",
+	"Player_Rel_YPos",
+
+	"Player_X_MoveForce",
+	"Player_X_Position",
+	"Player_X_Scroll",
+	"Player_X_Speed",
+	"Player_XSpeedAbsolute",
+
+	"Player_Y_HighPos",
+	"Player_Y_MoveForce",
+	"Player_Y_Position",
+	"Player_Y_Speed",
+
+	"PlayerAnimTimerSet",
+	"PlayerFacingDir",
+
 	"PseudoRandomBitReg+0",
+	"PseudoRandomBitReg+1",	
 	"PseudoRandomBitReg+2",
-	"PseudoRandomBitReg+1",
 	"PseudoRandomBitReg+3",
 	"PseudoRandomBitReg+4",
 	"PseudoRandomBitReg+5",
 	"PseudoRandomBitReg+6",
-	"PseudoRandomBitReg+7"
-]
+	"PseudoRandomBitReg+7",
 
-player_vars = [
-	"Player_X_Speed",
-	"Player_State",
-	"Player_YMF_Dummy",
-	"JumpOrigin_Y_Position",
-	"FrictionAdderLow",
-	"Player_Rel_YPos",
-	"MaximumLeftSpeed",
-	"Player_Rel_XPos",
-	"Player_MovingDir",
-	"Player_Y_Speed",
-	"Player_SprAttrib",
-	"Player_XSpeedAbsolute",
-	"CrouchingFlag",
-	"Player_Y_MoveForce",
-	"PlayerAnimCtrl",
 	"RunningSpeed",
-	"VerticalForce",
-	"FrictionAdderHigh",
-	"Player_Y_HighPos",
+
+	"ScreenRight_X_Pos",
+	"ScreenRight_PageLoc",
+	"ScreenLeft_X_Pos",
+	
+	"ScrollAmount",
+	"ScrollFractional",
+	"ScrollLock",
+	"ScrollThirtyTwo",
+
 	"SwimmingFlag",
-	"PlayerChangeSizeFlag",
-	"JumpOrigin_Y_HighPos",
-	"MaximumRightSpeed",
-	"DiffToHaltJump",
-	"Player_X_Position",
-	"PlayerAnimTimerSet",
+
+	"VerticalForce",
 	"VerticalForceDown",
-	"Player_X_MoveForce",
-	"Player_Y_Position"
+	"VerticalScroll",
 ]
 
 configs = []
@@ -63,6 +84,9 @@ def make_function(j, name, v):
 	for it in v:
 		print('\t\tlda #$%02X' % (j[it]))
 		print('\t\tsta %s' % (it))
+	if 'load_area' == name:
+		print('\t\tlda #$%02X' % (j['ScreenRight_X_Pos']))
+		print('\t\tsta FpgScrollTo')
 	print('\t\trts')
 
 def get_input(s):
@@ -141,8 +165,6 @@ print('''
 	.index 8
 	.mem 8
 	.vars vars.inc
-FpgRuleset = $124
-FpgSelected = $124
 	.org $8000
 	.db $ba, BANK_FPG_DATA
 ''')
@@ -159,7 +181,7 @@ for it in sys.argv[1:]:
 	j["PseudoRandomBitReg+6"] = j['PseudoRandomBitReg6']
 	j["PseudoRandomBitReg+7"] = j['PseudoRandomBitReg7']
 
-	make_function(j, 'load_level', level_vars)
+	make_function(j, 'load_area', area_vars)
 	make_function(j, 'load_player', player_vars)
 	make_rules(j['name'], j['rules'])
 	configs.append({ 'name': j['name'], 'rulesets': len(j['rules']) })
@@ -172,8 +194,8 @@ for i in range(0, len(configs)):
 	name = configs[i]['name']
 	if (0 == i): print('fpg_configs:')
 	print('\t\t.db %s ; %s' % (get_text(name), name))
-	if (0 == i): print('fpg_load_level_func:')
-	print('\t\t.dw %s_load_level' % (name))
+	if (0 == i): print('fpg_load_area_func:')
+	print('\t\t.dw %s_load_area' % (name))
 	if (0 == i): print('fpg_load_player_func:')
 	print('\t\t.dw %s_load_player' % (name))
 	if (0 == i): print('fpg_validate_func:')

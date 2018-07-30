@@ -91,7 +91,6 @@ InitBuffer:    ldx VRAM_Buffer_Offset,y
                jsr EnterSoundEngine      ;play sound
                jsr ReadJoypads           ;read joypads
                jsr PauseRoutine          ;handle pause
-               jsr UpdateTopScore
                lda GamePauseStatus       ;check for pause status
                lsr
                bcs PauseSkip
@@ -472,8 +471,6 @@ EndChkBButton: lda SavedJoypad1Bits
                beq EndExitTwo             ;branch to leave if not
                lda #$01                   ;otherwise set world selection flag
                sta WorldSelectEnableFlag
-               lda #$ff                   ;remove onscreen player's lives
-               sta NumberofLives
                jsr TerminateGame          ;do sub to continue other player or end game
 EndExitTwo:    rts                        ;leave
 
@@ -519,9 +516,6 @@ DecNumTimer:  dec FloateyNum_Timer,x       ;decrement value here
               bne ChkTallEnemy
               cpy #$0b                     ;check offset for $0b
               bne LoadNumTiles             ;branch ahead if not found
-              inc NumberofLives            ;give player one extra life (1-up)
-              lda #Sfx_ExtraLife
-              sta Square2SoundQueue        ;and play the 1-up sound
 LoadNumTiles: lda ScoreUpdateData,y        ;load point value here
               lsr                          ;move high nybble to low
               lsr
@@ -769,8 +763,6 @@ TScrClear:   sta VRAM_Buffer1-1,x
 ;-------------------------------------------------------------------------------------
 
 WriteTopScore:
-               lda #$fa           ;run display routine to display top score on title
-               jsr UpdateNumber
 IncModeTask_B: inc OperMode_Task  ;move onto next mode
                rts
 
@@ -863,14 +855,7 @@ EndGameText:   lda #$00                 ;put null terminator at end
                bcs PrintWarpZoneNumbers
                dex                      ;are we printing the world/lives display?
                bne CheckPlayerName      ;if not, branch to check player's name
-               lda NumberofLives        ;otherwise, check number of lives
-               clc                      ;and increment by one for display
-               adc #$01
-               cmp #10                  ;more than 9 lives?
-               bcc PutLives
-               sbc #10                  ;if so, subtract 10 and put a crown tile
-               ldy #$9f                 ;next to the difference...strange things happen if
-               sty VRAM_Buffer1+7       ;the number of lives exceeds 19
+               lda $ce
 PutLives:      sta VRAM_Buffer1+8
                ldy WorldNumber          ;write world and level numbers (incremented for display)
                iny                      ;to the buffer in the spaces surrounding the dash
@@ -1489,32 +1474,6 @@ CarryOne:   sec                       ;subtract ten from our digit to make it a
 
 ;-------------------------------------------------------------------------------------
 
-UpdateTopScore:
-      ldx #$05          ;start with mario's score
-      jsr TopScoreCheck
-      ldx #$0b          ;now do luigi's score
-
-TopScoreCheck:
-              ldy #$05                 ;start with the lowest digit
-              sec           
-GetScoreDiff: lda PlayerScoreDisplay,x ;subtract each player digit from each high score digit
-              sbc TopScoreDisplay,y    ;from lowest to highest, if any top score digit exceeds
-              dex                      ;any player digit, borrow will be set until a subsequent
-              dey                      ;subtraction clears it (player digit is higher than top)
-              bpl GetScoreDiff      
-              bcc NoTopSc              ;check to see if borrow is still set, if so, no new high score
-              inx                      ;increment X and Y once to the start of the score
-              iny
-CopyScore:    lda PlayerScoreDisplay,x ;store player's score digits into high score memory area
-              sta TopScoreDisplay,y
-              inx
-              iny
-              cpy #$06                 ;do this until we have stored them all
-              bcc CopyScore
-NoTopSc:      rts
-
-;-------------------------------------------------------------------------------------
-
 DefaultSprOffsets:
       .db $04, $30, $48, $60, $78, $90, $a8, $c0
       .db $d8, $e8, $24, $f8, $fc, $28, $2c
@@ -1528,10 +1487,6 @@ PrimaryGameSetup:
       lda #$01
       sta FetchNewGameTimerFlag   ;set flag to load game timer from header
       sta PlayerSize              ;set player's size to small
-      lda #$02
-      sta NumberofLives           ;give each player three lives
-      sta OffScr_NumberofLives
-
 SecondaryGameSetup:
              lda #$00
              sta DisableScreenFlag     ;enable screen output
@@ -1621,14 +1576,14 @@ GameTimerData:
 Entrance_GameTimerSetup:
           lda ScreenLeft_PageLoc      ;set current page for area objects
           sta Player_PageLoc          ;as page location for player
-          lda #$28                    ;store value here
-          sta VerticalForceDown       ;for fractional movement downwards if necessary
-          lda #$01                    ;set high byte of player position and
-          sta PlayerFacingDir         ;set facing direction so that player faces right
-          sta Player_Y_HighPos
-          lda #$00                    ;set player state to on the ground by default
-          sta Player_State
-          dec Player_CollisionBits    ;initialize player's collision bits
+          ;lda #$28                    ;store value here
+          ;sta VerticalForceDown       ;for fractional movement downwards if necessary
+          ;lda #$01                    ;set high byte of player position and
+          ;sta PlayerFacingDir         ;set facing direction so that player faces right
+          ;sta Player_Y_HighPos
+          ;lda #$00                    ;set player state to on the ground by default
+          ;sta Player_State
+          ;dec Player_CollisionBits    ;initialize player's collision bits
           ldy #$00                    ;initialize halfway page
           sty HalfwayPage      
           lda AreaType                ;check area type
@@ -1636,15 +1591,6 @@ Entrance_GameTimerSetup:
           iny
 ChkStPos: sty SwimmingFlag
           ldx PlayerEntranceCtrl      ;get starting position loaded from header
-          ldy AltEntranceControl      ;check alternate mode of entry flag for 0 or 1
-          beq SetStPos
-          cpy #$01
-          beq SetStPos
-          ldx AltYPosOffset-2,y       ;if not 0 or 1, override $0710 with new offset in X
-SetStPos: lda PlayerStarting_X_Pos,y  ;load appropriate horizontal position
-          sta Player_X_Position       ;and vertical positions for the player, using
-          lda PlayerStarting_Y_Pos,x  ;AltEntranceControl as offset for horizontal and either $0710
-          sta Player_Y_Position       ;or value that overwrote $0710 as offset for vertical
           lda PlayerBGPriorityData,x
           sta Player_SprAttrib        ;set player sprite attributes using offset in X
           jsr GetPlayerColors         ;get appropriate player palette
@@ -1662,8 +1608,8 @@ SetStPos: lda PlayerStarting_X_Pos,y  ;load appropriate horizontal position
           sta StarInvincibleTimer     ;clear star mario timer
 ChkOverR: ldy JoypadOverride          ;if controller bits not set, branch to skip this part
           beq ChkSwimE
-          lda #$03                    ;set player state to climbing
-          sta Player_State
+          ;lda #$03                    ;set player state to climbing
+          ;sta Player_State
           ldx #$00                    ;set offset for first slot, for block object
           jsr InitBlock_XY_Pos
           lda #$f0                    ;set vertical coordinate for block object
@@ -1697,13 +1643,6 @@ PlayerLoseLife:
              sta Sprite0HitDetectFlag
              lda #Silence             ;silence music
              sta EventMusicQueue
-             dec NumberofLives        ;take one life from player
-             bpl StillInGame          ;if player still has lives, branch
-             lda #$00
-             sta OperMode_Task        ;initialize mode task,
-             lda #GameOverModeValue   ;switch to game over mode
-             sta OperMode             ;and leave
-             rts
 StillInGame: lda WorldNumber          ;multiply world number by 2 and use
              asl                      ;as offset
              tax
@@ -1726,7 +1665,6 @@ MaskHPNyb:   and #%00001111           ;mask out all but lower nybble
              bcc SetHalfway           ;otherwise player must start at the
              lda #$00                 ;beginning of the level
 SetHalfway:  sta HalfwayPage          ;store as halfway page for player
-             jsr TransposePlayers     ;switch players around if 2-player game
              jmp ContinueGame         ;continue the game
 
 ;-------------------------------------------------------------------------------------
@@ -1764,17 +1702,6 @@ RunGameOver:
 TerminateGame:
       lda #Silence          ;silence music
       sta EventMusicQueue
-      jsr TransposePlayers  ;check if other player can keep
-      bcc ContinueGame      ;going, and do so if possible
-      lda WorldNumber       ;otherwise put world number of current
-      sta ContinueWorld     ;player into secret continue function variable
-      lda #$00
-      asl                   ;residual ASL instruction
-      sta OperMode_Task     ;reset all modes to title screen and
-      sta ScreenTimer       ;leave
-      sta OperMode
-      rts
-
 ContinueGame:
            jsr LoadAreaPointer       ;update level pointer with
            lda #$01                  ;actual world and area numbers, then
@@ -1788,27 +1715,6 @@ ContinueGame:
            lda #$01                  ;if in game over mode, switch back to
            sta OperMode              ;game mode, because game is still on
 GameIsOn:  rts
-
-TransposePlayers:
-           sec                       ;set carry flag by default to end game
-           lda NumberOfPlayers       ;if only a 1 player game, leave
-           beq ExTrans
-           lda OffScr_NumberofLives  ;does offscreen player have any lives left?
-           bmi ExTrans               ;branch if not
-           lda CurrentPlayer         ;invert bit to update
-           eor #%00000001            ;which player is on the screen
-           sta CurrentPlayer
-           ldx #$06
-TransLoop: lda OnscreenPlayerInfo,x    ;transpose the information
-           pha                         ;of the onscreen player
-           lda OffscreenPlayerInfo,x   ;with that of the offscreen player
-           sta OnscreenPlayerInfo,x
-           pla
-           sta OffscreenPlayerInfo,x
-           dex
-           bpl TransLoop
-           clc            ;clear carry flag to get game going
-ExTrans:   rts
 
 ;-------------------------------------------------------------------------------------
 
@@ -3924,6 +3830,23 @@ GameMode:
 ;-------------------------------------------------------------------------------------
 
 GameCoreRoutine:
+      lda FpgFlags
+      and #$1
+      bne FpgIsInitialized
+      lda FpgScrollTo
+      lda #0
+      sta ScrollFractional
+      lda #114                ;set 1 pixel per frame
+      tay                     ;use as scroll amount
+      jsr ScrollScreen        ;do sub to scroll the screen
+      jsr UpdScrollVar        ;do another sub to update screen and scroll variables
+      lda #$1
+      ora FpgFlags
+      sta FpgFlags
+      jsr EnterFpgLoadPlayer
+      rts
+
+FpgIsInitialized:
       ldx CurrentPlayer          ;get which player is on the screen
       lda SavedJoypadBits,x      ;use appropriate player's controller bits
       sta SavedJoypadBits        ;as the master controller bits
@@ -4104,61 +4027,8 @@ GameRoutines:
 ;-------------------------------------------------------------------------------------
 
 PlayerEntrance:
-            lda AltEntranceControl    ;check for mode of alternate entry
-            cmp #$02
-            beq EntrMode2             ;if found, branch to enter from pipe or with vine
-            lda #$00       
-            ldy Player_Y_Position     ;if vertical position above a certain
-            cpy #$30                  ;point, nullify controller bits and continue
-            bcc AutoControlPlayer     ;with player movement code, do not return
-            lda PlayerEntranceCtrl    ;check player entry bits from header
-            cmp #$06
-            beq ChkBehPipe            ;if set to 6 or 7, execute pipe intro code
-            cmp #$07                  ;otherwise branch to normal entry
-            bne PlayerRdy
-ChkBehPipe: lda Player_SprAttrib      ;check for sprite attributes
-            bne IntroEntr             ;branch if found
-            lda #$01
-            jmp AutoControlPlayer     ;force player to walk to the right
-IntroEntr:  jsr EnterSidePipe         ;execute sub to move player to the right
-            dec ChangeAreaTimer       ;decrement timer for change of area
-            bne ExitEntr              ;branch to exit if not yet expired
-            inc DisableIntermediate   ;set flag to skip world and lives display
-            jmp NextArea              ;jump to increment to next area and set modes
-EntrMode2:  lda JoypadOverride        ;if controller override bits set here,
-            bne VineEntr              ;branch to enter with vine
-            lda #$ff                  ;otherwise, set value here then execute sub
-            jsr MovePlayerYAxis       ;to move player upwards (note $ff = -1)
-            lda Player_Y_Position     ;check to see if player is at a specific coordinate
-            cmp #$91                  ;if player risen to a certain point (this requires pipes
-            bcc PlayerRdy             ;to be at specific height to look/function right) branch
-            rts                       ;to the last part, otherwise leave
-VineEntr:   lda VineHeight
-            cmp #$60                  ;check vine height
-            bne ExitEntr              ;if vine not yet reached maximum height, branch to leave
-            lda Player_Y_Position     ;get player's vertical coordinate
-            cmp #$99                  ;check player's vertical coordinate against preset value
-            ldy #$00                  ;load default values to be written to 
-            lda #$01                  ;this value moves player to the right off the vine
-            bcc OffVine               ;if vertical coordinate < preset value, use defaults
-            lda #$03
-            sta Player_State          ;otherwise set player state to climbing
-            iny                       ;increment value in Y
-            lda #$08                  ;set block in block buffer to cover hole, then 
-            sta Block_Buffer_1+$b4    ;use same value to force player to climb
-OffVine:    sty DisableCollisionDet   ;set collision detection disable flag
-            jsr AutoControlPlayer     ;use contents of A to move player up or right, execute sub
-            lda Player_X_Position
-            cmp #$48                  ;check player's horizontal position
-            bcc ExitEntr              ;if not far enough to the right, branch to leave
 PlayerRdy:  lda #$08                  ;set routine to be executed by game engine next frame
             sta GameEngineSubroutine
-            lda #$01                  ;set to face player to the right
-            sta PlayerFacingDir
-            lsr                       ;init A
-            sta AltEntranceControl    ;init mode of entry
-            sta DisableCollisionDet   ;init collision detection disable flag
-            sta JoypadOverride        ;nullify controller override bits
 ExitEntr:   rts                       ;leave!
 
 ;-------------------------------------------------------------------------------------
@@ -5432,9 +5302,6 @@ SMB_GiveOneCoin:
       bne CoinPoints         ;if not, skip all of this
       lda #$00
       sta CoinTally          ;otherwise, reinitialize coin amount
-      inc NumberofLives      ;give the player an extra life
-      lda #Sfx_ExtraLife
-      sta Square2SoundQueue  ;play 1-up sound
 
 CoinPoints:
       lda #$02               ;set digit modifier to award
@@ -6145,9 +6012,6 @@ InitializeGame:
 ClrSndLoop:  sta SoundMemory,y     ;clear out memory used
              dey                   ;by the sound engines
              bpl ClrSndLoop
-             lda #$18              ;set demo timer
-             sta DemoTimer
-             jsr LoadAreaPointer
 
 InitializeArea:
                ldy #$4b                 ;clear all memory again, only as far as $074b
@@ -6157,13 +6021,15 @@ InitializeArea:
 ClrTimersLoop: sta Timers,x             ;clear out memory between
                dex                      ;$0780 and $07a1
                bpl ClrTimersLoop
-               lda HalfwayPage
-               ldy AltEntranceControl   ;if AltEntranceControl not set, use halfway page, if any found
-               beq StartPage
-               lda EntrancePage         ;otherwise use saved entry page number here
-StartPage:     sta ScreenLeft_PageLoc   ;set as value here
+               ;
+               ; FPG load level
+               ;
+               jsr EnterFpgLoadArea
+               lda ScreenEdge_PageLoc
                sta CurrentPageLoc       ;also set as current page
                sta BackloadingFlag      ;set flag here if halfway page or saved entry page number found
+               jsr LoadAreaPointer
+
                jsr GetScreenPosition    ;get pixel coordinates for screen borders
                ldy #$20                 ;if on odd numbered page, use $2480 as start of rendering
                and #%00000001           ;otherwise use $2080, this address used later as name table
@@ -6381,16 +6247,6 @@ VBlank2:     lda PPU_STATUS
              ;
              ; Load correct CHR rom
              ;
-             ldy #ColdBootOffset          ;load default cold boot pointer
-             ldx #$05                     ;this is where we check for a warm boot
-WBootCheck:  lda TopScoreDisplay,x        ;check each score digit in the top score
-             cmp #10                      ;to see if we have a valid digit
-             bcs ColdBoot                 ;if not, give up and proceed with cold boot
-             dex                      
-             bpl WBootCheck
-             lda WarmBootValidation       ;second checkpoint, check to see if 
-             cmp #$a5                     ;another location has a specific value
-             bne ColdBoot   
              ldy #WarmBootOffset          ;if passed both, load warm boot pointer
 ColdBoot:    jsr InitializeMemory         ;clear memory using pointer in Y
              sta SND_DELTA_REG+1          ;reset delta counter load register
@@ -6411,5 +6267,27 @@ ColdBoot:    jsr InitializeMemory         ;clear memory using pointer in Y
 EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 
 ;-------------------------------------------------------------------------------------
+
+.seekoff $3fd0 $ea
+EnterFpgLoadArea:
+  lda #BANK_FPG_DATA
+  jsr SetBankFromA
+  jsr fpg_load_area
+  lda BANK_SELECTED
+  jmp SetBankFromA
+
+EnterFpgLoadPlayer:
+  lda #BANK_FPG_DATA
+  jsr SetBankFromA
+  jsr fpg_load_player
+  lda BANK_SELECTED
+  jmp SetBankFromA
+
+EnterFpgValidate:
+  lda #BANK_FPG_DATA
+  jsr SetBankFromA
+  jsr fpg_validate
+  lda BANK_SELECTED
+  jmp SetBankFromA
 
 
