@@ -127,6 +127,8 @@ RotPRandomBit: ror PseudoRandomBitReg,x  ;rotate carry into d7, and rotate last 
                dey                       ;decrement for loop
                bne RotPRandomBit
 PauseSkip:
+               lda DisableScreenFlag
+               bne SkipSprite0
                lda Sprite0HitDetectFlag  ;check for flag here
                beq SkipSprite0
 Sprite0Clr:    lda PPU_STATUS            ;wait for sprite 0 flag to clear, which will
@@ -164,14 +166,8 @@ CheckFpgResetKey:
               ora JoypadBitMask
               and #Select_Button
               beq SkipMainOper
-              ldx #0
-              stx FpgError
-              stx FpgFlags
-              stx FpgRuleset
-              stx OperMode_Task
-              inx
-              stx OperMode
-              rti
+              jsr RestartFpg
+              jmp SkipMainOper
 
 ;-------------------------------------------------------------------------------------
 ;$00 - vram buffer address table low, also used for pseudorandom bit
@@ -272,6 +268,8 @@ TitleScreenMode:
 ;-------------------------------------------------------------------------------------
 
 GameMenuRoutine:
+    lda #$0
+    sta DisableScreenFlag
     lda SavedJoypad1Bits
     cmp FpgLastInput
     beq PrintFpgName
@@ -286,17 +284,21 @@ GameMenuRoutine:
     ;
     ; Start it...
     ;
+RestartFpg:
     ldx #0              ; nuke v?
     stx LevelNumber
     stx WorldNumber
     stx AreaNumber
+    stx OperMode_Task
+    stx FpgError
+    stx FpgRuleset
+    inx
+    stx Hidden1UpFlag
+    stx OffScr_Hidden1UpFlag
+    stx FetchNewGameTimerFlag
+    stx OperMode
+    stx DisableScreenFlag
     jsr LoadAreaPointer ; nuke ^?
-    inc Hidden1UpFlag
-    inc OffScr_Hidden1UpFlag
-    inc FetchNewGameTimerFlag
-    inc OperMode
-    lda #$00
-    sta OperMode_Task
     lda #$40
     sta FpgFlags
     rts
@@ -1439,7 +1441,7 @@ PrimaryGameSetup:
       sta PlayerSize              ;set player's size to small
 SecondaryGameSetup:
              lda #$00
-             sta DisableScreenFlag     ;enable screen output
+             ;sta DisableScreenFlag     ;enable screen output
              tay
 ClearVRLoop: sta VRAM_Buffer1-1,y      ;clear buffer at $0300-$03ff
              iny
@@ -3881,6 +3883,8 @@ GameCoreRoutine:
       ora FpgFlags
       sta FpgFlags
       jsr EnterFpgLoadPlayer
+      lda #$0
+      sta DisableScreenFlag
       rts
 FpgIsInitialized:
       ldx CurrentPlayer          ;get which player is on the screen
@@ -6103,8 +6107,6 @@ CheckHalfway:  lda HalfwayPage
                sta PlayerEntranceCtrl
 DoneInitArea:  lda #Silence             ;silence music
                sta AreaMusicQueue
-               lda #$01                 ;disable screen output
-               sta DisableScreenFlag
                inc OperMode_Task        ;increment one of the modes
                rts
 
