@@ -47,6 +47,11 @@ player_vars = [
 	"Player_Y_MoveForce",
 	"Player_Y_Position",
 	"Player_Y_Speed",
+	
+	"Platform_X_Scroll",
+	"Player_CollisionBits",
+	"PlatformCollisionFlag",
+	"SprObject_X_MoveForce",
 
 	"PlayerAnimTimerSet",
 	"PlayerFacingDir",
@@ -170,8 +175,9 @@ print('''
 	.db $ba, BANK_FPG_DATA
 ''')
 
-for it in sys.argv[1:]:
-	j = json.loads(open(it, 'r').read())
+routes = json.loads(open(sys.argv[1], 'r').read())
+
+for j in routes:
 	j['FrameCounter'] = j['frame']
 	j["PseudoRandomBitReg+0"] = j['PseudoRandomBitReg0']
 	j["PseudoRandomBitReg+1"] = j['PseudoRandomBitReg1']
@@ -182,21 +188,24 @@ for it in sys.argv[1:]:
 	j["PseudoRandomBitReg+6"] = j['PseudoRandomBitReg6']
 	j["PseudoRandomBitReg+7"] = j['PseudoRandomBitReg7']
 
+	j['pretty_name'] = j['name']
+	j['name'] = j['name'].replace(' ', '_').replace('-', '_')
+
 	make_function(j, 'load_area', area_vars)
 	make_function(j, 'load_player', player_vars)
 	make_rules(j['name'], j['rules'])
-	configs.append({ 'name': j['name'], 'rulesets': len(j['rules']) })
 
 def print_if_true(c, str):
 	if c:
 		print(str)
 
-print('fpg_num_configs: .db $%08X' % (len(configs)))
+print('fpg_num_configs: .db $%08X' % (len(routes)))
 
-for i in range(0, len(configs)):
-	name = configs[i]['name']
+for i in range(0, len(routes)):
+	name = routes[i]['name']
+	pretty_name = routes[i]['pretty_name']
 	if (0 == i): print('fpg_configs:')
-	print('\t\t.db %s ; %s' % (get_text(name), name))
+	print('\t\t.db %s ; %s' % (get_text(pretty_name), pretty_name))
 	if (0 == i): print('fpg_load_area_func:')
 	print('\t\t.dw %s_load_area' % (name))
 	if (0 == i): print('fpg_load_player_func:')
@@ -204,7 +213,7 @@ for i in range(0, len(configs)):
 	if (0 == i): print('fpg_validate_func:')
 	print('\t\t.dw %s_validate' % (name))
 	if (0 == i): print('fpg_num_routes:')
-	print('\t\t.db $%02X' % (configs[i]['rulesets'])) # align to 0x10
+	print('\t\t.db $%02X' % (len(routes[i]['rules']))) # align to 0x10
 	print('\t\t.db 0') # align to 0x10
 
 print(open('fpg_data_inline.asm', 'r').read())

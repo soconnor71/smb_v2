@@ -486,7 +486,7 @@ next_palette_entry:
 		lda #$0f
 		sta OperMode			; Anything but zero and it will play...
 		sta SND_MASTERCTRL_REG
-		lda #WaterMusic
+		lda #GroundMusic
 		sta AreaMusicQueue
 		;
 		; Enable NMI

@@ -297,6 +297,8 @@ GameMenuRoutine:
     inc OperMode
     lda #$00
     sta OperMode_Task
+    lda #$40
+    sta FpgFlags
     rts
 
 FpgSelLeft:
