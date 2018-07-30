@@ -388,7 +388,7 @@ palette_star_shuffle:
 		.db $0f, $10, $00, $0d ; Kappa head
 
 bank_table:
-		.db BANK_PRACTICE, BANK_FPS, BANK_VANILLA
+		.db BANK_PRACTICE, BANK_FPG, BANK_VANILLA
 
 LDR_Start:
 		lda #$10	; Use 0x1000 for background (not that it matters, same in both)
