@@ -506,3 +506,18 @@ LDR_LoadChrROM:
 
 LDR_Nop:
 		brk
+
+	.seekoff $bff0 $ea
+	.org $fff0
+MapperReset:
+	sei
+	ldx #$FF
+	txs
+	stx $8000
+	jmp HardReset
+	;
+	; Interrupt table
+	;
+	.dw MapperReset
+	.dw MapperReset
+	.dw MapperReset

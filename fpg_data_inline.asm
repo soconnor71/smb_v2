@@ -120,7 +120,7 @@ fpg_win:
 		jmp fpg_set_death_flag
 
 
-.seekoff $bfc0 $ea
+.seekoff $bf00 $ea
 EnterFpgLoadArea:
 	lda #BANK_FPG_DATA
 	jsr SetBankFromA
@@ -149,7 +149,17 @@ EnterFpgUpdateSelected:
   lda BANK_SELECTED
   jmp SetBankFromA
 
-
-
-
-
+	.seekoff $bff0 $ea
+	.org $fff0
+MapperReset:
+	sei
+	ldx #$FF
+	txs
+	stx $8000
+	jmp HardReset
+	;
+	; Interrupt table
+	;
+	.dw MapperReset
+	.dw MapperReset
+	.dw MapperReset

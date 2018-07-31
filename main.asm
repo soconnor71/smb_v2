@@ -7993,10 +7993,18 @@ InitMapper:
 	jsr LoadChrROM
 	jmp Start
 
-	.seekoff $fffa $ea
-	;
-	; Interrupt table
-	;
+  .seekoff $fff0 $ea
+MapperReset:
+  sei
+  ldx #$FF
+  txs
+  stx $8000
+  jmp HardReset
+
+  .seekoff $fffa $ea
+  ;
+  ; Interrupt table
+  ;
 	.dw NonMaskableInterrupt
-	.dw HardReset
+	.dw MapperReset
 	.dw $fff0  ;unused

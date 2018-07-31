@@ -1303,3 +1303,18 @@ BowserFlameEnvData:
 BrickShatterEnvData:
       .db $15, $16, $16, $17, $17, $18, $19, $19
       .db $1a, $1a, $1c, $1d, $1d, $1e, $1e, $1f
+
+  .seekoff $bff0 $ea
+  .org $fff0
+MapperReset:
+  sei
+  ldx #$FF
+  txs
+  stx $8000
+  jmp HardReset
+  ;
+  ; Interrupt table
+  ;
+  .dw MapperReset
+  .dw MapperReset
+  .dw MapperReset
