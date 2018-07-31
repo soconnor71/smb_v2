@@ -98,13 +98,12 @@ fpg_game_over_y:
 ; On bad input
 ;
 fpg_failed_input:
+		sta FpgErrorParam
 		jsr fpg_check_true_over
 		beq fpg_game_over_input
 		jmp fpg_validate_unsafe
 fpg_game_over_input:
-		lda SavedJoypad1Bits
-		sta FpgLastInput
-		ldx #$03
+		ldx #$3
 fpg_set_death_flag:
 		stx FpgError
 		lda FpgFlags
@@ -115,7 +114,9 @@ fpg_set_death_flag:
 ; Victory!
 ;
 fpg_win:
-		ldx #$09
+		lda #VictoryMusic
+		sta EventMusicQueue
+		ldx #$04
 		jmp fpg_set_death_flag
 
 

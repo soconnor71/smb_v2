@@ -20,6 +20,7 @@ FpgFlags  = $0761		; OffScr_NumberofLives
 FpgLastInput = $0762	; OffScr_HalfwayPage
 FpgScrollTo = $07d7 	; TopScoreDisplay+0
 FpgError = $07d8		; TopScoreDisplay+1
+FpgErrorParam = $07d9	; TopScoreDisplay+2
 
 PPU_CTRL_REG1         = $2000
 PPU_CTRL_REG2         = $2001

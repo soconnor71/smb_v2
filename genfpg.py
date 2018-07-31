@@ -126,16 +126,20 @@ def make_rules(name, rules):
 	for i in range(0, len(rules)):
 		print('%s_ruleset%d:' % (name, i))
 		print(ind + 'ldy FrameCounter')
-		print(ind + 'lda SavedJoypad1Bits')
+		print(ind + 'lda SavedJoypadBits')
 		print(ind + 'and #$C3') #only care for L,R,A,B
 		for j in range(0, len(rules[i])):
 			rule = rules[i][j]
+			check_frame = rule['frame']
+			if 'input' == rule['method']:
+				check_frame += 1
 			print('%s_ruleset%d_rule%d:' % (name, i, j))
-			print(ind + 'cpy #$%02X' % (rule['frame']))
+			print(ind + 'cpy #$%02X' % (check_frame))
 			print(ind + 'bne %s_ruleset%d_rule%d' % (name, i, j + 1))
 			if 'input' == rule['method']:
 				print(ind + 'cmp #$%02X' % (get_input(rule['input'])))
 				print(ind + 'beq %s_ruleset%d_rule%d' % (name, i, j +1))
+				print(ind + 'lda #$%02X' % (get_input(rule['input'])))
 				print(ind + 'jmp fpg_failed_input')
 			elif 'pixel' == rule['method']:
 				print(ind + 'ldx Player_X_Position')

@@ -94,7 +94,7 @@ InitBuffer:    ldx VRAM_Buffer_Offset,y
                asl
                bcs PauseSkip
                beq RunPreInit
-               and #$02
+               and #$04 ; really 0x02 but shifted (this is so dumb)
                beq PauseSkip
 RunPreInit:
                lda TimerControl          ;if master timer control not set, decrement
@@ -172,8 +172,10 @@ CheckFpgResetKey:
               jmp SkipMainOper
 DeathRedrawShit:
               lda FpgLastInput
-              sta SavedJoypad1Bits
-              jsr RedrawStatusBar
+              sta SavedJoypadBits
+              jsr UpdateStatusInput
+              jsr UpdateStatusFrame
+              jsr WriteFpgError
               jmp SkipMainOper
 
 ;-------------------------------------------------------------------------------------
@@ -649,8 +651,18 @@ SetupIntermediate:
       jmp IncSubtask           ;then move onto the next task
 
 ;-------------------------------------------------------------------------------------
+WriteFpgErrorWantInput:
+      lda #$20
+      ldx #$47
+      ldy FpgErrorParam
+      jmp DrawInputButtons
 
 WriteFpgError:
+      ldx FpgError
+      cpx #$03
+      bne WTFWTFWTF
+      jsr WriteFpgErrorWantInput
+WTFWTFWTF:
       ldx FpgError
       inx
       lda GameTextOffsets, x
@@ -806,22 +818,12 @@ TopStatusBarLine:
   .db $ff ; end of data block
 FpgDefault:
   .db $20, $41, $0a, $10, $18, $18, $0d, $24, $15, $1e, $0c, $14, $2b, $ff
-FpgBadPixel:
-  .db $20, $41, $1A, $17, $18, $1d, $24, $18, $17, $24, $01, $1c, $1d, $24, $19, $21, $24, $18, $0f, $24, $02, $17, $0d, $24, $0b, $15, $18, $0c, $14, $ff
-FpgNoRight:
-  .db $20, $41, $0A, $2b, $20, $0a, $17, $1d, $24, $28, $1b, $28, $28, $ff
-FpgNoRun:
-  .db $20, $41, $0A, $2b, $20, $0a, $17, $1d, $24, $28, $1b, $0b, $28, $ff
-FpgFullJump:
-  .db $20, $41, $0A, $2b, $20, $0a, $17, $1d, $24, $28, $1b, $0b, $0a, $ff
-FpgBadSpeed:
-  .db $20, $41, $10, $0b, $0a, $0d, $24, $1c, $19, $0e, $0e, $0d, $24, $1c, $1e, $0b, $28, $19, $21, $ff
-FpgLeftEarly:
-  .db $20, $41, $0F, $15, $0e, $0f, $1d, $24, $1d, $18, $18, $24, $0e, $0a, $1b, $15, $22, $2b, $ff
-FpgLeftOnly:
-  .db $20, $41, $0A, $2b, $20, $0a, $17, $1d, $24, $15, $28, $28, $28, $ff
-FpgLeftJump:
-  .db $20, $41, $0A, $2b, $20, $0a, $17, $1d, $24, $15, $28, $28, $0a, $ff
+FpgBadXPosition:
+  .db $20, $41, $0e, $0b, $0a, $0d, $24, $21, $24, $19, $18, $1c, $12, $1d, $12, $18, $17, $ff
+FpgBadYPosition:
+  .db $20, $41, $0e, $0b, $0a, $0d, $24, $22, $24, $19, $18, $1c, $12, $1d, $12, $18, $17, $ff
+FpgWant:
+  .db $20, $41, $06, $24, $20, $0a, $17, $1d, $24, $ff
 FpgWin:
   .db $20, $41, $14, $22, $18, $1e, $24, $0a, $1b, $0e, $24, $1c, $1e, $19, $0e, $1b, $24, $19, $15, $0a, $22, $0e, $1b, $ff
 
@@ -829,15 +831,10 @@ FpgWin:
 GameTextOffsets:
   .db TopStatusBarLine - GameText
   .db FpgDefault - GameText   ; 0
-  .db FpgBadPixel - GameText    ; 1
-  .db FpgNoRight - GameText   ; 2
-  .db FpgNoRun - GameText     ; 3
-  .db FpgFullJump - GameText    ; 4
-  .db FpgBadSpeed - GameText    ; 5
-  .db FpgLeftEarly - GameText   ; 6
-  .db FpgLeftOnly - GameText    ; 7
-  .db FpgLeftJump - GameText    ; 8
-  .db FpgWin - GameText     ; 9
+  .db FpgBadXPosition - GameText ; 1
+  .db FpgBadYPosition - GameText ; 2
+  .db FpgWant - GameText ; 3
+  .db FpgWin - GameText     ; 4
 
 DrawTilesFF:
     ldy VRAM_Buffer1_Offset
@@ -3788,19 +3785,18 @@ GameMode:
 
 ;-------------------------------------------------------------------------------------
 
-RedrawStatusBar:
-    ; $20, $61,
+DrawInputButtons:
+    sty $03
     ldy VRAM_Buffer1_Offset
-    lda #$20
     sta VRAM_Buffer1+0, y
-    lda #$67
+    txa
     sta VRAM_Buffer1+1, y
     lda #$04
     sta VRAM_Buffer1+2, y
-    ;
+        ;
     ; Left
     ;
-    lda SavedJoypadBits
+    lda $03
     and #Left_Dir
     beq NoLeftStatus
     lda #$15
@@ -3812,7 +3808,7 @@ WriteLeft:
     ;
     ; Right
     ;
-    lda SavedJoypadBits
+    lda $03
     and #Right_Dir
     beq NoRightStatus
     lda #$1b
@@ -3824,7 +3820,7 @@ WriteRight:
     ;
     ; B
     ;
-    lda SavedJoypadBits
+    lda $03
     and #B_Button
     beq NoBStatus
     lda #$0b
@@ -3836,7 +3832,7 @@ WriteB:
     ;
     ; A
     ;
-    lda SavedJoypadBits
+    lda $03
     and #A_Button
     beq NoAStatus
     lda #$0a
@@ -3845,32 +3841,53 @@ NoAStatus:
     lda #$28
 WriteA:
     sta VRAM_Buffer1+6, y
+    lda #$00
+    sta VRAM_Buffer1+7, y
+    lda VRAM_Buffer1_Offset
+    clc
+    adc #$7
+    sta VRAM_Buffer1_Offset
+    rts
+
+
+RedrawStatusBar:
+    lda FrameCounter
+    and #1
+UpdateStatusInput:
+    beq UpdateStatusFrame
+    lda #$20
+    ldx #$67
+    ldy SavedJoypad1Bits
+    jsr DrawInputButtons
+    rts
     ;
     ; Draw frame!
     ;
+UpdateStatusFrame:
+    ldy VRAM_Buffer1_Offset
     lda #$20
-    sta VRAM_Buffer1+7, y
+    sta VRAM_Buffer1, y
     lda #$73
-    sta VRAM_Buffer1+8, y
+    sta VRAM_Buffer1+1, y
     lda #$3
-    sta VRAM_Buffer1+9, y
+    sta VRAM_Buffer1+2, y
 
     lda FrameCounter
     jsr DivByTen
-    sta VRAM_Buffer1+12, y
+    sta VRAM_Buffer1+5, y
     txa
     jsr DivByTen
-    sta VRAM_Buffer1+11, y
+    sta VRAM_Buffer1+4, y
     txa 
-    sta VRAM_Buffer1+10, y
+    sta VRAM_Buffer1+3, y
     ;
     ; Finalize write command.
     ;
     lda #0
-    sta VRAM_Buffer1+13, y
+    sta VRAM_Buffer1+6, y
     tya
     clc
-    adc #13
+    adc #6
     sta VRAM_Buffer1_Offset
     rts
 
@@ -3897,6 +3914,7 @@ FpgIsInitialized:
       ldx CurrentPlayer          ;get which player is on the screen
       lda SavedJoypadBits,x      ;use appropriate player's controller bits
       sta SavedJoypadBits        ;as the master controller bits
+      sta FpgLastInput
       jsr GameRoutines           ;execute one of many possible subs
       lda OperMode_Task          ;check major task of operating mode
       cmp #$03                   ;if we are supposed to be here,
