@@ -6052,10 +6052,10 @@ GetSBNybbles:
 		;
 		; Print it i think...
 		;
+      lda PracticeFlags
+      and #$80
+      ora #$02
 UpdateNumber:
-		lda PracticeFlags
-		and #$80
-		ora #$02
 		jsr PrintStatusBarNumbers ;print status bar numbers based on nybbles, whatever they be
 NoZSup: ldx ObjectOffset          ;get enemy object buffer offset
 		rts
