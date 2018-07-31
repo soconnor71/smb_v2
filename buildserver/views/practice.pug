@@ -1,0 +1,54 @@
+html
+	head
+		title SMB Practice ROM - Build Server!
+		link(rel='stylesheet' href='bootstrap-3.3.7-dist/css/bootstrap.min.css')
+		script(src='jquery-3.2.1.min.js')
+		script(src='bootstrap-3.3.7-dist/js/bootstrap.min.js')
+
+	body
+		.container
+			h1 SMB Practice ROM
+			.col-xs-4
+				.row
+					label(for='wsplit') Paste your WSplit file here:
+					.form-group
+						textarea#wsplit.form-control(oninput="splits_pasted()")
+					p.
+						 You can convert to WSplit from virtually all formats at #[a(href='https://splits.io') splits.io]. #[br]...or if you just want the Practice ROM but don't care for pre-defined splits, get it <a href="smbpractice.nes">here</a>.
+				.row#config(style='display: none;')
+					h4#title_id
+					p
+						span(style='color: red; font-weight: bold;') You must enter all info correctly, including power-ups in the table to the right, or the timing will be wrong.
+					fieldset
+						.form-group
+							label(for='start_rule') Rules waited before pressing start: 
+							input#start_rule.form-control(type='text' size='10' value='0' oninput='update_splits()')
+
+						label(for='split_at') Where do you split?
+						.form-group#split_at
+							.btn-group(data-toggle='buttons')
+								label.btn.btn-primary.active(onclick='change_split_mode(true)') Post frame-rule effect
+									input#split_rule(type='radio' name='split_mode' checked)
+
+								label.btn.btn-primary(onclick='change_split_mode(false)') First frame of level 
+									input#split_first(type='radio' name='split_mode')
+						p
+							label(for='download') Download: 
+							span#download
+						p
+							label(for='attempts_id') Attempts: 
+							span#attempts_id
+
+
+			.col-xs-7#info(style='display: none;')
+				table#splits.table.table-hover.table-striped
+					thead
+						tr
+							th Split name
+							th Total
+							th Duration
+							th Rule
+							th Power-up
+					tbody
+
+		script(src="splits.js")
