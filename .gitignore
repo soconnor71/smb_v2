@@ -1,3 +1,5 @@
+buildserver/builds
+buildserver/node_modules
 crap
 fpg_data.asm
 badassm

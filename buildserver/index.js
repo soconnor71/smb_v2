@@ -82,27 +82,40 @@ function write_splits(res, worlds) {
 		data = data.replace(/;<BUILD_PATCH_LEVELS>[\s\S]+;<\/BUILD_PATCH_LEVELS>/m, world_rules)
 		data = data.replace(/;<BUILD_PATCH_PUPS>[\s\S]+;<\/BUILD_PATCH_PUPS>/m, pup_bytes)
 
-		var file_base = 'builds/practice-' + (new Date().getTime())
+		var practice_name = 'practice-' + (new Date().getTime())
 
-		fs.writeFile(file_base + '.asm', data, (err) => {
+		fs.writeFile('builds/' + practice_name + '.asm', data,
+		(err) => {
 			if(err) {
 				console.log('Writing: ' + err)
 				res.status(500).send('Something broke horribly')
 				return
 			}
 
-			execFile('bash', [ 'build.sh', file_base + '.asm' ], { cwd: '..' }, (err, stdout, stderr) => {
+			execFile('python', [ '../../badassm/badassm.py', practice_name + '.asm', '--use-linker' ], { cwd: 'builds' },
+			(err, stdout, stderr) => {
 				if(err) {
-					console.log('bash: ', err)
+					console.log('Running: ', err)
 					res.status(500).send('Build exploded somehow <.<')
 					return
 				}
 				
-				res.setHeader('Content-Disposition', 'attachment; filename=smbpractice.nes');
-				res.setHeader('Content-Transfer-Encoding', 'binary');
-				res.setHeader('Content-Type', 'application/octet-stream');
+				execFile('python', [ 'idiotlink.py',
+						practice_name + '.nes', 'vanilla',
+						'sound', practice_name, 'fpg', 'fpg_data',
+						'smlsound', 'loader', 'main' ], { cwd: 'builds' },
+				(err, stdout, stderr) => {
+					if(err) {
+						console.log('Running: ', err)
+						res.status(500).send('Link phase exploded <.<')
+						return
+					}
 
-				res.sendFile(path.join(__dirname, '..', file_base + '.nes'))
+					res.setHeader('Content-Disposition', 'attachment; filename=smbex.nes');
+					res.setHeader('Content-Transfer-Encoding', 'binary');
+					res.setHeader('Content-Type', 'application/octet-stream');
+					res.sendFile(path.join(__dirname, 'builds/', practice_name + '.nes'))
+				})
 			})
 		})
 	})
@@ -115,7 +128,7 @@ app.get('/', function(req, res) {
 	const ip = req.connection.remoteAddress || '<no idea>'
 	console.log('Access root: ' + ip)
 
-	res.render('index')
+	res.render('practice')
 })
 
 app.get('/practice', function(req, res) {
