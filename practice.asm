@@ -164,6 +164,11 @@ ChkPauseTimer: lda GamePauseTimer     ;check if pause timer is still counting do
 ChkStart:      lda SavedJoypad1Bits   ;check to see if start is pressed
                and #Start_Button      ;on controller 1
                beq ClrPauseTimer
+               lda SavedJoypad1Bits
+               and #Up_Dir
+               beq NoModeChange
+               jmp ToggleRenderMode
+NoModeChange:
                lda GamePauseStatus    ;check to see if timer flag is set
                and #%10000000         ;and if so, do not reset timer (residual,
                bne ExitPause          ;joypad reading routine makes this unnecessary)
@@ -185,6 +190,36 @@ ExitPause:     rts
 ; The Practice Functions
 ;
 ;-------------------------------------------------------------------------------------
+
+ToggleRenderMode:
+		lda PracticeFlags
+		eor #$80
+		sta PracticeFlags
+		and #$80
+		bne SockMode
+		;
+		; If we change back to rule mode we must remove top sock bytes
+		;
+		ldx VRAM_Buffer_Offset
+		lda #$20
+		sta VRAM_Buffer1,x
+		lda #$62 ;
+		sta VRAM_Buffer1+1,x
+		lda #$02 ; len
+		sta VRAM_Buffer1+2,x
+		lda #$24
+		sta VRAM_Buffer1+3, x
+		sta VRAM_Buffer1+4, x
+		lda #$00
+		sta VRAM_Buffer1+5, x
+		lda VRAM_Buffer1_Offset
+		clc
+		adc #$05
+		sta VRAM_Buffer1_Offset
+		jmp RedrawFrameNumbers
+SockMode:
+		rts
+
 
 PRAC_LoadChrROM:
 		lda #CHR_PRACTICE
@@ -449,8 +484,6 @@ ExitRestarts:
 HandleRestarts:
 		lda JoypadBitMask
 		ora SavedJoypadBits
-		cmp #Up_Dir
-		beq ToggleRenderMode
 		eor #Select_Button
 		cmp #Up_Dir
 		beq LoadGameState
@@ -488,35 +521,6 @@ LoadNextRule:
 		and #$bf ; Nuke load flag :)
 		sta SaveStateFlags
 LuaHackDumpLoad: ; Euw...
-		rts
-
-ToggleRenderMode:
-		lda PracticeFlags
-		eor #$80
-		sta PracticeFlags
-		and #$80
-		bne SockMode
-		;
-		; If we change back to rule mode we must remove top sock bytes
-		;
-		ldx VRAM_Buffer_Offset
-		lda #$20
-		sta VRAM_Buffer1,x
-		lda #$62 ;
-		sta VRAM_Buffer1+1,x
-		lda #$02 ; len
-		sta VRAM_Buffer1+2,x
-		lda #$24
-		sta VRAM_Buffer1+3, x
-		sta VRAM_Buffer1+4, x
-		lda #$00
-		sta VRAM_Buffer1+5, x
-		lda VRAM_Buffer1_Offset
-		clc
-		adc #$05
-		sta VRAM_Buffer1_Offset
-		jmp RedrawFrameNumbers
-SockMode:
 		rts
 
 LoadSaveStateProxy:

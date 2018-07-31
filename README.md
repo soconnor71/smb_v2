@@ -6,7 +6,7 @@ Super Mario Bros. practice ROM for advanced players.
 - Change mapper to **MMC1** to allow modifications without having to remove bytes.
 - Merge **Practice ROM** and **FPS ROM** into a **single ROM** (and included **Vanilla ROM** too).
 ## Practice ROM Updates
-* Pressing **Up** during gameplay will change to **sockfolder status**.  *It changes every frame you might have to try a few times ;)*
+* Holding **Up** while pressing **Start** during gameplay will change to **sockfolder status**.  *It changes every frame you might have to try a few times ;)*
 * Holding **A** while pressing **Start** at the menu will start you on **Second Quest**.
 * Remove "Judge Radar" as it was retarded.
 
@@ -79,7 +79,7 @@ I hope you people had a jolly Christmas; also happy new year! <3
 ## Practice ROM - In-game
 * Press **Select + Up** to restart level at entered Frame Rule.
 * Press **Select + Down** to return to Title Screen.
-* Press **Up** to toggle rendering mode (it changes every frame ;) so might take a few attempts).
+* Holding **Up** while pressing **Start** to toggle rendering mode (it changes every frame ;) so might take a few attempts).
 
 ## FPS ROM - Title Screen
 * Use **Left** and **Right** to change what setting to practice.
