@@ -3,6 +3,7 @@ KAPPA_SPRITE = 52*4
 STAR_INDEX = $700
 SEL_INDEX = $701
 SEL_START_Y = $8e
+LoaderFrameCounter = $30
 
 	.vars vars.inc
 	.org $8000
@@ -29,7 +30,7 @@ PRAC_LoadChrROM:
 		.dw LDR_LoadChrROM
 
 NonMaskableInterrupt:
-		inc FrameCounter
+		inc LoaderFrameCounter
 		;
 		; Turn on rendering (Sprites, background)
 		;
@@ -38,7 +39,7 @@ NonMaskableInterrupt:
 		;
 		; Rotate star palette
 		;
-		lda FrameCounter
+		lda LoaderFrameCounter
 		and #$0f
 		bne no_rotate_stars
 		jsr rotate_star_palette
@@ -72,7 +73,7 @@ no_rotate_stars:
 		;
 		;
 		;
-		lda FrameCounter
+		lda LoaderFrameCounter
 		and #$07
 		bne dont_update_cursor
 		lda $201
@@ -88,7 +89,8 @@ dont_update_cursor:
 		;
 		; Update sound
 		;
-		jsr EnterSoundEngine
+		; jsr EnterSoundEngine
+		jsr EnterSmlSoundPlay
 		jsr ReadJoypads
 do_menu:
 		lda SavedJoypadBits
@@ -483,11 +485,13 @@ next_palette_entry:
 		;
 		; Enable sound
 		;
-		lda #$0f
+		lda #$01
 		sta OperMode			; Anything but zero and it will play...
-		sta SND_MASTERCTRL_REG
-		lda #GroundMusic
-		sta AreaMusicQueue
+
+		lda #0
+		ldx #0
+		jsr EnterSmlSoundInit
+
 		;
 		; Enable NMI
 		;
@@ -502,5 +506,3 @@ LDR_LoadChrROM:
 
 LDR_Nop:
 		brk
-	
-	;.seekoff $4000 $00

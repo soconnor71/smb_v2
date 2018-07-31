@@ -119,7 +119,7 @@ fpg_win:
 		jmp fpg_set_death_flag
 
 
-.seekoff $3fc0 $ea
+.seekoff $bfc0 $ea
 EnterFpgLoadArea:
 	lda #BANK_FPG_DATA
 	jsr SetBankFromA

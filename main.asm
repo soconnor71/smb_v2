@@ -7928,6 +7928,21 @@ EnterSoundEngine:
 	lda BANK_SELECTED
 	jmp SetBankFromA
 
+EnterSmlSoundInit:
+  lda #BANK_SMLSOUND
+  jsr SetBankFromA
+  jsr sml_export_init
+  lda BANK_SELECTED
+  jmp SetBankFromA
+
+EnterSmlSoundPlay:
+  lda #BANK_SMLSOUND
+  jsr SetBankFromA
+  jsr sml_export_play
+  lda BANK_SELECTED
+  jmp SetBankFromA
+
+
 SetBankFromA:
 	sta $E000
 	lsr
@@ -7978,7 +7993,7 @@ InitMapper:
 	jsr LoadChrROM
 	jmp Start
 
-	.seekoff $3ffa $ea
+	.seekoff $fffa $ea
 	;
 	; Interrupt table
 	;

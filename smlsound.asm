@@ -817,13 +817,13 @@ ptr_data_bc6e:
  ; ---------------------------------------------------------------------------
                  lda     unk_ac2e,x
                  eor     #$ff
-                 and     $209
-                 sta     $209
+                 and     $409
+                 sta     $409
                  rts
  ; ---------------------------------------------------------------------------
                  lda     unk_ac2e,x
-                 ora     $209
-                 sta     $209
+                 ora     $409
+                 sta     $409
                  lda     #$ff
                  cpx     #0
                  beq     loc_ac26
@@ -833,12 +833,12 @@ ptr_data_bc6e:
  ; ---------------------------------------------------------------------------
 
  loc_ac26:                               ; code xref: sml_export_init+1fj
-                 sta     $276
+                 sta     $476
                  rts
  ; ---------------------------------------------------------------------------
 
  loc_ac2a:                               ; code xref: sml_export_init+23j
-                 sta     $277
+                 sta     $477
                  rts
  ; ---------------------------------------------------------------------------
  unk_ac2e:       .db   1               ; data xref: sml_export_init+6r
@@ -877,22 +877,22 @@ ptr_data_bc6e:
                  lda     #$40 ; '@'
                  sta     $4017
                  lda     #$ff
-                 sta     $209
+                 sta     $409
                  lda     #0
                  tax
 
  loc_ac6d:                               ; code xref: sml_export_init+85j
-                 sta     $241,x
-                 sta     $2bc,x
-                 sta     $2c0,x
-                 sta     $2c4,x
-                 sta     $2c8,x
-                 sta     $25a,x
-                 sta     $25e,x
+                 sta     $441,x
+                 sta     $4bc,x
+                 sta     $4c0,x
+                 sta     $4c4,x
+                 sta     $4c8,x
+                 sta     $45a,x
+                 sta     $45e,x
                  inx
                  cpx     #4
                  bne     loc_ac6d
-                 sta     $245
+                 sta     $445
                  rts
  ; end of function sml_export_init
 
@@ -912,25 +912,25 @@ ptr_data_bc6e:
                  clc
                  lda     (5),y
                  adc     off_beee
-                 sta     $200,y
+                 sta     $400,y
                  iny
                  lda     (5),y
                  adc     off_beee+1
-                 sta     $200,y
+                 sta     $400,y
                  iny
                  cpy     #8
                  bne     loc_ac98
                  lda     (5),y
-                 sta     $208
+                 sta     $408
                  iny
                  cpx     #1
                  beq     loc_acd0
                  lda     (5),y
                  iny
-                 sta     $219
+                 sta     $419
                  lda     (5),y
                  iny
-                 sta     $21a
+                 sta     $41a
                  lda     ptr_data_bd2e ; '.'
                  sta     9
                  lda     ptr_data_bd2e+1 ; ''
@@ -943,10 +943,10 @@ ptr_data_bc6e:
                  iny
                  lda     (5),y
                  iny
-                 sta     $219
+                 sta     $419
                  lda     (5),y
                  iny
-                 sta     $21a
+                 sta     $41a
                  lda     ptr_data_bc6e
                  sta     9
                  lda     ptr_data_bc6e+1
@@ -957,37 +957,37 @@ ptr_data_bc6e:
                  tay
                  jsr     sub_ad37
                  ldx     #1
-                 stx     $211
+                 stx     $411
                  dex
 
  loc_acf1:                               ; code xref: sub_ac8b+8aj
                  lda     #$7f ; ''
-                 sta     $237,x
+                 sta     $437,x
                  lda     #$80 ; ''
-                 sta     $24b,x
+                 sta     $44b,x
                  lda     #0
-                 sta     $2d8,x
-                 sta     $2e4,x
-                 sta     $2bc,x
-                 sta     $26f,x
-                 sta     $250,x
-                 sta     $2cc,x
-                 sta     $232,x
+                 sta     $4d8,x
+                 sta     $4e4,x
+                 sta     $4bc,x
+                 sta     $46f,x
+                 sta     $450,x
+                 sta     $4cc,x
+                 sta     $432,x
                  inx
                  cpx     #4
                  bne     loc_acf1
                  ldx     #$ff
-                 stx     $276
-                 stx     $277
+                 stx     $476
+                 stx     $477
                  lda     #0
-                 sta     $2ec
+                 sta     $4ec
                  inx
-                 stx     $213
+                 stx     $413
                  jsr     sub_ad74
                  jsr     sub_b2eb
                  lda     #0
-                 sta     $215
-                 sta     $216
+                 sta     $415
+                 sta     $416
                  rts
  ; end of function sub_ac8b
 
@@ -996,9 +996,9 @@ ptr_data_bc6e:
 
 
  sub_ad37:                               ; code xref: sub_ac8b+5dp
-                 lda     $200
+                 lda     $400
                  sta     3
-                 lda     $201
+                 lda     $401
                  sta     4
                  clc
                  lda     (3),y
@@ -1014,16 +1014,16 @@ ptr_data_bc6e:
                  clc
                  lda     (5),y
                  adc     off_beee
-                 sta     $20a
+                 sta     $40a
                  iny
                  lda     (5),y
                  adc     off_beee+1
-                 sta     $20b
+                 sta     $40b
                  iny
 
  loc_ad68:                               ; code xref: sub_ad37+3aj
                  lda     (5),y
-                 sta     $20c,x
+                 sta     $40c,x
                  iny
                  inx
                  cpx     #6
@@ -1038,7 +1038,7 @@ ptr_data_bc6e:
  sub_ad74:                               ; code xref: sub_ac8b+9dp
                                          ; sml_export_init+2acp
                  pha
-                 lda     $210
+                 lda     $410
                  beq     loc_ad7d
                  sta     $5ffb
 
@@ -1046,12 +1046,12 @@ ptr_data_bc6e:
                  pla
                  asl
                  clc
-                 adc     $20a
+                 adc     $40a
                  sta     3
                  lda     #0
                  tay
                  tax
-                 adc     $20b
+                 adc     $40b
                  sta     4
                  lda     (3),y
                  adc     off_beee
@@ -1061,41 +1061,41 @@ ptr_data_bc6e:
                  adc     off_beee+1
                  sta     6
                  ldy     #0
-                 stx     $212
+                 stx     $412
 
  loc_ada2:                               ; code xref: sub_ad74+51j
                  clc
                  lda     (5),y
                  adc     off_beee
-                 sta     $223,x
+                 sta     $423,x
                  iny
                  lda     (5),y
                  adc     off_beee+1
-                 sta     $228,x
+                 sta     $428,x
                  iny
                  lda     #0
-                 sta     $250,x
-                 sta     $23c,x
+                 sta     $450,x
+                 sta     $43c,x
                  lda     #$ff
-                 sta     $255,x
+                 sta     $455,x
                  inx
                  cpx     #5
                  bne     loc_ada2
-                 lda     $208
+                 lda     $408
                  and     #1
                  beq     loc_addb
                  ldx     #0
 
  loc_add0:                               ; code xref: sub_ad74+65j
                  lda     (5),y
-                 sta     $22d,x
+                 sta     $42d,x
                  iny
                  inx
                  cpx     #5
                  bne     loc_add0
 
  loc_addb:                               ; code xref: sub_ad74+58j
-                 lda     $220
+                 lda     $420
                  beq     locret_ade3
                  jmp     loc_ade4
  ; ---------------------------------------------------------------------------
@@ -1113,49 +1113,49 @@ ptr_data_bc6e:
                  sta     1
                  pha
                  lda     #0
-                 sta     $250,x
+                 sta     $450,x
 
  loc_adf0:                               ; code xref: sub_ad74+bcj
                  ldy     #0
-                 lda     $223,x
+                 lda     $423,x
                  sta     5
-                 lda     $228,x
+                 lda     $428,x
                  sta     6
 
  loc_adfc:                               ; code xref: sub_ad74+e6j
                                          ; sub_ad74+f0j ...
-                 lda     $250,x
+                 lda     $450,x
                  beq     loc_ae07
-                 dec     $250,x
+                 dec     $450,x
                  jmp     loc_ae20
  ; ---------------------------------------------------------------------------
 
  loc_ae07:                               ; code xref: sub_ad74+8bj
                  lda     (5),y
                  bmi     loc_ae40
-                 lda     $255,x
+                 lda     $455,x
                  cmp     #$ff
                  bne     loc_ae1c
                  iny
                  lda     (5),y
                  iny
-                 sta     $250,x
+                 sta     $450,x
                  jmp     loc_ae20
  ; ---------------------------------------------------------------------------
 
  loc_ae1c:                               ; code xref: sub_ad74+9cj
                  iny
-                 sta     $250,x
+                 sta     $450,x
 
  loc_ae20:                               ; code xref: sub_ad74+90j
                                          ; sub_ad74+a5j
                  clc
                  tya
                  adc     5
-                 sta     $223,x
+                 sta     $423,x
                  lda     #0
                  adc     6
-                 sta     $228,x
+                 sta     $428,x
                  dec     1
                  bne     loc_adf0
                  inx
@@ -1163,8 +1163,8 @@ ptr_data_bc6e:
                  bne     loc_ade7
                  pla
                  clc
-                 adc     $212
-                 sta     $212
+                 adc     $412
+                 sta     $412
                  rts
  ; ---------------------------------------------------------------------------
 
@@ -1194,14 +1194,14 @@ ptr_data_bc6e:
                  iny
                  lda     (5),y
                  iny
-                 sta     $255,x
+                 sta     $455,x
                  jmp     loc_adfc
  ; ---------------------------------------------------------------------------
 
  loc_ae67:                               ; code xref: sub_ad74+d2j
                  iny
                  lda     #$ff
-                 sta     $255,x
+                 sta     $455,x
                  jmp     loc_adfc
  ; end of function sub_ad74
 
@@ -1209,7 +1209,7 @@ ptr_data_bc6e:
  ; start of function chunk for sml_export_init
 
  sml_inner_play:                         ; code xref: sml_export_init:sml_export_playj
-                 lda     $211
+                 lda     $411
                  bne     loc_ae76
                  rts
  ; ---------------------------------------------------------------------------
@@ -1218,11 +1218,11 @@ ptr_data_bc6e:
                  ldx     #0
 
  loc_ae78:                               ; code xref: sml_export_init+28bj
-                 lda     $23c,x
+                 lda     $43c,x
                  beq     loc_ae88
                  sec
                  sbc     #1
-                 sta     $23c,x
+                 sta     $43c,x
                  bne     loc_ae88
                  jsr     sub_af7f
 
@@ -1231,9 +1231,9 @@ ptr_data_bc6e:
                  inx
                  cpx     #5
                  bne     loc_ae78
-                 lda     $216
+                 lda     $416
                  bmi     loc_ae9a
-                 ora     $215
+                 ora     $415
                  beq     loc_ae9a
                  jmp     loc_af3c
  ; ---------------------------------------------------------------------------
@@ -1241,86 +1241,86 @@ ptr_data_bc6e:
  loc_ae9a:                               ; code xref: sml_export_init+290j
                                          ; sml_export_init+295j
                  lda     #0
-                 sta     $2ed
-                 lda     $214
+                 sta     $4ed
+                 lda     $414
                  beq     loc_aeaf
                  lda     #0
-                 sta     $214
-                 lda     $213
+                 sta     $414
+                 lda     $413
                  jsr     sub_ad74
 
  loc_aeaf:                               ; code xref: sml_export_init+2a2j
                  lda     #0
-                 sta     $21e
-                 sta     $21f
+                 sta     $41e
+                 sta     $41f
                  ldx     #0
 
  loc_aeb9:                               ; code xref: sml_export_init+2d4j
-                 lda     $23c,x
+                 lda     $43c,x
                  beq     loc_aec6
                  lda     #0
-                 sta     $23c,x
+                 sta     $43c,x
                  jsr     sub_af7f
 
  loc_aec6:                               ; code xref: sml_export_init+2bcj
                  jsr     sub_af7f
-                 lda     $241,x
+                 lda     $441,x
                  and     #$7f ; ''
-                 sta     $241,x
+                 sta     $441,x
                  inx
                  cpx     #5
                  bne     loc_aeb9
-                 lda     $21e
+                 lda     $41e
                  beq     loc_aee9
                  sec
                  sbc     #1
-                 sta     $213
+                 sta     $413
                  lda     #1
-                 sta     $214
+                 sta     $414
                  jmp     loc_af39
  ; ---------------------------------------------------------------------------
 
  loc_aee9:                               ; code xref: sml_export_init+2d9j
-                 lda     $21f
+                 lda     $41f
                  beq     loc_af14
                  sec
                  sbc     #1
-                 sta     $220
-                 inc     $213
-                 lda     $213
-                 cmp     $20c
+                 sta     $420
+                 inc     $413
+                 lda     $413
+                 cmp     $40c
                  beq     loc_af07
                  lda     #1
-                 sta     $214
+                 sta     $414
                  jmp     loc_af39
  ; ---------------------------------------------------------------------------
 
  loc_af07:                               ; code xref: sml_export_init+2fdj
                  lda     #0
-                 sta     $213
+                 sta     $413
                  lda     #1
-                 sta     $214
+                 sta     $414
                  jmp     loc_af39
  ; ---------------------------------------------------------------------------
 
  loc_af14:                               ; code xref: sml_export_init+2ecj
-                 inc     $212
-                 lda     $212
-                 cmp     $20d
+                 inc     $412
+                 lda     $412
+                 cmp     $40d
                  bne     loc_af39
-                 inc     $213
-                 lda     $213
-                 cmp     $20c
+                 inc     $413
+                 lda     $413
+                 cmp     $40c
                  beq     loc_af30
-                 sta     $214
+                 sta     $414
                  jmp     loc_af39
  ; ---------------------------------------------------------------------------
 
  loc_af30:                               ; code xref: sml_export_init+328j
                  ldx     #0
-                 stx     $213
+                 stx     $413
                  inx
-                 stx     $214
+                 stx     $414
 
  loc_af39:                               ; code xref: sml_export_init+2e6j
                                          ; sml_export_init+304j ...
@@ -1328,22 +1328,22 @@ ptr_data_bc6e:
 
  loc_af3c:                               ; code xref: sml_export_init+297j
                  sec
-                 lda     $215
-                 sbc     $217
-                 sta     $215
-                 lda     $216
-                 sbc     $218
-                 sta     $216
+                 lda     $415
+                 sbc     $417
+                 sta     $415
+                 lda     $416
+                 sbc     $418
+                 sta     $416
                  ldx     #0
 
  loc_af51:                               ; code xref: sml_export_init+364j
-                 lda     $241,x
+                 lda     $441,x
                  beq     loc_af61
                  sec
                  sbc     #1
-                 sta     $241,x
+                 sta     $441,x
                  bne     loc_af61
-                 sta     $232,x
+                 sta     $432,x
 
  loc_af61:                               ; code xref: sml_export_init+354j
                                          ; sml_export_init+35cj
@@ -1354,7 +1354,7 @@ ptr_data_bc6e:
 
  loc_af68:                               ; code xref: sml_export_init+379j
                  jsr     sub_b354
-                 lda     $232,x
+                 lda     $432,x
                  beq     loc_af73
                  jsr     sub_b6aa
 
@@ -1372,26 +1372,26 @@ ptr_data_bc6e:
 
  sub_af7f:                               ; code xref: sml_export_init+285p
                                          ; sml_export_init+2c3p ...
-                 ldy     $250,x
+                 ldy     $450,x
                  beq     loc_af8a
                  dey
                  tya
-                 sta     $250,x
+                 sta     $450,x
                  rts
  ; ---------------------------------------------------------------------------
 
  loc_af8a:                               ; code xref: sub_af7f+3j
-                 sty     $21c
-                 lda     $22d,x
+                 sty     $41c
+                 lda     $42d,x
                  beq     loc_af95
                  sta     $5ffb
 
  loc_af95:                               ; code xref: sub_af7f+11j
                  lda     #$f
-                 sta     $21b
-                 lda     $223,x
+                 sta     $41b
+                 lda     $423,x
                  sta     7
-                 lda     $228,x
+                 lda     $428,x
                  sta     8
 
  loc_afa4:                               ; code xref: sub_af7f+c4j
@@ -1407,12 +1407,12 @@ ptr_data_bc6e:
                  beq     loc_b018
                  cmp     #$7e ; '~'
                  beq     loc_b00d
-                 sta     $232,x
+                 sta     $432,x
                  jsr     sub_b262
-                 lda     $241,x
+                 lda     $441,x
                  bmi     loc_afc5
                  lda     #0
-                 sta     $241,x
+                 sta     $441,x
 
  loc_afc5:                               ; code xref: sub_af7f+3fj
                  cpx     #4
@@ -1423,20 +1423,20 @@ ptr_data_bc6e:
  loc_afcc:                               ; code xref: sub_af7f+48j
                  jsr     sub_b85a
                  lda     #0
-                 sta     $246,x
-                 lda     $21b
-                 sta     $2a0,x
+                 sta     $446,x
+                 lda     $41b
+                 sta     $4a0,x
                  lda     #0
-                 lda     $2a4,x
+                 lda     $4a4,x
                  and     #$f0 ; ''
-                 sta     $2a4,x
+                 sta     $4a4,x
                  lsr
                  lsr
                  lsr
                  lsr
-                 ora     $2a4,x
-                 sta     $2a4,x
-                 lda     $2bc,x
+                 ora     $4a4,x
+                 sta     $4a4,x
+                 lda     $4bc,x
                  cmp     #6
                  beq     loc_aff9
                  cmp     #8
@@ -1444,7 +1444,7 @@ ptr_data_bc6e:
 
  loc_aff9:                               ; code xref: sub_af7f+74j
                  lda     #0
-                 sta     $2bc,x
+                 sta     $4bc,x
 
  loc_affe:                               ; code xref: sub_af7f+78j
                  cpx     #2
@@ -1454,7 +1454,7 @@ ptr_data_bc6e:
 
  loc_b005:                               ; code xref: sub_af7f+81j
                  lda     #0
-                 sta     $274,x
+                 sta     $474,x
 
  loc_b00a:                               ; code xref: sub_af7f:loc_afabj
                  jmp     loc_b079
@@ -1462,27 +1462,27 @@ ptr_data_bc6e:
 
  loc_b00d:                               ; code xref: sub_af7f+34j
                  lda     #1
-                 sta     $246,x
+                 sta     $446,x
                  jsr     sub_b7ec
                  jmp     loc_b079
  ; ---------------------------------------------------------------------------
 
  loc_b018:                               ; code xref: sub_af7f+30j
                  lda     #0
-                 sta     $232,x
+                 sta     $432,x
                  cpx     #4
                  bne     loc_b024
                  jmp     loc_b079
  ; ---------------------------------------------------------------------------
 
  loc_b024:                               ; code xref: sub_af7f+a0j
-                 sta     $2a0,x
-                 sta     $2c4,x
-                 sta     $2c8,x
+                 sta     $4a0,x
+                 sta     $4c4,x
+                 sta     $4c8,x
                  cpx     #2
                  bcs     loc_b036
                  lda     #$ff
-                 sta     $276,x
+                 sta     $476,x
 
  loc_b036:                               ; code xref: sub_af7f+b0j
                  jmp     loc_b079
@@ -1494,7 +1494,7 @@ ptr_data_bc6e:
                  asl
                  asl
                  and     #$78 ; 'x'
-                 sta     $237,x
+                 sta     $437,x
                  iny
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
@@ -1530,18 +1530,18 @@ ptr_data_bc6e:
  ; ---------------------------------------------------------------------------
 
  loc_b073:                               ; code xref: sub_af7f+ffj
-                 sta     $250,x
+                 sta     $450,x
                  jmp     loc_b086
  ; ---------------------------------------------------------------------------
 
  loc_b079:                               ; code xref: sub_af7f+4aj
                                          ; sub_af7f+83j ...
-                 lda     $255,x
+                 lda     $455,x
                  cmp     #$ff
                  bne     loc_b073
                  iny
                  lda     (7),y
-                 sta     $250,x
+                 sta     $450,x
 
  loc_b086:                               ; code xref: sub_af7f+f7j
                                          ; j
@@ -1549,16 +1549,16 @@ ptr_data_bc6e:
                  iny
                  tya
                  adc     7
-                 sta     $223,x
+                 sta     $423,x
                  lda     #0
                  adc     8
-                 sta     $228,x
-                 lda     $21c
+                 sta     $428,x
+                 lda     $41c
                  beq     locret_b0a5
-                 sta     $274,x
+                 sta     $474,x
                  lda     #0
-                 sta     $21c
-                 sta     $276,x
+                 sta     $41c
+                 sta     $476,x
 
  locret_b0a5:                            ; code xref: sub_af7f+119j
                  rts
@@ -1616,11 +1616,11 @@ ptr_data_bc6e:
                  jsr     sub_b0a6
                  cmp     #$15
                  bcc     loc_b0f3
-                 sta     $20f
+                 sta     $40f
                  bcs     loc_b0f6
 
  loc_b0f3:                               ; code xref: j
-                 sta     $20e
+                 sta     $40e
 
  loc_b0f6:                               ; code xref: j
                  jsr     sub_b2eb
@@ -1629,101 +1629,101 @@ ptr_data_bc6e:
 
  loc_b0fc:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $21e
+                 sta     $41e
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b105:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $21f
+                 sta     $41f
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b10e:                               ; data xref: o
                  jsr     sub_b0a6
                  lda     #0
-                 sta     $211
+                 sta     $411
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b119:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $21b
-                 sta     $2a0,x
+                 sta     $41b
+                 sta     $4a0,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b125:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $2c0,x
+                 sta     $4c0,x
                  beq     loc_b165
                  lda     #2
-                 sta     $2bc,x
+                 sta     $4bc,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b135:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $2c0,x
+                 sta     $4c0,x
                  beq     loc_b165
                  lda     #3
-                 sta     $2bc,x
+                 sta     $4bc,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b145:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $2c0,x
+                 sta     $4c0,x
                  beq     loc_b165
                  lda     #4
-                 sta     $2bc,x
+                 sta     $4bc,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b155:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $2c0,x
+                 sta     $4c0,x
                  beq     loc_b165
                  lda     #1
-                 sta     $2bc,x
+                 sta     $4bc,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b165:                               ; code xref: j
                                          ; j ...
-                 sta     $2bc,x
-                 sta     $2c4,x
-                 sta     $2c8,x
+                 sta     $4bc,x
+                 sta     $4c4,x
+                 sta     $4c8,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b171:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $21c
+                 sta     $41c
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b17a:                               ; data xref: o
                  jsr     sub_b0a6
                  pha
-                 lda     $2d8,x
+                 lda     $4d8,x
                  bne     loc_b18f
-                 lda     $208
+                 lda     $408
                  and     #2
                  beq     loc_b18c
                  lda     #$30 ; '0'
 
  loc_b18c:                               ; code xref: j
-                 sta     $2d0,x
+                 sta     $4d0,x
 
  loc_b18f:                               ; code xref: j
                  pla
                  pha
                  and     #$f0 ; ''
-                 sta     $2d4,x
+                 sta     $4d4,x
                  pla
                  and     #$f
-                 sta     $2d8,x
+                 sta     $4d8,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
@@ -1731,94 +1731,94 @@ ptr_data_bc6e:
                  jsr     sub_b0a6
                  pha
                  and     #$f0 ; ''
-                 sta     $2e0,x
+                 sta     $4e0,x
                  pla
                  and     #$f
-                 sta     $2e4,x
+                 sta     $4e4,x
                  cmp     #0
                  beq     loc_b1b5
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b1b5:                               ; code xref: j
-                 sta     $2dc,x
+                 sta     $4dc,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b1bb:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $24b,x
+                 sta     $44b,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b1c4:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $23c,x
+                 sta     $43c,x
                  dey
                  jmp     loc_b086
  ; ---------------------------------------------------------------------------
 
  loc_b1ce:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $2eb
+                 sta     $4eb
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b1d7:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $2a4,x
+                 sta     $4a4,x
                  clc
                  asl
                  asl
                  asl
                  asl
-                 ora     $2a4,x
-                 sta     $2a4,x
+                 ora     $4a4,x
+                 sta     $4a4,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b1eb:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $2ec
+                 sta     $4ec
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b1f4:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $2c0,x
+                 sta     $4c0,x
                  lda     #5
-                 sta     $2bc,x
+                 sta     $4bc,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b202:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $2c0,x
+                 sta     $4c0,x
                  lda     #7
-                 sta     $2bc,x
+                 sta     $4bc,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b210:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $26f,x
+                 sta     $46f,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b219:                               ; data xref: o
                  jsr     sub_b0a6
                  ora     #$80 ; ''
-                 sta     $241,x
+                 sta     $441,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b224:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $2ed
-                 lda     $2ee
+                 sta     $4ed
+                 lda     $4ee
                  bne     loc_b235
-                 lda     $2ed
-                 sta     $2ee
+                 lda     $4ed
+                 sta     $4ee
 
  loc_b235:                               ; code xref: j
                  jmp     loc_afa4
@@ -1826,13 +1826,13 @@ ptr_data_bc6e:
 
  loc_b238:                               ; data xref: o
                  jsr     sub_b0a6
-                 sta     $255,x
+                 sta     $455,x
                  jmp     loc_afa4
  ; ---------------------------------------------------------------------------
 
  loc_b241:                               ; data xref: o
                  lda     #$ff
-                 sta     $255,x
+                 sta     $455,x
                  jmp     loc_afa4
 
  ; =============== s u b r o u t i n e =======================================
@@ -1850,10 +1850,10 @@ ptr_data_bc6e:
 
  loc_b254:                               ; code xref: sub_b262:loc_b29aj
                  lda     (9),y
-                 sta     $25a,x
+                 sta     $45a,x
                  iny
                  lda     (9),y
-                 sta     $25e,x
+                 sta     $45e,x
                  ldy     0
                  rts
  ; end of function sub_b249
@@ -1872,22 +1872,22 @@ ptr_data_bc6e:
                  asl
                  sty     0
                  tay
-                 lda     $2bc,x
+                 lda     $4bc,x
                  cmp     #2
                  bne     loc_b29a
                  lda     (9),y
-                 sta     $2c4,x
+                 sta     $4c4,x
                  iny
                  lda     (9),y
-                 sta     $2c8,x
+                 sta     $4c8,x
                  ldy     0
-                 lda     $25a,x
-                 ora     $25e,x
+                 lda     $45a,x
+                 ora     $45e,x
                  bne     locret_b299
-                 lda     $2c4,x
-                 sta     $25a,x
-                 lda     $2c8,x
-                 sta     $25e,x
+                 lda     $4c4,x
+                 sta     $45a,x
+                 lda     $4c8,x
+                 sta     $45e,x
 
  locret_b299:                            ; code xref: sub_b262+29j
                  rts
@@ -1901,35 +1901,35 @@ ptr_data_bc6e:
 
  loc_b29e:                               ; code xref: sub_b249+5j
                                          ; sub_b262+9j
-                 sta     $25a,x
+                 sta     $45a,x
                  lda     #0
-                 sta     $25e,x
+                 sta     $45e,x
                  rts
  ; ---------------------------------------------------------------------------
 
  loc_b2a7:                               ; code xref: sub_b262+5j
                  pha
-                 lda     $204
+                 lda     $404
                  sta     3
-                 lda     $205
+                 lda     $405
                  sta     4
                  pla
                  sty     0
                  tay
                  lda     (3),y
-                 sta     $2ea
+                 sta     $4ea
                  iny
                  lda     (3),y
                  tay
-                 lda     $206
+                 lda     $406
                  sta     3
-                 lda     $207
+                 lda     $407
                  sta     4
                  lda     (3),y
-                 sta     $2e8
+                 sta     $4e8
                  iny
                  lda     (3),y
-                 sta     $2e9
+                 sta     $4e9
                  ldy     0
                  rts
  ; end of function sub_b262
@@ -1940,12 +1940,12 @@ ptr_data_bc6e:
 
  sub_b2d7:                               ; code xref: sml_export_init:loc_af39p
                  clc
-                 lda     $215
-                 adc     $219
-                 sta     $215
-                 lda     $216
-                 adc     $21a
-                 sta     $216
+                 lda     $415
+                 adc     $419
+                 sta     $415
+                 lda     $416
+                 adc     $41a
+                 sta     $416
                  rts
  ; end of function sub_b2d7
 
@@ -1957,7 +1957,7 @@ ptr_data_bc6e:
                                          ; b0f6p
                  tya
                  pha
-                 lda     $20f
+                 lda     $40f
                  sta     $e
                  lda     #0
                  sta     $f
@@ -1981,15 +1981,15 @@ ptr_data_bc6e:
                  tya
                  adc     $f
                  sta     $d
-                 lda     $20e
+                 lda     $40e
                  sta     $e
                  lda     #0
                  sta     $f
                  jsr     sub_b32f
                  lda     $c
-                 sta     $217
+                 sta     $417
                  lda     $d
-                 sta     $218
+                 sta     $418
                  pla
                  tay
                  rts
@@ -2036,36 +2036,36 @@ ptr_data_bc6e:
 
  ; function chunk at  size 0000015b bytes
 
-                 lda     $26f,x
+                 lda     $46f,x
                  beq     loc_b383
-                 lda     $26f,x
+                 lda     $46f,x
                  and     #$f
                  sta     0
                  sec
-                 lda     $237,x
+                 lda     $437,x
                  sbc     0
                  bpl     loc_b36a
                  lda     #0
 
  loc_b36a:                               ; code xref: sub_b354+12j
-                 sta     $237,x
-                 lda     $26f,x
+                 sta     $437,x
+                 lda     $46f,x
                  lsr
                  lsr
                  lsr
                  lsr
                  sta     0
                  clc
-                 lda     $237,x
+                 lda     $437,x
                  adc     0
                  bpl     loc_b380
                  lda     #$7f ; ''
 
  loc_b380:                               ; code xref: sub_b354+28j
-                 sta     $237,x
+                 sta     $437,x
 
  loc_b383:                               ; code xref: sub_b354+3j
-                 lda     $2bc,x
+                 lda     $4bc,x
                  beq     locret_b3b9
                  cmp     #1
                  beq     loc_b3a7
@@ -2125,48 +2125,48 @@ ptr_data_bc6e:
 
  loc_b3ca:                               ; code xref: sub_b354:loc_b3b6j
                                          ; data xref: sub_b354+6eo ...
-                 lda     $25a,x
+                 lda     $45a,x
                  pha
-                 lda     $25e,x
+                 lda     $45e,x
                  pha
-                 lda     $2c0,x
+                 lda     $4c0,x
                  and     #$f
                  sta     0
-                 lda     $2bc,x
+                 lda     $4bc,x
                  cmp     #5
                  beq     loc_b3e9
-                 lda     $232,x
+                 lda     $432,x
                  sec
                  sbc     0
                  jmp     loc_b3ef
  ; ---------------------------------------------------------------------------
 
  loc_b3e9:                               ; code xref: sub_b354+8aj
-                 lda     $232,x
+                 lda     $432,x
                  clc
                  adc     0
 
  loc_b3ef:                               ; code xref: sub_b354+92j
-                 sta     $232,x
+                 sta     $432,x
                  jsr     sub_b249
-                 lda     $25a,x
-                 sta     $2c4,x
-                 lda     $25e,x
-                 sta     $2c8,x
-                 lda     $2c0,x
+                 lda     $45a,x
+                 sta     $4c4,x
+                 lda     $45e,x
+                 sta     $4c8,x
+                 lda     $4c0,x
                  lsr
                  lsr
                  lsr
                  ora     #1
-                 sta     $2c0,x
+                 sta     $4c0,x
                  pla
-                 sta     $25e,x
+                 sta     $45e,x
                  pla
-                 sta     $25a,x
+                 sta     $45a,x
                  clc
-                 lda     $2bc,x
+                 lda     $4bc,x
                  adc     #1
-                 sta     $2bc,x
+                 sta     $4bc,x
                  rts
  ; end of function sub_b354
 
@@ -2175,26 +2175,26 @@ ptr_data_bc6e:
 
 
  sub_b41e:                               ; code xref: sml_export_init:loc_af73p
-                 lda     $25a,x
-                 sta     $262,x
-                 lda     $25e,x
-                 sta     $266,x
-                 lda     $24b,x
+                 lda     $45a,x
+                 sta     $462,x
+                 lda     $45e,x
+                 sta     $466,x
+                 lda     $44b,x
                  cmp     #$80 ; ''
                  beq     loc_b453
-                 lda     $262,x
+                 lda     $462,x
                  adc     #$80 ; ''
-                 sta     $262,x
-                 lda     $266,x
+                 sta     $462,x
+                 lda     $466,x
                  adc     #0
-                 sta     $266,x
+                 sta     $466,x
                  sec
-                 lda     $262,x
-                 sbc     $24b,x
-                 sta     $262,x
-                 lda     $266,x
+                 lda     $462,x
+                 sbc     $44b,x
+                 sta     $462,x
+                 lda     $466,x
                  sbc     #0
-                 sta     $266,x
+                 sta     $466,x
 
  loc_b453:                               ; code xref: sub_b41e+11j
                  jsr     sub_b5b5
@@ -2207,17 +2207,17 @@ ptr_data_bc6e:
 
  loc_b45a:                               ; code xref: sub_b354:loc_b3aaj
                                          ; data xref: sub_b354+68o
-                 lda     $2c0,x
+                 lda     $4c0,x
                  beq     loc_b4da
-                 lda     $2c4,x
-                 ora     $2c8,x
+                 lda     $4c4,x
+                 ora     $4c8,x
                  beq     loc_b4da
-                 lda     $25e,x
-                 cmp     $2c8,x
+                 lda     $45e,x
+                 cmp     $4c8,x
                  bcc     loc_b4a7
                  bne     loc_b47e
-                 lda     $25a,x
-                 cmp     $2c4,x
+                 lda     $45a,x
+                 cmp     $4c4,x
                  bcc     loc_b4a7
                  bne     loc_b47e
                  jmp     locret_b3b9
@@ -2226,19 +2226,19 @@ ptr_data_bc6e:
  loc_b47e:                               ; code xref: sub_b354+11bj
                                          ; sub_b354+125j
                  sec
-                 lda     $25a,x
-                 sbc     $2c0,x
-                 sta     $25a,x
-                 lda     $25e,x
+                 lda     $45a,x
+                 sbc     $4c0,x
+                 sta     $45a,x
+                 lda     $45e,x
                  sbc     #0
-                 sta     $25e,x
-                 lda     $25e,x
-                 cmp     $2c8,x
+                 sta     $45e,x
+                 lda     $45e,x
+                 cmp     $4c8,x
                  bcc     loc_b4ce
                  bmi     loc_b4ce
                  bne     loc_b4da
-                 lda     $25a,x
-                 cmp     $2c4,x
+                 lda     $45a,x
+                 cmp     $4c4,x
                  bcc     loc_b4ce
                  jmp     locret_b3b9
  ; ---------------------------------------------------------------------------
@@ -2246,28 +2246,28 @@ ptr_data_bc6e:
  loc_b4a7:                               ; code xref: sub_b354+119j
                                          ; sub_b354+123j
                  clc
-                 lda     $25a,x
-                 adc     $2c0,x
-                 sta     $25a,x
-                 lda     $25e,x
+                 lda     $45a,x
+                 adc     $4c0,x
+                 sta     $45a,x
+                 lda     $45e,x
                  adc     #0
-                 sta     $25e,x
-                 lda     $2c8,x
-                 cmp     $25e,x
+                 sta     $45e,x
+                 lda     $4c8,x
+                 cmp     $45e,x
                  bcc     loc_b4ce
                  bne     loc_b4da
-                 lda     $2c4,x
-                 cmp     $25a,x
+                 lda     $4c4,x
+                 cmp     $45a,x
                  bcc     loc_b4ce
                  jmp     locret_b3b9
  ; ---------------------------------------------------------------------------
 
  loc_b4ce:                               ; code xref: sub_b354+142j
                                          ; sub_b354+144j ...
-                 lda     $2c4,x
-                 sta     $25a,x
-                 lda     $2c8,x
-                 sta     $25e,x
+                 lda     $4c4,x
+                 sta     $45a,x
+                 lda     $4c8,x
+                 sta     $45e,x
 
  loc_b4da:                               ; code xref: sub_b354+109j
                                          ; sub_b354+111j ...
@@ -2277,12 +2277,12 @@ ptr_data_bc6e:
  loc_b4dd:                               ; code xref: sub_b354:loc_b3adj
                                          ; data xref: sub_b354+6ao
                  sec
-                 lda     $25a,x
-                 sbc     $2c0,x
-                 sta     $25a,x
-                 lda     $25e,x
+                 lda     $45a,x
+                 sbc     $4c0,x
+                 sta     $45a,x
+                 lda     $45e,x
                  sbc     #0
-                 sta     $25e,x
+                 sta     $45e,x
                  jsr     sub_b92b
                  jmp     locret_b3b9
  ; ---------------------------------------------------------------------------
@@ -2290,12 +2290,12 @@ ptr_data_bc6e:
  loc_b4f5:                               ; code xref: sub_b354+50j
                                          ; data xref: sub_b354+6co
                  clc
-                 lda     $25a,x
-                 adc     $2c0,x
-                 sta     $25a,x
-                 lda     $25e,x
+                 lda     $45a,x
+                 adc     $4c0,x
+                 sta     $45a,x
+                 lda     $45e,x
                  adc     #0
-                 sta     $25e,x
+                 sta     $45e,x
                  jsr     sub_b92b
                  jmp     locret_b3b9
  ; ---------------------------------------------------------------------------
@@ -2303,17 +2303,17 @@ ptr_data_bc6e:
  loc_b50d:                               ; code xref: sub_b354:loc_b3b0j
                                          ; data xref: sub_b354+70o
                  sec
-                 lda     $25a,x
-                 sbc     $2c0,x
-                 sta     $25a,x
-                 lda     $25e,x
+                 lda     $45a,x
+                 sbc     $4c0,x
+                 sta     $45a,x
+                 lda     $45e,x
                  sbc     #0
-                 sta     $25e,x
-                 cmp     $2c8,x
+                 sta     $45e,x
+                 cmp     $4c8,x
                  bcc     loc_b555
                  bne     loc_b566
-                 lda     $25a,x
-                 cmp     $2c4,x
+                 lda     $45a,x
+                 cmp     $4c4,x
                  bcc     loc_b555
                  jmp     locret_b3b9
  ; ---------------------------------------------------------------------------
@@ -2321,29 +2321,29 @@ ptr_data_bc6e:
  loc_b531:                               ; code xref: sub_b354:loc_b3b3j
                                          ; data xref: sub_b354+74o
                  clc
-                 lda     $25a,x
-                 adc     $2c0,x
-                 sta     $25a,x
-                 lda     $25e,x
+                 lda     $45a,x
+                 adc     $4c0,x
+                 sta     $45a,x
+                 lda     $45e,x
                  adc     #0
-                 sta     $25e,x
-                 cmp     $2c8,x
+                 sta     $45e,x
+                 cmp     $4c8,x
                  bcc     loc_b566
                  bne     loc_b555
-                 lda     $25a,x
-                 cmp     $2c4,x
+                 lda     $45a,x
+                 cmp     $4c4,x
                  bcs     loc_b555
                  jmp     locret_b3b9
  ; ---------------------------------------------------------------------------
 
  loc_b555:                               ; code xref: sub_b354+1cej
                                          ; sub_b354+1d8j ...
-                 lda     $2c4,x
-                 sta     $25a,x
-                 lda     $2c8,x
-                 sta     $25e,x
+                 lda     $4c4,x
+                 sta     $45a,x
+                 lda     $4c8,x
+                 sta     $45e,x
                  lda     #0
-                 sta     $2bc,x
+                 sta     $4bc,x
 
  loc_b566:                               ; code xref: sub_b354+1d0j
                                          ; sub_b354+1f2j
@@ -2352,46 +2352,46 @@ ptr_data_bc6e:
 
  loc_b569:                               ; code xref: sub_b354:loc_b3a7j
                                          ; data xref: sub_b354+66o
-                 lda     $2cc,x
+                 lda     $4cc,x
                  cmp     #1
                  beq     loc_b580
                  cmp     #2
                  beq     loc_b5a1
-                 lda     $232,x
+                 lda     $432,x
                  jsr     sub_b249
-                 inc     $2cc,x
+                 inc     $4cc,x
                  jmp     locret_b3b9
  ; ---------------------------------------------------------------------------
 
  loc_b580:                               ; code xref: sub_b354+21aj
-                 lda     $2c0,x
+                 lda     $4c0,x
                  lsr
                  lsr
                  lsr
                  lsr
                  clc
-                 adc     $232,x
+                 adc     $432,x
                  jsr     sub_b249
-                 lda     $2c0,x
+                 lda     $4c0,x
                  and     #$f
                  bne     loc_b59b
-                 sta     $2cc,x
+                 sta     $4cc,x
                  jmp     locret_b3b9
  ; ---------------------------------------------------------------------------
 
  loc_b59b:                               ; code xref: sub_b354+23fj
-                 inc     $2cc,x
+                 inc     $4cc,x
                  jmp     locret_b3b9
  ; ---------------------------------------------------------------------------
 
  loc_b5a1:                               ; code xref: sub_b354+21ej
-                 lda     $2c0,x
+                 lda     $4c0,x
                  and     #$f
                  clc
-                 adc     $232,x
+                 adc     $432,x
                  jsr     sub_b249
                  lda     #0
-                 sta     $2cc,x
+                 sta     $4cc,x
                  jmp     locret_b3b9
  ; end of function chunk for sub_b354
 
@@ -2399,16 +2399,16 @@ ptr_data_bc6e:
 
 
  sub_b5b5:                               ; code xref: sub_b41e:loc_b453p
-                 lda     $2d8,x
+                 lda     $4d8,x
                  bne     loc_b5bb
                  rts
  ; ---------------------------------------------------------------------------
 
  loc_b5bb:                               ; code xref: sub_b5b5+3j
                  clc
-                 adc     $2d0,x
+                 adc     $4d0,x
                  and     #$3f ; '?'
-                 sta     $2d0,x
+                 sta     $4d0,x
                  cmp     #$10
                  bcc     loc_b5ec
                  cmp     #$20 ; ' '
@@ -2421,7 +2421,7 @@ ptr_data_bc6e:
                  sec
                  lda     #$f
                  sbc     0
-                 ora     $2d4,x
+                 ora     $4d4,x
                  tay
                  lda     unk_bdee,y
                  eor     #$ff
@@ -2432,7 +2432,7 @@ ptr_data_bc6e:
  ; ---------------------------------------------------------------------------
 
  loc_b5ec:                               ; code xref: sub_b5b5+11j
-                 ora     $2d4,x
+                 ora     $4d4,x
                  tay
                  lda     unk_bdee,y
                  sta     3
@@ -2448,7 +2448,7 @@ ptr_data_bc6e:
                  sec
                  lda     #$f
                  sbc     0
-                 ora     $2d4,x
+                 ora     $4d4,x
                  tay
                  lda     unk_bdee,y
                  sta     3
@@ -2460,7 +2460,7 @@ ptr_data_bc6e:
  loc_b616:                               ; code xref: sub_b5b5+19j
                  sec
                  sbc     #$20 ; ' '
-                 ora     $2d4,x
+                 ora     $4d4,x
                  tay
                  lda     unk_bdee,y
                  eor     #$ff
@@ -2470,12 +2470,12 @@ ptr_data_bc6e:
 
  loc_b628:                               ; code xref: sub_b5b5+34j
                                          ; sub_b5b5+44j ...
-                 lda     $208
+                 lda     $408
                  and     #2
                  beq     loc_b64a
                  lda     #$f
                  clc
-                 adc     $2d4,x
+                 adc     $4d4,x
                  tay
                  lda     unk_bdee,y
                  clc
@@ -2490,12 +2490,12 @@ ptr_data_bc6e:
 
  loc_b64a:                               ; code xref: sub_b5b5+78j
                  sec
-                 lda     $262,x
+                 lda     $462,x
                  sbc     3
-                 sta     $262,x
-                 lda     $266,x
+                 sta     $462,x
+                 lda     $466,x
                  sbc     4
-                 sta     $266,x
+                 sta     $466,x
                  rts
  ; end of function sub_b5b5
 
@@ -2504,18 +2504,18 @@ ptr_data_bc6e:
 
 
  sub_b65c:                               ; code xref: sub_b41e+38p
-                 lda     $2e4,x
+                 lda     $4e4,x
                  bne     loc_b668
-                 lda     $2a0,x
-                 sta     $26a,x
+                 lda     $4a0,x
+                 sta     $46a,x
                  rts
  ; ---------------------------------------------------------------------------
 
  loc_b668:                               ; code xref: sub_b65c+3j
                  clc
-                 adc     $2dc,x
+                 adc     $4dc,x
                  and     #$3f ; '?'
-                 sta     $2dc,x
+                 sta     $4dc,x
                  lsr
                  cmp     #$10
                  bcc     loc_b68d
@@ -2525,7 +2525,7 @@ ptr_data_bc6e:
                  sec
                  lda     #$f
                  sbc     0
-                 ora     $2e0,x
+                 ora     $4e0,x
                  tay
                  lda     unk_bdee,y
                  lsr
@@ -2534,7 +2534,7 @@ ptr_data_bc6e:
  ; ---------------------------------------------------------------------------
 
  loc_b68d:                               ; code xref: sub_b65c+18j
-                 ora     $2e0,x
+                 ora     $4e0,x
                  tay
                  lda     unk_bdee,y
                  lsr
@@ -2542,16 +2542,16 @@ ptr_data_bc6e:
 
  loc_b697:                               ; code xref: sub_b65c+2ej
                  sec
-                 lda     $2a0,x
+                 lda     $4a0,x
                  sbc     0
                  bmi     loc_b6a3
-                 sta     $26a,x
+                 sta     $46a,x
                  rts
  ; ---------------------------------------------------------------------------
 
  loc_b6a3:                               ; code xref: sub_b65c+41j
                  lda     #0
-                 sta     $26a,x
+                 sta     $46a,x
                  rts
  ; end of function sub_b65c
 
@@ -2562,55 +2562,55 @@ ptr_data_bc6e:
 
 
  sub_b6aa:                               ; code xref: sml_export_init+370p
-                 lda     $27c,x
+                 lda     $47c,x
                  beq     loc_b6c9
                  sta     6
-                 lda     $278,x
+                 lda     $478,x
                  sta     5
-                 lda     $2a8,x
+                 lda     $4a8,x
                  cmp     #$ff
                  beq     loc_b6c9
                  jsr     sub_b79f
-                 sta     $2a8,x
-                 lda     $222
-                 sta     $2a0,x
+                 sta     $4a8,x
+                 lda     $422
+                 sta     $4a0,x
 
  loc_b6c9:                               ; code xref: sub_b6aa+3j
                                          ; sub_b6aa+11j
-                 lda     $284,x
+                 lda     $484,x
                  beq     loc_b6f1
                  sta     6
-                 lda     $280,x
+                 lda     $480,x
                  sta     5
-                 lda     $2ac,x
+                 lda     $4ac,x
                  cmp     #$ff
                  beq     loc_b6f1
                  jsr     sub_b79f
-                 sta     $2ac,x
-                 lda     $232,x
+                 sta     $4ac,x
+                 lda     $432,x
                  beq     loc_b6f1
                  clc
-                 lda     $232,x
-                 adc     $222
+                 lda     $432,x
+                 adc     $422
                  jsr     sub_b249
 
  loc_b6f1:                               ; code xref: sub_b6aa+22j
                                          ; sub_b6aa+30j ...
-                 lda     $28c,x
+                 lda     $48c,x
                  beq     loc_b728
                  sta     6
-                 lda     $288,x
+                 lda     $488,x
                  sta     5
-                 lda     $2b0,x
+                 lda     $4b0,x
                  cmp     #$ff
                  beq     loc_b728
                  jsr     sub_b79f
-                 sta     $2b0,x
+                 sta     $4b0,x
                  clc
-                 lda     $222
-                 adc     $25a,x
-                 sta     $25a,x
-                 lda     $222
+                 lda     $422
+                 adc     $45a,x
+                 sta     $45a,x
+                 lda     $422
                  bpl     loc_b71d
                  lda     #$ff
                  bmi     loc_b71f
@@ -2619,23 +2619,23 @@ ptr_data_bc6e:
                  lda     #0
 
  loc_b71f:                               ; code xref: sub_b6aa+71j
-                 adc     $25e,x
-                 sta     $25e,x
+                 adc     $45e,x
+                 sta     $45e,x
                  jsr     sub_b92b
 
  loc_b728:                               ; code xref: sub_b6aa+4aj
                                          ; sub_b6aa+58j
-                 lda     $294,x
+                 lda     $494,x
                  beq     loc_b772
                  sta     6
-                 lda     $290,x
+                 lda     $490,x
                  sta     5
-                 lda     $2b4,x
+                 lda     $4b4,x
                  cmp     #$ff
                  beq     loc_b772
                  jsr     sub_b79f
-                 sta     $2b4,x
-                 lda     $222
+                 sta     $4b4,x
+                 lda     $422
                  sta     3
                  rol
                  bcc     loc_b750
@@ -2659,33 +2659,33 @@ ptr_data_bc6e:
                  bne     loc_b756
                  clc
                  lda     3
-                 adc     $25a,x
-                 sta     $25a,x
+                 adc     $45a,x
+                 sta     $45a,x
                  lda     4
-                 adc     $25e,x
-                 sta     $25e,x
+                 adc     $45e,x
+                 sta     $45e,x
                  jsr     sub_b92b
 
  loc_b772:                               ; code xref: sub_b6aa+81j
                                          ; sub_b6aa+8fj
-                 lda     $29c,x
+                 lda     $49c,x
                  beq     locret_b79e
                  sta     6
-                 lda     $298,x
+                 lda     $498,x
                  sta     5
-                 lda     $2b8,x
+                 lda     $4b8,x
                  cmp     #$ff
                  beq     locret_b79e
                  jsr     sub_b79f
-                 sta     $2b8,x
-                 lda     $222
+                 sta     $4b8,x
+                 lda     $422
                  pha
-                 lda     $2a4,x
+                 lda     $4a4,x
                  and     #$f0 ; ''
-                 sta     $2a4,x
+                 sta     $4a4,x
                  pla
-                 ora     $2a4,x
-                 sta     $2a4,x
+                 ora     $4a4,x
+                 sta     $4a4,x
 
  locret_b79e:                            ; code xref: sub_b6aa+cbj
                                          ; sub_b6aa+d9j
@@ -2702,7 +2702,7 @@ ptr_data_bc6e:
                  adc     #3
                  tay
                  lda     (5),y
-                 sta     $222
+                 sta     $422
                  dey
                  dey
                  tya
@@ -2730,7 +2730,7 @@ ptr_data_bc6e:
  loc_b7c4:                               ; code xref: sub_b79f+1ej
                                          ; sub_b79f+45j
                  pha
-                 lda     $246,x
+                 lda     $446,x
                  bne     loc_b7cc
                  pla
                  rts
@@ -2752,7 +2752,7 @@ ptr_data_bc6e:
 
  loc_b7d8:                               ; code xref: sub_b79f+16j
                  sta     0
-                 lda     $246,x
+                 lda     $446,x
                  bne     loc_b7c2
                  dey
                  lda     (5),y
@@ -2771,63 +2771,63 @@ ptr_data_bc6e:
  sub_b7ec:                               ; code xref: sub_af7f+93p
                  tya
                  pha
-                 lda     $27c,x
+                 lda     $47c,x
                  beq     loc_b803
                  sta     6
-                 lda     $278,x
+                 lda     $478,x
                  sta     5
                  ldy     #2
                  lda     (5),y
                  beq     loc_b803
-                 sta     $2a8,x
+                 sta     $4a8,x
 
  loc_b803:                               ; code xref: sub_b7ec+5j
                                          ; sub_b7ec+12j
-                 lda     $284,x
+                 lda     $484,x
                  beq     loc_b818
                  sta     6
-                 lda     $280,x
+                 lda     $480,x
                  sta     5
                  ldy     #2
                  lda     (5),y
                  beq     loc_b818
-                 sta     $2ac,x
+                 sta     $4ac,x
 
  loc_b818:                               ; code xref: sub_b7ec+1aj
                                          ; sub_b7ec+27j
-                 lda     $28c,x
+                 lda     $48c,x
                  beq     loc_b82d
                  sta     6
-                 lda     $288,x
+                 lda     $488,x
                  sta     5
                  ldy     #2
                  lda     (5),y
                  beq     loc_b82d
-                 sta     $2b0,x
+                 sta     $4b0,x
 
  loc_b82d:                               ; code xref: sub_b7ec+2fj
                                          ; sub_b7ec+3cj
-                 lda     $294,x
+                 lda     $494,x
                  beq     loc_b842
                  sta     6
-                 lda     $290,x
+                 lda     $490,x
                  sta     5
                  ldy     #2
                  lda     (5),y
                  beq     loc_b842
-                 sta     $2b4,x
+                 sta     $4b4,x
 
  loc_b842:                               ; code xref: sub_b7ec+44j
                                          ; sub_b7ec+51j
-                 lda     $29c,x
+                 lda     $49c,x
                  beq     loc_b857
                  sta     6
-                 lda     $298,x
+                 lda     $498,x
                  sta     5
                  ldy     #2
                  lda     (5),y
                  beq     loc_b857
-                 sta     $2b8,x
+                 sta     $4b8,x
 
  loc_b857:                               ; code xref: sub_b7ec+59j
                                          ; sub_b7ec+66j
@@ -2843,11 +2843,11 @@ ptr_data_bc6e:
  sub_b85a:                               ; code xref: sub_af7f:loc_afccp
                                          ; sub_b86c:loc_b925p
                  lda     #0
-                 sta     $2a8,x
-                 sta     $2ac,x
-                 sta     $2b0,x
-                 sta     $2b4,x
-                 sta     $2b8,x
+                 sta     $4a8,x
+                 sta     $4ac,x
+                 sta     $4b0,x
+                 sta     $4b4,x
+                 sta     $4b8,x
                  rts
  ; end of function sub_b85a
 
@@ -2860,10 +2860,10 @@ ptr_data_bc6e:
                  sty     0
                  ldy     #0
                  clc
-                 adc     $202
+                 adc     $402
                  sta     3
                  tya
-                 adc     $203
+                 adc     $403
                  sta     4
                  clc
                  lda     (3),y
@@ -2875,16 +2875,16 @@ ptr_data_bc6e:
                  sta     6
                  ldy     #0
                  tya
-                 sta     $278,x
-                 sta     $27c,x
-                 sta     $280,x
-                 sta     $284,x
-                 sta     $288,x
-                 sta     $28c,x
-                 sta     $290,x
-                 sta     $294,x
-                 sta     $298,x
-                 sta     $29c,x
+                 sta     $478,x
+                 sta     $47c,x
+                 sta     $480,x
+                 sta     $484,x
+                 sta     $488,x
+                 sta     $48c,x
+                 sta     $490,x
+                 sta     $494,x
+                 sta     $498,x
+                 sta     $49c,x
                  lda     (5),y
                  sta     2
                  iny
@@ -2893,11 +2893,11 @@ ptr_data_bc6e:
                  clc
                  lda     (5),y
                  adc     off_beee
-                 sta     $278,x
+                 sta     $478,x
                  iny
                  lda     (5),y
                  adc     off_beee+1
-                 sta     $27c,x
+                 sta     $47c,x
                  iny
 
  loc_b8c9:                               ; code xref: sub_b86c+48j
@@ -2906,11 +2906,11 @@ ptr_data_bc6e:
                  clc
                  lda     (5),y
                  adc     off_beee
-                 sta     $280,x
+                 sta     $480,x
                  iny
                  lda     (5),y
                  adc     off_beee+1
-                 sta     $284,x
+                 sta     $484,x
                  iny
 
  loc_b8e0:                               ; code xref: sub_b86c+5fj
@@ -2919,11 +2919,11 @@ ptr_data_bc6e:
                  clc
                  lda     (5),y
                  adc     off_beee
-                 sta     $288,x
+                 sta     $488,x
                  iny
                  lda     (5),y
                  adc     off_beee+1
-                 sta     $28c,x
+                 sta     $48c,x
                  iny
 
  loc_b8f7:                               ; code xref: sub_b86c+76j
@@ -2932,11 +2932,11 @@ ptr_data_bc6e:
                  clc
                  lda     (5),y
                  adc     off_beee
-                 sta     $290,x
+                 sta     $490,x
                  iny
                  lda     (5),y
                  adc     off_beee+1
-                 sta     $294,x
+                 sta     $494,x
                  iny
 
  loc_b90e:                               ; code xref: sub_b86c+8dj
@@ -2945,11 +2945,11 @@ ptr_data_bc6e:
                  clc
                  lda     (5),y
                  adc     off_beee
-                 sta     $298,x
+                 sta     $498,x
                  iny
                  lda     (5),y
                  adc     off_beee+1
-                 sta     $29c,x
+                 sta     $49c,x
                  iny
 
  loc_b925:                               ; code xref: sub_b86c+a4j
@@ -2964,14 +2964,14 @@ ptr_data_bc6e:
 
  sub_b92b:                               ; code xref: sub_b354+19bp
                                          ; sub_b354+1b3p ...
-                 lda     $25e,x
+                 lda     $45e,x
                  bmi     loc_b93f
                  cmp     #8
                  bcc     locret_b93e
                  lda     #7
-                 sta     $25e,x
+                 sta     $45e,x
                  lda     #$ff
-                 sta     $25a,x
+                 sta     $45a,x
 
  locret_b93e:                            ; code xref: sub_b92b+7j
                  rts
@@ -2979,8 +2979,8 @@ ptr_data_bc6e:
 
  loc_b93f:                               ; code xref: sub_b92b+3j
                  lda     #0
-                 sta     $25a,x
-                 sta     $25e,x
+                 sta     $45a,x
+                 sta     $45e,x
                  rts
  ; end of function sub_b92b
 
@@ -2992,7 +2992,7 @@ ptr_data_bc6e:
 
  ; function chunk at  size 0000020c bytes
 
-                 lda     $211
+                 lda     $411
                  bne     loc_b95e
                  lda     #0
                  sta     $4015
@@ -3016,56 +3016,56 @@ ptr_data_bc6e:
  ; start of function chunk for sub_b948
 
  loc_b95e:                               ; code xref: sub_b948+3j
-                 lda     $209
+                 lda     $409
                  and     #1
                  bne     loc_b968
                  jmp     loc_b9ef
  ; ---------------------------------------------------------------------------
 
  loc_b968:                               ; code xref: sub_b948+1bj
-                 lda     $232
+                 lda     $432
                  beq     loc_b9cb
-                 lda     $237
+                 lda     $437
                  asl
                  and     #$f0 ; ''
                  beq     loc_b9cb
                  sta     0
-                 lda     $26a
+                 lda     $46a
                  beq     loc_b9cb
                  ora     0
                  tax
                  lda     unk_bb6e,x
                  pha
-                 lda     $2a4
+                 lda     $4a4
                  and     #3
                  tax
                  pla
                  ora     unk_bb6a,x
                  ora     #$30 ; '0'
                  sta     $4000
-                 lda     $266
+                 lda     $466
                  and     #$f8 ; ''
                  beq     loc_b9a3
                  lda     #7
-                 sta     $266
+                 sta     $466
                  lda     #$ff
-                 sta     $262
+                 sta     $462
 
  loc_b9a3:                               ; code xref: sub_b948+4fj
-                 lda     $274
+                 lda     $474
                  beq     loc_b9d3
                  and     #$80 ; ''
                  beq     loc_b9ef
-                 lda     $274
+                 lda     $474
                  sta     $4001
                  and     #$7f ; ''
-                 sta     $274
-                 lda     $262
+                 sta     $474
+                 lda     $462
                  sta     $4002
-                 lda     $266
+                 lda     $466
                  sta     $4003
                  lda     #$ff
-                 sta     $276
+                 sta     $476
                  jmp     loc_b9ef
  ; ---------------------------------------------------------------------------
 
@@ -3080,65 +3080,65 @@ ptr_data_bc6e:
                  lda     #8
                  sta     $4001
                  jsr     sub_b953
-                 lda     $262
+                 lda     $462
                  sta     $4002
-                 lda     $266
-                 cmp     $276
+                 lda     $466
+                 cmp     $476
                  beq     loc_b9ef
                  sta     $4003
-                 sta     $276
+                 sta     $476
 
  loc_b9ef:                               ; code xref: sub_b948+1dj
                                          ; sub_b948+62j ...
-                 lda     $209
+                 lda     $409
                  and     #2
                  bne     loc_b9f9
                  jmp     loc_ba80
  ; ---------------------------------------------------------------------------
 
  loc_b9f9:                               ; code xref: sub_b948+acj
-                 lda     $233
+                 lda     $433
                  beq     loc_ba7b
-                 lda     $238
+                 lda     $438
                  asl
                  and     #$f0 ; ''
                  beq     loc_ba7b
                  sta     0
-                 lda     $26b
+                 lda     $46b
                  beq     loc_ba7b
                  ora     0
                  tax
                  lda     unk_bb6e,x
                  pha
-                 lda     $2a5
+                 lda     $4a5
                  and     #3
                  tax
                  pla
                  ora     unk_bb6a,x
                  ora     #$30 ; '0'
                  sta     $4004
-                 lda     $267
+                 lda     $467
                  and     #$f8 ; ''
                  beq     loc_ba34
                  lda     #7
-                 sta     $267
+                 sta     $467
                  lda     #$ff
-                 sta     $263
+                 sta     $463
 
  loc_ba34:                               ; code xref: sub_b948+e0j
-                 lda     $275
+                 lda     $475
                  beq     loc_ba5c
                  and     #$80 ; ''
                  beq     loc_ba80
-                 lda     $275
+                 lda     $475
                  sta     $4005
                  and     #$7f ; ''
-                 sta     $275
+                 sta     $475
                  lda     #$ff
-                 sta     $277
-                 lda     $263
+                 sta     $477
+                 lda     $463
                  sta     $4006
-                 lda     $267
+                 lda     $467
                  sta     $4007
                  jmp     loc_ba80
  ; ---------------------------------------------------------------------------
@@ -3147,13 +3147,13 @@ ptr_data_bc6e:
                  lda     #8
                  sta     $4005
                  jsr     sub_b953
-                 lda     $263
+                 lda     $463
                  sta     $4006
-                 lda     $267
-                 cmp     $277
+                 lda     $467
+                 cmp     $477
                  beq     loc_ba78
                  sta     $4007
-                 sta     $277
+                 sta     $477
 
  loc_ba78:                               ; code xref: sub_b948+128j
                  jmp     loc_ba80
@@ -3166,27 +3166,27 @@ ptr_data_bc6e:
 
  loc_ba80:                               ; code xref: sub_b948+aej
                                          ; sub_b948+f3j ...
-                 lda     $209
+                 lda     $409
                  and     #4
                  beq     loc_babb
-                 lda     $2a2
+                 lda     $4a2
                  beq     loc_bab6
-                 lda     $234
+                 lda     $434
                  beq     loc_bab6
                  lda     #$81 ; ''
                  sta     $4008
-                 lda     $268
+                 lda     $468
                  and     #$f8 ; ''
                  beq     loc_baa7
                  lda     #7
-                 sta     $268
+                 sta     $468
                  lda     #$ff
-                 sta     $264
+                 sta     $464
 
  loc_baa7:                               ; code xref: sub_b948+153j
-                 lda     $264
+                 lda     $464
                  sta     $400a
-                 lda     $268
+                 lda     $468
                  sta     $400b
                  jmp     loc_babb
  ; ---------------------------------------------------------------------------
@@ -3198,17 +3198,17 @@ ptr_data_bc6e:
 
  loc_babb:                               ; code xref: sub_b948+13dj
                                          ; sub_b948+16bj
-                 lda     $209
+                 lda     $409
                  and     #8
                  beq     loc_bb07
-                 lda     $235
+                 lda     $435
                  beq     loc_bb02
-                 lda     $23a
+                 lda     $43a
                  asl
                  and     #$f0 ; ''
                  sta     0
                  beq     loc_bb02
-                 lda     $26d
+                 lda     $46d
                  beq     loc_bb02
                  ora     0
                  tax
@@ -3217,12 +3217,12 @@ ptr_data_bc6e:
                  sta     $400c
                  lda     #0
                  sta     $400d
-                 lda     $2a7
+                 lda     $4a7
                  ror
                  ror
                  and     #$80 ; ''
                  sta     0
-                 lda     $265
+                 lda     $465
                  and     #$f
                  ora     0
                  eor     #$f
@@ -3238,45 +3238,45 @@ ptr_data_bc6e:
 
  loc_bb07:                               ; code xref: sub_b948+178j
                                          ; sub_b948+1b8j
-                 lda     $209
+                 lda     $409
                  and     #$10
                  beq     locret_bb69
-                 lda     $2ed
+                 lda     $4ed
                  beq     loc_bb20
-                 dec     $2ee
+                 dec     $4ee
                  bne     loc_bb20
-                 sta     $2ee
+                 sta     $4ee
                  lda     #1
-                 sta     $236
+                 sta     $436
 
  loc_bb20:                               ; code xref: sub_b948+1c9j
                                          ; sub_b948+1cej
-                 lda     $2eb
+                 lda     $4eb
                  bmi     loc_bb28
                  sta     $4011
 
  loc_bb28:                               ; code xref: sub_b948+1dbj
                  lda     #$80 ; ''
-                 sta     $2eb
-                 lda     $236
+                 sta     $4eb
+                 lda     $436
                  beq     loc_bb64
                  bmi     locret_bb63
-                 lda     $2ea
+                 lda     $4ea
                  sta     $4010
                  clc
-                 lda     $2e8
-                 adc     $2ec
+                 lda     $4e8
+                 adc     $4ec
                  sta     $4012
-                 lda     $2ec
+                 lda     $4ec
                  asl
                  asl
                  sta     0
                  sec
-                 lda     $2e9
+                 lda     $4e9
                  sbc     0
                  sta     $4013
                  lda     #$80 ; ''
-                 sta     $236
+                 sta     $436
                  lda     #$f
                  sta     $4015
                  lda     #$1f

@@ -6315,7 +6315,7 @@ EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 
 ;-------------------------------------------------------------------------------------
 
-.seekoff $3fc0 $ea
+.seekoff $bfc0 $ea
 EnterFpgLoadArea:
   lda #BANK_FPG_DATA
   jsr SetBankFromA

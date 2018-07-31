@@ -22,11 +22,11 @@ sound.bin: sound.asm
 	$(ASM) $^ $(AFLAGS)
 loader.bin: loader.asm
 	$(ASM) $^ $(AFLAGS)
-dummy.bin: dummy.asm
+smlsound.bin: smlsound.asm
 	$(ASM) $^ $(AFLAGS)
 
-$(NESFILE): sound.bin practice.bin vanilla.bin loader.bin dummy.bin main.bin fpg.bin fpg_data.bin
-	$(LINK) $(NESFILE) vanilla sound practice fpg fpg_data dummy loader main
+$(NESFILE): sound.bin practice.bin vanilla.bin loader.bin smlsound.bin main.bin fpg.bin fpg_data.bin
+	$(LINK) $(NESFILE) vanilla sound practice fpg fpg_data smlsound loader main
 
 clean:
 	$(RM) $(NESFILE) fpg_data.asm *.deb *.map *.bin *.und

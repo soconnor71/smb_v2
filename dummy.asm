@@ -2,4 +2,4 @@
 	.org $8000
 dummy:
 	.db $ba, BANK_DUMMY
-	.seekoff $4000 $00
+	.seekoff $c000 $00
