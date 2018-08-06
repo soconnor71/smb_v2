@@ -14,6 +14,9 @@ CHR_PRACTICE = 2
 CHR_FPG = 4
 CHR_LOADER = 6
 
+;
+; FPG vars
+;
 FpgRuleset = $0717		; DemoAction
 FpgSelected = $075a		; NumberOfLives
 FpgFlags  = $0761		; OffScr_NumberofLives
@@ -21,6 +24,33 @@ FpgLastInput = $0762	; OffScr_HalfwayPage
 FpgScrollTo = $07d7 	; TopScoreDisplay+0
 FpgError = $07d8		; TopScoreDisplay+1
 FpgErrorParam = $07d9	; TopScoreDisplay+2
+
+;
+; Practice vars
+;
+;
+; RAM vars
+;
+PowerUpFrames				= $04	; Anywhere thats temporary
+RuleIndex					= $0717 ; Previously DemoAction (can be changed to temp?)
+FirstTimeInit				= $075e ; Previously CoinTally
+MenuSelection				= $077a ; Previously NumberOfPlayers
+SaveFrameRuleData			= $07d2 ; Previously unused? :o
+SaveIntervalTimerControl	= $07d7 ; Previously DisplayDigits[0]
+FrameRuleData				= $07df ; Previously in score somewhere
+PowerUps					= $07e3 ; Previously unused?
+SaveStateFlags				= $07fc ; Previously WorldSelectEnableFlag
+SaveFrame					= $07fd ; Previously ContinueWorld
+SavedRandomData				= $07ed
+SavedEnterTimer				= $07f7
+PracticeFlags				= $07f6
+
+STATUS_BAR_OFFSET = $02
+RULE_COUNT_OFFSET = $0b
+FRAME_NUMBER_OFFSET = $15
+FRAMES_REMAIN_OFFSET = $0e
+POSITION_OFFSET = $12
+
 
 PPU_CTRL_REG1         = $2000
 PPU_CTRL_REG2         = $2001

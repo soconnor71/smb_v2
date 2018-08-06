@@ -4,28 +4,6 @@
 	.vars vars.inc
 	.org $8000
 	.db $ba, BANK_PRACTICE
-
-STATUS_BAR_OFFSET = $02
-RULE_COUNT_OFFSET = $0b
-FRAME_NUMBER_OFFSET = $15
-FRAMES_REMAIN_OFFSET = $0e
-POSITION_OFFSET = $12
-;
-; RAM vars
-;
-PowerUpFrames				= $04	; Anywhere thats temporary
-RuleIndex					= $0717 ; Previously DemoAction (can be changed to temp?)
-FirstTimeInit				= $075e ; Previously CoinTally
-MenuSelection				= $077a ; Previously NumberOfPlayers
-SaveFrameRuleData			= $07d2 ; Previously unused? :o
-SaveIntervalTimerControl	= $07d7 ; Previously DisplayDigits[0]
-FrameRuleData				= $07df ; Previously in score somewhere
-PowerUps					= $07e3 ; Previously unused?
-SaveStateFlags				= $07fc ; Previously WorldSelectEnableFlag
-SaveFrame					= $07fd ; Previously ContinueWorld
-SavedRandomData				= $07ed
-SavedEnterTimer				= $07f7
-PracticeFlags				= $07f6
 ;
 ; Identity-mapped swap-table
 ;
@@ -224,26 +202,6 @@ SockMode:
 PRAC_LoadChrROM:
 		lda #CHR_PRACTICE
 		jmp SetChrFromA
-
-AdvanceRandom:
-		lda PseudoRandomBitReg    ;get first memory location of LSFR bytes
-		and #%00000010            ;mask out all but d1
-		sta $00                   ;save here
-		lda PseudoRandomBitReg+1  ;get second memory location
-		and #%00000010            ;mask out all but d1
-		eor $00                   ;perform exclusive-OR on d1 from first and second bytes
-		clc                       ;if neither or both are set, carry will be clear
-		beq RotPRandomBit
-		sec                       ;if one or the other is set, carry will be set
-RotPRandomBit:
-		ror PseudoRandomBitReg+0  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+1  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+2  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+3  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+4  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+5  ;rotate carry into d7, and rotate last bit into carry
-		ror PseudoRandomBitReg+6  ;rotate carry into d7, and rotate last bit into carry
-		rts
 
 ;-------------------------------------------------------------------------------------
 
@@ -562,135 +520,6 @@ AlreadyHasSaveState:
 		rts
 
 ;-------------------------------------------------------------------------------------
-
-AdvanceToRule:
-		;
-		; Regardless if rule, always honor powerups
-		;
-      lda #0
-		ldx PowerUps
-		beq NoPowerups
-		lda #59
-		dex
-		beq BigMarioPowerup
-		dex
-		lda #2
-		sta PlayerStatus
-		lda #122
-		;
-		; Big mario
-		;
-BigMarioPowerup:
-		stx PlayerSize
-		stx PowerUps
-NoPowerups:
-      sta PowerUpFrames
-		;
-		; If Rule is 0, use title Rule
-		; 
-		lda TopScoreDisplay+2
-		ora TopScoreDisplay+3
-		ora TopScoreDisplay+4
-		ora TopScoreDisplay+5
-		bne StartAdvance
-		rts
-StartAdvance:
-		lda IntervalTimerControl
-		cmp #3
-DeadLock:
-		bne DeadLock
-		;
-		; Copy to current rule
-		;
-		ldx #4
-KeepCopyRule:
-		lda TopScoreDisplay+1,x
-		sta DisplayDigits+RULE_COUNT_OFFSET-4, x
-		dex
-		bne KeepCopyRule
-		lda #0
-		sta DisplayDigits+RULE_COUNT_OFFSET-5
-		;
-		; Advance to correct frame rule
-		;
-		ldx #6
-		lda #0
-ResetRandom:
-		sta PseudoRandomBitReg+1,x
-		dex
-		bpl ResetRandom
-		lda #$a5                     ;set warm boot flag
-		sta PseudoRandomBitReg       ;set seed for pseudorandom register
-AdvanceFurther:
-		lda #$ff
-		sta DigitModifier+4
-		ldy #6
-		jsr DigitsMathRoutine
-		lda TopScoreDisplay+2
-		ora TopScoreDisplay+3
-		ora TopScoreDisplay+4
-		ora TopScoreDisplay+5
-		beq RuleContinue
-
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jsr AdvanceRandom
-		jmp AdvanceFurther
-
-RuleContinue:
-		;
-		; Advance to correct place within this rule
-		;
-		lda #18
-		sta $02
-AdvanceWithin:
-		jsr AdvanceRandom
-		dec $02
-		bne AdvanceWithin
-		;
-		; Advance powerup frames
-		;
-MorePowerUpFrames:
-		dec PowerUpFrames
-		bmi NoPowerUpFrames
-		jsr AdvanceRandom
-		jmp MorePowerUpFrames
-NoPowerUpFrames:
-		;
-		; Set the correct framecounter
-		;
-      ldy #$0e
-		ldx #$a2
-		lda LevelNumber
-		bne SaveFrameCounter
-		inx
-      iny
-SaveFrameCounter:
-		stx FrameCounter
-      sty SavedEnterTimer
-		;
-		; On the correct framerule, continue with the game.
-		;
-		rts
-
 
 DrawSelectedNumber:
 		pha
@@ -2163,7 +1992,7 @@ PrimaryGameSetup:
       sta PlayerSize              ;set player's size to small
 
 SecondaryGameSetup:
-			jsr AdvanceToRule
+			jsr EnterAdvanceToRule
 			jsr HandleSaveState
              lda #$00
              sta DisableScreenFlag     ;enable screen output
