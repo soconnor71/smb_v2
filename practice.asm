@@ -218,7 +218,7 @@ ToggleRenderMode:
 		sta VRAM_Buffer1_Offset
 		jmp RedrawFrameNumbers
 SockMode:
-		rts
+		jmp ForceUpdateSockHash
 
 
 PRAC_LoadChrROM:
@@ -567,6 +567,7 @@ AdvanceToRule:
 		;
 		; Regardless if rule, always honor powerups
 		;
+      lda #0
 		ldx PowerUps
 		beq NoPowerups
 		lda #59
@@ -580,10 +581,10 @@ AdvanceToRule:
 		; Big mario
 		;
 BigMarioPowerup:
-		sta PowerUpFrames
 		stx PlayerSize
 		stx PowerUps
 NoPowerups:
+      sta PowerUpFrames
 		;
 		; If Rule is 0, use title Rule
 		; 
@@ -676,12 +677,15 @@ NoPowerUpFrames:
 		;
 		; Set the correct framecounter
 		;
+      ldy #$0e
 		ldx #$a2
 		lda LevelNumber
 		bne SaveFrameCounter
 		inx
+      iny
 SaveFrameCounter:
 		stx FrameCounter
+      sty SavedEnterTimer
 		;
 		; On the correct framerule, continue with the game.
 		;
@@ -6987,6 +6991,7 @@ UpdateSockHash:
 		and #3
 		cmp #2
 		bne DontUpdateSockHash
+ForceUpdateSockHash:      
 		lda SprObject_X_MoveForce ; Player force
 		sta $3
 		lda SprObject_X_Position ; Player X
