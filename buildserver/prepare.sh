@@ -8,4 +8,5 @@ cp -f ../*.chr builds
 cp -f ../*.inc builds
 cp -f ../*.json builds
 cp -f ../*.py builds
+cp -f ../smbex.nes public
 rm -f builds/practice.bin
