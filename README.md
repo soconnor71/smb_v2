@@ -2,6 +2,12 @@
 
 Super Mario Bros. practice ROM for advanced players.
 
+# Update v2.1 - 2018-08-08
+- Fix bug where "resume from rule" put you on wrong rule.
+- Hardcoded resume states for every 100 rules; **resuming** from rule 9099 now takes **~50 ms instead of 10 seconds** :)
+- Playing as Luigi you are able to move again...
+- Update rendering mode even if paused.
+
 # Major Update v2.0 - 2018-07-31
 - Change mapper to **MMC1** to allow modifications without having to remove bytes.
 - Merge **Practice ROM** and **FPS ROM** into a **single ROM** (and included **Vanilla ROM** too).
