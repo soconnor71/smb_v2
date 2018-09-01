@@ -150,7 +150,7 @@ SetFirePowerup:
 				jsr GetPlayerColors
 				jmp SkipMainOper
 NoToggleFire:
-				cmp #Select_Button
+				cmp #Down_Dir
 				bne NoToggleSize
 				ldy #0
 				lda PlayerSize
@@ -480,8 +480,14 @@ DoneShifting:
 
 ;-------
 LoadGameState:
-		lda #0
+		lda #$80
 		sta GamePauseStatus
+		ldx #0
+		stx PauseModeFlag
+		inx
+		stx GamePauseTimer
+		inx
+		stx PauseSoundQueue
 		lda SaveStateFlags
 		ora #$40
 		sta SaveStateFlags

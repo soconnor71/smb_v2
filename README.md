@@ -2,13 +2,17 @@
 
 Super Mario Bros. practice ROM for advanced players.
 
+# Update v2.3 - 2018-09-01
+- Changed **size-toggle** while **paused** to **Down**.
+- Fix bug where sound stopped if loading while paused.
+
 # Update v2.2 - 2018-09-01
 - Set **any powerup state** on the fly in **Practice**; while **paused**, press:
-	- **Left**: Small mario, no power-up.
-	- **Right**: Super Mario.
-	- **Select**: Toggle size flag (make big or small, but keep powerup state).
-	- **B**: Toggle fire-mode (ofc possible while small).
-	- **A**: Give star-power.
+    - **Left**: Small mario, no power-up.
+    - **Right**: Super Mario.
+    - **Down**: Toggle size flag (make big or small, but keep powerup state).
+    - **B**: Toggle fire-mode (ofc possible while small).
+    - **A**: Give star-power.
 - In **FPG**, replace frame-counter with **X Sub Speed**.
 - Remove bug where loading while paused would softlock.
 - Add more silly faces to loader :)
@@ -93,11 +97,11 @@ I hope you people had a jolly Christmas; also happy new year! <3
 * Press **Up** when Rule is not selected to change to Luigi.
 * Hold **A** while pressing **Start** to start on **Second Quest**.
 - Set **any powerup state** on the fly in **Practice**; while **paused**, press:
-	- **Left**: Small mario, no power-up.
-	- **Right**: Super Mario.
-	- **Select**: Toggle size flag (make big or small, but keep powerup state).
-	- **B**: Toggle fire-mode (ofc possible while small).
-	- **A**: Give star-power.
+    - **Left**: Small mario, no power-up.
+    - **Right**: Super Mario.
+    - **Down**: Toggle size flag (make big or small, but keep powerup state).
+    - **B**: Toggle fire-mode (ofc possible while small).
+    - **A**: Give star-power.
 
 ## Practice ROM - In-game
 * Press **Select + Up** to restart level at entered Frame Rule.
