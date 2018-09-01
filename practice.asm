@@ -66,6 +66,8 @@ InitBuffer:    ldx VRAM_Buffer_Offset,y
                lda Mirror_PPU_CTRL_REG2  ;copy mirror of $2001 to register
                sta PPU_CTRL_REG2
                jsr EnterSoundEngine      ;play sound
+               lda SavedJoypad1Bits
+               sta LastInputBits
                jsr ReadJoypads           ;read joypads
                jsr PauseRoutine          ;handle pause
                lda GamePauseStatus       ;check for pause status
@@ -117,13 +119,61 @@ SkipSprite0:   lda HorizontalScroll      ;set scroll registers from variables
                sta PPU_CTRL_REG1
                lda GamePauseStatus       ;if in pause mode, do not perform operation mode stuff
                lsr
-               bcs SkipMainOper
+               bcs DoPowerupChange
                jsr OperModeExecutionTree ;otherwise do one of many, many possible subroutines
 SkipMainOper:  lda PPU_STATUS            ;reset flip-flop
                pla
                ora #%10000000            ;reactivate NMIs
                sta PPU_CTRL_REG1
                rti                       ;we are done until the next frame!
+DoPowerupChange:
+				lda LastInputBits
+				bne SkipMainOper
+				lda SavedJoypad1Bits
+				cmp #A_Button
+				bne NoStarPower
+				lda #$23                ;otherwise set star mario invincibility
+				sta StarInvincibleTimer ;timer, and load the star mario music
+				lda #StarPowerMusic     ;into the area music queue, then leave
+				sta AreaMusicQueue
+NoStarPower:	
+				cmp #B_Button
+				bne NoToggleFire
+				lda PlayerStatus
+				eor #$02            ;set player status to fiery
+				sta PlayerStatus
+				jsr GetPlayerColors ;run sub to change colors of player
+NoToggleFire:
+				cmp #Select_Button
+				bne NoToggleSize
+				ldy #0
+				lda PlayerSize
+				eor #1
+				sta PlayerSize
+				bne UpdateMarioGraphics
+DrawBigMario:
+				ldy #6
+UpdateMarioGraphics:
+				jsr GrowPlayer
+				jsr PlayerGfxProcessing
+				jmp SkipMainOper
+NoToggleSize:
+				cmp #Up_Dir
+				bne NoMakeSuper
+				lda #0
+				sta PlayerSize
+				lda #1
+				sta PlayerStatus
+				jmp DrawBigMario
+NoMakeSuper:
+				cmp #Down_Dir
+				bne SkipMainOper
+				lda #1
+				sta PlayerSize
+				lda #0
+				sta PlayerStatus
+				tay
+				jmp UpdateMarioGraphics
 
 PauseRoutine:
                lda OperMode           ;are we in victory mode?

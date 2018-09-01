@@ -7089,6 +7089,7 @@ HandleChangeSize:
 CSzNext: sty PlayerAnimCtrl           ;store proper frame control
 GorSLog: lda PlayerSize               ;get player's size
          bne ShrinkPlayer             ;if player small, skip ahead to next part
+GrowPlayer:
          lda ChangeSizeOffsetAdder,y  ;get offset adder based on frame control as offset
          ldy #$0f                     ;load offset for player growing
 

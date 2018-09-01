@@ -33,6 +33,7 @@ FpgErrorParam = $07d9	; TopScoreDisplay+2
 ;
 PowerUpFrames				= $04	; Anywhere thats temporary
 RuleIndex					= $0717 ; Previously DemoAction (can be changed to temp?)
+LastInputBits				= $075a ; Previously NumberOfLives
 FirstTimeInit				= $075e ; Previously CoinTally
 MenuSelection				= $077a ; Previously NumberOfPlayers
 SaveFrameRuleData			= $07d2 ; Previously unused? :o
