@@ -92,6 +92,12 @@ I hope you people had a jolly Christmas; also happy new year! <3
 * Press **Start** as normal to start the game.
 * Press **Up** when Rule is not selected to change to Luigi.
 * Hold **A** while pressing **Start** to start on **Second Quest**.
+- Set **any powerup state** on the fly in **Practice**; while **paused**, press:
+	- **Left**: Small mario, no power-up.
+	- **Right**: Super Mario.
+	- **Select**: Toggle size flag (make big or small, but keep powerup state).
+	- **B**: Toggle fire-mode (ofc possible while small).
+	- **A**: Give star-power.
 
 ## Practice ROM - In-game
 * Press **Select + Up** to restart level at entered Frame Rule.
