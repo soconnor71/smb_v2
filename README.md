@@ -135,7 +135,7 @@ Build-server at: http://ud2.eu:5555
 
 1. Clone pellsson/smb (github)
 2. Clone pellsson/badassm into the smb directory (githib)
-3. Make sure python3 is installed an accessible in path "python".
+3. Make sure python3 is installed an accessible in path as "python".
 4. Run make
 
 
