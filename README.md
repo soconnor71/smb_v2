@@ -2,6 +2,17 @@
 
 Super Mario Bros. practice ROM for advanced players.
 
+# Update v2.2 - 2018-09-01
+- Set **any powerup state** on the fly in **Practice**; while **paused**, press:
+	- **Left**: Small mario, no power-up.
+	- **Right**: Super Mario.
+	- **Select**: Toggle size flag (make big or small, but keep powerup state).
+	- **B**: Toggle fire-mode (ofc possible while small).
+	- **A**: Give star-power.
+- In **FPG**, replace frame-counter with **X Sub Speed**.
+- Remove bug where loading while paused would softlock.
+- Add more silly faces to loader :)
+
 # Update v2.1 - 2018-08-08
 - Fix bug where "resume from rule" put you on wrong rule.
 - Hardcoded resume states for every 100 rules; **resuming** from rule 9099 now takes **~50 ms instead of 10 seconds** :)

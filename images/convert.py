@@ -26,7 +26,8 @@ width, height = i.size
 if 0 != (width % 8) or 0 != (height % 8):
 	raise 'fucked dimensions %d, %d' % (width, height)
 
-colormap = [ 3, 0, 2, 1 ]
+# colormap = [ 3, 0, 2, 1 ] # Somewes
+colormap = [ 3, 0, 1, 2 ] #
 
 tiles = []
 ty = 0

@@ -136,13 +136,19 @@ DoPowerupChange:
 				sta StarInvincibleTimer ;timer, and load the star mario music
 				lda #StarPowerMusic     ;into the area music queue, then leave
 				sta AreaMusicQueue
+				jmp SkipMainOper
 NoStarPower:	
 				cmp #B_Button
 				bne NoToggleFire
+				ldx #2
 				lda PlayerStatus
-				eor #$02            ;set player status to fiery
-				sta PlayerStatus
-				jsr GetPlayerColors ;run sub to change colors of player
+				cmp #2
+				bne SetFirePowerup
+				ldx #0
+SetFirePowerup:
+				stx PlayerStatus
+				jsr GetPlayerColors
+				jmp SkipMainOper
 NoToggleFire:
 				cmp #Select_Button
 				bne NoToggleSize
@@ -156,9 +162,10 @@ DrawBigMario:
 UpdateMarioGraphics:
 				jsr GrowPlayer
 				jsr PlayerGfxProcessing
+				jsr GetPlayerColors
 				jmp SkipMainOper
 NoToggleSize:
-				cmp #Up_Dir
+				cmp #Right_Dir
 				bne NoMakeSuper
 				lda #0
 				sta PlayerSize
@@ -166,7 +173,7 @@ NoToggleSize:
 				sta PlayerStatus
 				jmp DrawBigMario
 NoMakeSuper:
-				cmp #Down_Dir
+				cmp #Left_Dir
 				bne SkipMainOper
 				lda #1
 				sta PlayerSize
@@ -473,6 +480,8 @@ DoneShifting:
 
 ;-------
 LoadGameState:
+		lda #0
+		sta GamePauseStatus
 		lda SaveStateFlags
 		ora #$40
 		sta SaveStateFlags
