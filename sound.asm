@@ -1480,25 +1480,27 @@ prac_quick_using_64:
 
 AdvanceToRule:
 		;
-		; Regardless of rule, always honor powerups
+		; Regardless if rule, always honor powerups
 		;
-		lda #0
+		ldy #0
 		ldx PowerUps
 		beq NoPowerups
 		lda #59
+		iny
 		dex
 		beq BigMarioPowerup
-		dex
-		lda #2
-		sta PlayerStatus
 		lda #122
+		dex
+		iny
 		;
 		; Big mario
 		;
 BigMarioPowerup:
+		sta PowerUpFrames
 		stx PlayerSize
 		stx PowerUps
 NoPowerups:
+		sty PlayerStatus
 		sta PowerUpFrames
 		;
 		; If Rule is 0, use title Rule
