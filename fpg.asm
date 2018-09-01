@@ -174,7 +174,7 @@ DeathRedrawShit:
               lda FpgLastInput
               sta SavedJoypadBits
               jsr UpdateStatusInput
-              jsr UpdateStatusFrame
+              jsr UpdateStatusSpeed
               jsr WriteFpgError
               jmp SkipMainOper
 
@@ -680,7 +680,7 @@ WriteTopStatusLine:
 
 InputText:
   .db $20, $61, $0A, $12, $17, $19, $1e, $1d, $24, $28, $28, $28, $28 ; INPUT
-  .db $20, $6D, $05, $0f, $1b, $0a, $16, $0e  ; Frame
+  .db $20, $6D, $06, $21, $1c, $19, $0e, $0e, $0d  ; X-Speed
   .db $00
 
 WriteBottomStatusLine:
@@ -3854,7 +3854,7 @@ RedrawStatusBar:
     lda FrameCounter
     and #1
 UpdateStatusInput:
-    beq UpdateStatusFrame
+    beq UpdateStatusSpeed
     lda #$20
     ldx #$67
     ldy SavedJoypad1Bits
@@ -3863,16 +3863,16 @@ UpdateStatusInput:
     ;
     ; Draw frame!
     ;
-UpdateStatusFrame:
+UpdateStatusSpeed:
     ldy VRAM_Buffer1_Offset
     lda #$20
     sta VRAM_Buffer1, y
-    lda #$73
+    lda #$74
     sta VRAM_Buffer1+1, y
     lda #$3
     sta VRAM_Buffer1+2, y
 
-    lda FrameCounter
+    lda SprObject_X_MoveForce
     jsr DivByTen
     sta VRAM_Buffer1+5, y
     txa
