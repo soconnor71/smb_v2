@@ -2,9 +2,9 @@
 
 Super Mario Bros. practice ROM for advanced players.
 
-# Update v2.3 - 2018-09-01
+# Update v2.2b - 2018-09-01
+- Fix bug where sound quit working if loading while paused.
 - Changed **size-toggle** while **paused** to **Down**.
-- Fix bug where sound stopped if loading while paused.
 
 # Update v2.2 - 2018-09-01
 - Set **any powerup state** on the fly in **Practice**; while **paused**, press:
