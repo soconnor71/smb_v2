@@ -148,7 +148,7 @@ NoStarPower:
 SetFirePowerup:
 				stx PlayerStatus
 				jsr GetPlayerColors
-				jmp SkipMainOper
+				jmp WritePowerupToSavestate
 NoToggleFire:
 				cmp #Down_Dir
 				bne NoToggleSize
@@ -163,7 +163,7 @@ UpdateMarioGraphics:
 				jsr GrowPlayer
 				jsr PlayerGfxProcessing
 				jsr GetPlayerColors
-				jmp SkipMainOper
+				jmp WritePowerupToSavestate
 NoToggleSize:
 				cmp #Right_Dir
 				bne NoMakeSuper
@@ -181,6 +181,18 @@ NoMakeSuper:
 				sta PlayerStatus
 				tay
 				jmp UpdateMarioGraphics
+
+WritePowerupToSavestate:
+				lda PlayerStatus
+				asl
+				sta $0
+				lda SaveStateFlags
+				and #$F8
+				ora PlayerSize
+				ora $0
+				sta SaveStateFlags
+				jmp SkipMainOper
+
 
 PauseRoutine:
                lda OperMode           ;are we in victory mode?
@@ -522,11 +534,12 @@ LoadSaveState:
 		lda SaveFrame
 		sta FrameCounter
 		lda SaveStateFlags
+		lsr
+		and #3
+		sta PlayerStatus
+		lda SaveStateFlags
 		and #1
 		sta PlayerSize
-		lda SaveStateFlags
-		and #2
-		sta PlayerStatus
 		ldx #6
 RestoreMoreRandom:
 		lda SavedRandomData, x
@@ -563,8 +576,9 @@ SaveCurrentState:
 		sta SaveIntervalTimerControl
 		lda FrameCounter
 		sta SaveFrame
-		lda PlayerSize
-		ora PlayerStatus
+		lda PlayerStatus
+		asl
+		ora PlayerSize
 		ora #$80
 		sta SaveStateFlags
 		ldx #6
