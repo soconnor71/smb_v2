@@ -50,6 +50,8 @@ end
 
 function read_memory()
 	return {
+		FrameCounter          = read_frame(),
+	
 		Player_State          = read_array(0x1d, 7),
 		Player_MovingDir      = read_array(0x45, 7),
 		Player_X_Speed        = read_array(0x57, 7),
@@ -71,6 +73,9 @@ function read_memory()
 		SprObject_PageLoc     = read_array(0x6d, 7), -- Must not use the player variable here or it will be interpreted as area initialization.
 		Enemy_Flag            = read_array(0x0f, 7),
 		Enemy_ID              = read_array(0x16, 7),
+		PlatformCollisionFlag = read_array(0x03a2, 7),
+		YPlatformTopYPos      = read_array(0x0401, 7),
+		YPlatformCenterYPos   = read_array(0x58, 7),
 		
 		Timers                = read_array(0x0780, 21), -- Read all timers... Might as well..
 		
@@ -82,9 +87,6 @@ function read_memory()
 
 		BalPlatformAlignment  = memory.readbyte(0x03a0),
 		Platform_X_Scroll     = memory.readbyte(0x03a1),
-		PlatformCollisionFlag = memory.readbyte(0x03a2),
-		YPlatformTopYPos      = memory.readbyte(0x0401),
-		YPlatformCenterYPos   = memory.readbyte(0x58),
 
 		MaximumLeftSpeed      = memory.readbyte(0x0450), -- Are these two not constant?
 		MaximumRightSpeed     = memory.readbyte(0x0456),
@@ -161,6 +163,16 @@ function on_start_new()
 	add_line(state["frame"], 'Session created: ' .. state['name'])
 end
 
+function on_validate_x()
+	rule[#rule + 1] = { method = 'x', x = read_player_x(), frame = read_frame() }
+	write_rule(read_frame(), 'X rule ' .. tostring(read_player_x()))
+end
+
+function on_validate_y()
+	rule[#rule + 1] = { method = 'y', y = read_player_y(), frame = read_frame() }
+	write_rule(read_frame(), 'Y rule ' .. tostring(read_player_y()))
+end
+
 function on_validate_pixel()
 	rule[#rule + 1] = { method = 'pixel', x = read_player_x(), y = read_player_y(), frame = read_frame() }
 	write_rule(read_frame(), 'Pixel rule ' .. tostring(read_player_x()) .. ', ' .. tostring(read_player_y()))
@@ -192,7 +204,9 @@ function initialize()
 	form = forms.newform(640, 480, 'SMB State Practice')
 	txt_name = forms.textbox(form, '', 300, 32, nil, 10, 10 + 6)
 	forms.button(form, 'Create new practice target', on_start_new, 10 + 300, 10, 300, 32)
-	forms.button(form, 'Validate Pixel', on_validate_pixel, 10, 10 + 32, 600, 32)
+	forms.button(form, 'Validate X Pos', on_validate_x, 10, 10 + 32, 200, 32)
+	forms.button(form, 'Validate Y Pos', on_validate_y, 10 + 200, 10 + 32, 200, 32)
+	forms.button(form, 'Validate Pixel', on_validate_pixel, 10 + 400, 10 + 32, 200, 32)
 	txt_input = forms.textbox(form, '', 300, 32, nil, 10, 10 + 64 + 6)
 	forms.button(form, 'Validate Input', on_validate_input, 10 + 300, 10 + 64, 300, 32)
 	forms.button(form, 'YOU ARE SUPER PLAYER', on_super_player, 10, 10 + 64 + 32, 600, 32)
