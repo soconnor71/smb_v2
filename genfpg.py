@@ -100,6 +100,10 @@ def get_text(s):
 	b = b + [ 0x24 ] * (8 - len(b))
 	return ', '.join([ '$%02X' % (it) for it in b ])
 
+def compare_rules(a, b):
+    ka = set(a).difference([ 'frame' ])
+    kb = set(b).difference([ 'frame' ])
+    return ka == kb and all(a[k] == b[k] for k in ka)
 
 def make_rules(name, rules):
 	ind = '\t\t'
@@ -109,19 +113,51 @@ def make_rules(name, rules):
 		print(ind + 'ldy FrameCounter')
 		print(ind + 'lda SavedJoypadBits')
 		print(ind + 'and #$C3') #only care for L,R,A,B
-		for j in range(0, len(rules[i])):
+		j = 0
+		while j < len(rules[i]):
 			rule = rules[i][j]
 			check_frame = rule['frame']
 			if 'input' == rule['method']:
-				check_frame += 1
+				check_frame += 1 # what is this? eh?
+
+			merge = j + 1
+			while merge < len(rules[i]):
+				if not compare_rules(rules[i][j], rules[i][merge]):
+					break
+				merge += 1
+
 			print('%s_ruleset%d_rule%d:' % (name, i, j))
 			print(ind + 'cpy #$%02X' % (check_frame))
-			print(ind + 'bne %s_ruleset%d_rule%d' % (name, i, j + 1))
+			next_rule_name = ''
+
+			if (j + 1) == merge:
+				next_rule_name = '%s_ruleset%d_rule%d' % (name, i, j + 1)
+				# nothing to merge
+				print(ind + 'bne %s' % (next_rule_name))
+			else:
+				j = merge - 1
+				rule = rules[i][j]
+				next_rule_name = '%s_ruleset%d_rule%d' % (name, i, j + 1)
+				print(ind + 'bmi %s' % (next_rule_name))
+				check_frame = rule['frame']
+				if 'input' == rule['method']:
+					check_frame += 1 # same retardness here i guess.
+				print(ind + 'cpy #$%02X' % (check_frame + 1))
+				print(ind + 'bmi %s' % (next_rule_name))
+
 			if 'input' == rule['method']:
 				print(ind + 'cmp #$%02X' % (get_input(rule['input'])))
 				print(ind + 'beq %s_ruleset%d_rule%d' % (name, i, j + 1))
 				print(ind + 'lda #$%02X' % (get_input(rule['input'])))
 				print(ind + 'jmp fpg_failed_input')
+			elif 'input_opt' == rule['method']:
+				print(ind + 'and #$%02X' % (get_input(rule['opt']) ^ 0xff))
+				print(ind + 'cmp #$%02X' % (get_input(rule['input'])))
+				print(ind + 'beq %s_ruleset%d_rule%d_restore_input' % (name, i, j + 1))
+				print(ind + 'lda #$%02X' % (get_input(rule['input'])))
+				print(ind + 'jmp fpg_failed_input')
+				print('%s_ruleset%d_rule%d_restore_input:' % (name, i, j + 1))
+				print(ind + 'lda SavedJoypadBits')
 			elif 'pixel' == rule['method']:
 				print(ind + 'ldx Player_X_Position')
 				print(ind + 'cpx #$%02X' % (rule['x']))
@@ -134,6 +170,11 @@ def make_rules(name, rules):
 				print(ind + 'jmp fpg_failed_pos_y')
 			elif 'win' == rule['method']:
 				print(ind + 'jmp fpg_win')
+			elif 'x_ge' == rule['method']:
+				print(ind + 'ldx Player_X_Position')
+				print(ind + 'cpx #$%02X' % (rule['x']))
+				print(ind + 'bpl %s_ruleset%d_rule%d' % (name, i, j + 1))
+				print(ind + 'jmp fpg_failed_pos_x')
 			elif 'x' == rule['method']:
 				print(ind + 'ldx Player_X_Position')
 				print(ind + 'cpx #$%02X' % (rule['x']))
@@ -146,6 +187,7 @@ def make_rules(name, rules):
 				print(ind + 'jmp fpg_failed_pos_y')
 			else:
 				raise 'Dont understand method'
+			j += 1
 		print('%s_ruleset%d_rule%d:' % (name, i, len(rules[i])))
 		print(ind + 'rts')
 	print('%s_rulesets:' % (name))

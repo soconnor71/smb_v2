@@ -1482,6 +1482,7 @@ AdvanceToRule:
 		;
 		; Regardless if rule, always honor powerups
 		;
+		lda #0
 		ldy #0
 		ldx PowerUps
 		beq NoPowerups
@@ -1496,11 +1497,12 @@ AdvanceToRule:
 		; Big mario
 		;
 BigMarioPowerup:
-		sta PowerUpFrames
+		ldx #0
 		stx PlayerSize
-		stx PowerUps
-NoPowerups:
 		sty PlayerStatus
+
+NoPowerups:
+		stx PowerUps
 		sta PowerUpFrames
 		;
 		; If Rule is 0, use title Rule
