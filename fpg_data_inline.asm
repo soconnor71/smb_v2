@@ -27,11 +27,11 @@ fpg_load_area:
 		sta $1
 		jmp ($0)
 
-fpg_load_player:
+fpg_reset:
 		jsr fpg_offset_to_y
-		lda fpg_load_player_func, y
+		lda fpg_reset_func, y
 		sta $0
-		lda fpg_load_player_func+1, y
+		lda fpg_reset_func+1, y
 		sta $1
 		jmp ($0)
 
@@ -128,10 +128,10 @@ EnterFpgLoadArea:
 	lda BANK_SELECTED
 	jmp SetBankFromA
 
-EnterFpgLoadPlayer:
+EnterFpgReset:
 	lda #BANK_FPG_DATA
 	jsr SetBankFromA
-	jsr fpg_load_player
+	jsr fpg_reset
 	lda BANK_SELECTED
 	jmp SetBankFromA
 

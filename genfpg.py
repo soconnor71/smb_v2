@@ -1,5 +1,6 @@
 import sys
 import json
+from itertools import islice
 
 area_vars = [
 	"ScreenEdge_PageLoc",
@@ -9,90 +10,70 @@ area_vars = [
 	"LevelNumber",
 ]
 
-player_vars = [
-	"CrouchingFlag",
-	"DiffToHaltJump",
-	"HorizontalScroll",
+def chunks(l, n):
+	for i in range(0, len(l), n):
+		yield l[i:i + n]
 
-	"FrameCounter",
-	"FrictionAdderLow",
-	"FrictionAdderHigh",
-
-	"IntervalTimerControl",
-	"JumpOrigin_Y_HighPos",
-	"JumpOrigin_Y_Position",
-
-	"MaximumLeftSpeed",
-	"MaximumRightSpeed",
-
-	"PlayerAnimCtrl",
-	"PlayerChangeSizeFlag",
-
-	"Player_MovingDir",
-	"Player_YMF_Dummy",
-	"Player_SprAttrib",
-	"Player_State",
-
-	"Player_Pos_ForScroll",
-	"Player_Rel_XPos",
-	"Player_Rel_YPos",
-
-	"Player_X_MoveForce",
-	"Player_X_Position",
-	"Player_X_Scroll",
-	"Player_X_Speed",
-	"Player_XSpeedAbsolute",
-
-	"Player_Y_HighPos",
-	"Player_Y_MoveForce",
-	"Player_Y_Position",
-	"Player_Y_Speed",
-	
-	"Platform_X_Scroll",
-	"Player_CollisionBits",
-	"PlatformCollisionFlag",
-	"SprObject_X_MoveForce",
-
-	"PlayerAnimTimerSet",
-	"PlayerFacingDir",
-
-	"PseudoRandomBitReg+0",
-	"PseudoRandomBitReg+1",	
-	"PseudoRandomBitReg+2",
-	"PseudoRandomBitReg+3",
-	"PseudoRandomBitReg+4",
-	"PseudoRandomBitReg+5",
-	"PseudoRandomBitReg+6",
-	"PseudoRandomBitReg+7",
-
-	"RunningSpeed",
-
-	"ScreenRight_X_Pos",
-	"ScreenRight_PageLoc",
-	"ScreenLeft_X_Pos",
-	
-	"ScrollAmount",
-	"ScrollFractional",
-	"ScrollLock",
-	"ScrollThirtyTwo",
-
-	"SwimmingFlag",
-
-	"VerticalForce",
-	"VerticalForceDown",
-	"VerticalScroll",
-]
-
-configs = []
-
-def make_function(j, name, v):
-	print('%s_%s:' % (j['name'], name))
-	for it in v:
-		print('\t\tlda #$%02X' % (j[it]))
+def make_load_area_function(j):
+	global area_vars
+	print('%s_load_area:' % (j['name']))
+	for it in area_vars:
+		print('\t\tlda #$%02X' % (j['memory'][it]))
 		print('\t\tsta %s' % (it))
-	if 'load_area' == name:
-		print('\t\tlda #$%02X' % (j['ScreenRight_X_Pos']))
-		print('\t\tsta FpgScrollTo')
+	print('\t\tlda #$%02X' % (j['memory']['ScreenRight_X_Pos']))
+	print('\t\tsta FpgScrollTo')
+	print('\t\trts')
+
+def make_reset_attempt_function(j):
+	global area_vars
+	arrays = {}
+	fixed = []
+	movs = ''
+	for k, v in j['memory'].items():
+		if k in area_vars:
+			continue
+		if isinstance(v, list):
+			if len(v) not in arrays:
+				arrays[len(v)] = []
+			arrays[len(v)].append({ 'name': k, 'data': v })
+			fixed.append(k)
+		else:
+			movs += '\t\tlda #$%02X\n' % (v)
+			movs += '\t\tsta %s\n' % (k)
+
+	for arr_len, arrs in arrays.items():
+		for a in arrs:
+			print('%s_%s:' % (j['name'], a['name']))
+			print('\t.db %s' % (', '.join([ '$%02X' % (it) for it in a['data'] ])))
+
+	print('')
+	print('%s_reset:' % (j['name']))
+	print('\t\tlda $2') # low addr
+	print('\t\tclc') 
+	print('\t\tadc #$%02X' % (j['enemy_ptr_offset'] & 0xff))
+	print('\t\tsta EnemyDataLow')
+	print('\t\tlda $3')
+	print('\t\tadc #$%02X' % (j['enemy_ptr_offset'] >> 8))
+	print('\t\tsta EnemyDataHigh')
+
+	for arr_len, arrs in arrays.items():
+		chunk_id = 0
+		for x in chunks(arrs, 20):
+			print('\t\tldx #$%02X' % (arr_len - 1))
+			loop_target = '%s_init_len%d_%d' % (j['name'], arr_len, chunk_id)
+			print('%s:' % (loop_target))
+			for it in x:
+				print('\t\tlda %s_%s, x' % (j['name'], it['name']))
+				print('\t\tsta %s, x' % (it['name']))
+			print('\t\tdex')
+			print('\t\tbpl %s' % (loop_target))
+			chunk_id += 1
+
+	for k, v in j['memory'].items():
+		if k in fixed or k in area_vars:
+			continue
+		print('\t\tlda #$%02X' % (v))
+		print('\t\tsta %s' % (k))
 	print('\t\trts')
 
 def get_input(s):
@@ -138,7 +119,7 @@ def make_rules(name, rules):
 			print(ind + 'bne %s_ruleset%d_rule%d' % (name, i, j + 1))
 			if 'input' == rule['method']:
 				print(ind + 'cmp #$%02X' % (get_input(rule['input'])))
-				print(ind + 'beq %s_ruleset%d_rule%d' % (name, i, j +1))
+				print(ind + 'beq %s_ruleset%d_rule%d' % (name, i, j + 1))
 				print(ind + 'lda #$%02X' % (get_input(rule['input'])))
 				print(ind + 'jmp fpg_failed_input')
 			elif 'pixel' == rule['method']:
@@ -153,6 +134,18 @@ def make_rules(name, rules):
 				print(ind + 'jmp fpg_failed_pos_y')
 			elif 'win' == rule['method']:
 				print(ind + 'jmp fpg_win')
+			elif 'x' == rule['method']:
+				print(ind + 'ldx Player_X_Position')
+				print(ind + 'cpx #$%02X' % (rule['x']))
+				print(ind + 'beq %s_ruleset%d_rule%d' % (name, i, j + 1))
+				print(ind + 'jmp fpg_failed_pos_x')
+			elif 'y' == rule['method']:
+				print(ind + 'ldx Player_Y_Position')
+				print(ind + 'cpx #$%02X' % (rule['y']))
+				print(ind + 'beq %s_ruleset%d_rule%d' % (name, i, j + 1))
+				print(ind + 'jmp fpg_failed_pos_y')
+			else:
+				raise 'Dont understand method'
 		print('%s_ruleset%d_rule%d:' % (name, i, len(rules[i])))
 		print(ind + 'rts')
 	print('%s_rulesets:' % (name))
@@ -178,45 +171,34 @@ print('''
 	.db $ba, BANK_FPG_DATA
 ''')
 
-routes = json.loads(open(sys.argv[1], 'r').read())
-
-for j in routes:
-	j['FrameCounter'] = j['frame']
-	j["PseudoRandomBitReg+0"] = j['PseudoRandomBitReg0']
-	j["PseudoRandomBitReg+1"] = j['PseudoRandomBitReg1']
-	j["PseudoRandomBitReg+2"] = j['PseudoRandomBitReg2']
-	j["PseudoRandomBitReg+3"] = j['PseudoRandomBitReg3']
-	j["PseudoRandomBitReg+4"] = j['PseudoRandomBitReg4']
-	j["PseudoRandomBitReg+5"] = j['PseudoRandomBitReg5']
-	j["PseudoRandomBitReg+6"] = j['PseudoRandomBitReg6']
-	j["PseudoRandomBitReg+7"] = j['PseudoRandomBitReg7']
+scenarios = []
+for i in range(1, len(sys.argv)):
+	j = json.loads(open(sys.argv[i], 'r').read())
 
 	j['pretty_name'] = j['name']
 	j['name'] = j['name'].replace(' ', '_').replace('-', '_')
 
-	make_function(j, 'load_area', area_vars)
-	make_function(j, 'load_player', player_vars)
+	make_load_area_function(j)
+	make_reset_attempt_function(j)
 	make_rules(j['name'], j['rules'])
 
-def print_if_true(c, str):
-	if c:
-		print(str)
+	scenarios.append(j)
 
-print('fpg_num_configs: .db $%08X' % (len(routes)))
+print('fpg_num_configs: .db $%02X' % (len(scenarios)))
 
-for i in range(0, len(routes)):
-	name = routes[i]['name']
-	pretty_name = routes[i]['pretty_name']
+for i in range(0, len(scenarios)):
+	name = scenarios[i]['name']
+	pretty_name = scenarios[i]['pretty_name']
 	if (0 == i): print('fpg_configs:')
 	print('\t\t.db %s ; %s' % (get_text(pretty_name), pretty_name))
 	if (0 == i): print('fpg_load_area_func:')
 	print('\t\t.dw %s_load_area' % (name))
-	if (0 == i): print('fpg_load_player_func:')
-	print('\t\t.dw %s_load_player' % (name))
+	if (0 == i): print('fpg_reset_func:')
+	print('\t\t.dw %s_reset' % (name))
 	if (0 == i): print('fpg_validate_func:')
 	print('\t\t.dw %s_validate' % (name))
 	if (0 == i): print('fpg_num_routes:')
-	print('\t\t.db $%02X' % (len(routes[i]['rules']))) # align to 0x10
+	print('\t\t.db $%02X' % (len(scenarios[i]['rules']))) # align to 0x10
 	print('\t\t.db 0') # align to 0x10
 
 print(open('fpg_data_inline.asm', 'r').read())

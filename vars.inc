@@ -24,6 +24,7 @@ FpgLastInput = $0762	; OffScr_HalfwayPage
 FpgScrollTo = $07d7 	; TopScoreDisplay+0
 FpgError = $07d8		; TopScoreDisplay+1
 FpgErrorParam = $07d9	; TopScoreDisplay+2
+FpgOldFlags = $07da		; TopScoreDisplay+3
 
 ;
 ; Practice vars

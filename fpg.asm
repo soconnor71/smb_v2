@@ -3895,6 +3895,7 @@ UpdateStatusSpeed:
 
 GameCoreRoutine:
       lda FpgFlags
+      sta FpgOldFlags
       and #$1
       bne FpgIsInitialized
       lda #0
@@ -3906,7 +3907,11 @@ GameCoreRoutine:
       lda #$1
       ora FpgFlags
       sta FpgFlags
-      jsr EnterFpgLoadPlayer
+      ldx #<E_CastleArea1
+      sta $2
+      lda #>E_CastleArea1
+      sta $3
+      jsr EnterFpgReset
       lda #$0
       sta DisableScreenFlag
       rts
@@ -3923,6 +3928,10 @@ FpgKeepGoing:
       rts
 
 DoGameEngine:
+      lda FpgOldFlags
+      and #2
+      eor #2
+      sta TimerControl
       jsr RedrawStatusBar
       jsr GameEngine
       jsr EnterFpgValidate
@@ -6332,7 +6341,6 @@ ColdBoot:    jsr InitializeMemory         ;clear memory using pointer in Y
 EndlessLoop: jmp EndlessLoop              ;endless loop, need I say more?
 
 ;-------------------------------------------------------------------------------------
-
 .seekoff $bf00 $ea
 EnterFpgLoadArea:
   lda #BANK_FPG_DATA
@@ -6341,10 +6349,10 @@ EnterFpgLoadArea:
   lda BANK_SELECTED
   jmp SetBankFromA
 
-EnterFpgLoadPlayer:
+EnterFpgReset:
   lda #BANK_FPG_DATA
   jsr SetBankFromA
-  jsr fpg_load_player ; never returns here
+  jsr fpg_reset ; never returns here
   lda BANK_SELECTED
   jmp SetBankFromA
 

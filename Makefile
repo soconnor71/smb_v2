@@ -3,11 +3,13 @@ LINK = python idiotlink.py
 AFLAGS = --use-linker
 RM = rm -f
 NESFILE = smbex.nes
+SCENARIOS = scenarios/1-2pipe.json
+
 
 all: $(NESFILE)
 
-fpg_data.asm: genfpg.py fpg_data.json fpg_data_inline.asm
-	python genfpg.py fpg_data.json > fpg_data.asm
+fpg_data.asm: genfpg.py $(SCENARIOS)  fpg_data_inline.asm
+	python genfpg.py $(SCENARIOS) > fpg_data.asm
 main.bin: main.asm
 	$(ASM) $^ $(AFLAGS)
 vanilla.bin: vanilla.asm
