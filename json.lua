@@ -75,7 +75,7 @@ local function encode_table(val, stack)
       n = n + 1
     end
     if n ~= #val then
-      error("invalid table: sparse array")
+      error("invalid table: sparse array: " .. tostring(n) .. " vs. " .. tostring(#val))
     end
     -- Encode
     for i, v in ipairs(val) do

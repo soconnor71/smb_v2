@@ -5,6 +5,8 @@ local txt_input = nil
 local state = nil
 local rule = nil
 
+local enemy_table_base = 0x9D70 -- SMB Original.
+
 json = require "json"
 
 function read_frame()
@@ -35,36 +37,56 @@ function add_rule_set()
 	rule = state.rules[#state.rules]
 end
 
-function on_start_new()
-	console.log('Starting new practice target here!')
-	if not client.ispaused() then
-		console.log('Nope. Must be paused.')
-		return
+function read_array(addr, n)
+	arr = {}
+	for i=0, (n - 1) do
+		--
+		-- One based indexing is SO fucking retarded.
+		--
+		arr[i + 1] = memory.readbyte(addr + i)
 	end
-	savestate.saveslot(0)
-	state = {
-		name =  string.sub(forms.gettext(txt_name), 0, 8), -- 8 characters at most.
-		frame = memory.readbyte(0x09),
-			
-		Player_State          = memory.readbyte(0x1d),
+	return arr
+end
+
+function read_memory()
+	return {
+		Player_State          = read_array(0x1d, 7),
+		Player_MovingDir      = read_array(0x45, 7),
+		Player_X_Speed        = read_array(0x57, 7),
+		Player_X_Position     = read_array(0x86, 7),
+		Player_Y_Speed        = read_array(0x9f, 7),
+		Player_Y_HighPos      = read_array(0xb5, 7),
+		Player_Y_Position     = read_array(0xce, 7),
+		Player_Rel_XPos       = read_array(0x03ad, 7),
+		Player_Rel_YPos       = read_array(0x03b8, 7),
+		Player_SprAttrib      = read_array(0x03c4, 7),
+		SprObject_X_MoveForce = read_array(0x0400, 7), -- 0x401 shared by a ton of shit... just copy all...
+		Player_YMF_Dummy      = read_array(0x0416, 7),
+		Player_Y_MoveForce    = read_array(0x0433, 7),
+		Player_CollisionBits  = read_array(0x0490, 7),
+		PseudoRandomBitReg    = read_array(0x07a7, 7),
+		Player_BoundBoxCtrl   = read_array(0x0499, 7),
+		Player_OffscreenBits  = read_array(0x03d0, 7),
+		EnemyOffscrBitsMasked = read_array(0x03d8, 7),
+		SprObject_PageLoc     = read_array(0x6d, 7), -- Must not use the player variable here or it will be interpreted as area initialization.
+		Enemy_Flag            = read_array(0x0f, 7),
+		Enemy_ID              = read_array(0x16, 7),
+		
+		Timers                = read_array(0x0780, 21), -- Read all timers... Might as well..
+		
+		EnemyFrenzyBuffer     = memory.readbyte(0x06cb),
+		EnemyFrenzyQueue      = memory.readbyte(0x06cd),
+	
 		PlayerFacingDir       = memory.readbyte(0x33),
-		Player_MovingDir      = memory.readbyte(0x45),
-		Player_X_Speed        = memory.readbyte(0x57),
 		Player_PageLoc        = memory.readbyte(0x6d),
-		Player_X_Position     = memory.readbyte(0x86),
-		Player_Y_Speed        = memory.readbyte(0x9f),
-		Player_Y_HighPos      = memory.readbyte(0xb5),
-		Player_Y_Position     = memory.readbyte(0xce),
-		Player_Rel_XPos       = memory.readbyte(0x03ad),
-		Player_Rel_YPos       = memory.readbyte(0x03b8),
-		Player_SprAttrib      = memory.readbyte(0x03c4),
-		Player_YMF_Dummy      = memory.readbyte(0x0416),
-		Player_Y_MoveForce    = memory.readbyte(0x0433),
-		Player_CollisionBits  = memory.readbyte(0x0490),
+
+		BalPlatformAlignment  = memory.readbyte(0x03a0),
 		Platform_X_Scroll     = memory.readbyte(0x03a1),
 		PlatformCollisionFlag = memory.readbyte(0x03a2),
-		SprObject_X_MoveForce = memory.readbyte(0x0400),
-		MaximumLeftSpeed      = memory.readbyte(0x0450),
+		YPlatformTopYPos      = memory.readbyte(0x0401),
+		YPlatformCenterYPos   = memory.readbyte(0x58),
+
+		MaximumLeftSpeed      = memory.readbyte(0x0450), -- Are these two not constant?
 		MaximumRightSpeed     = memory.readbyte(0x0456),
 		--
 		-- 0x700
@@ -84,7 +106,12 @@ function on_start_new()
 		PlayerAnimTimerSet    = memory.readbyte(0x070c),
 		PlayerAnimCtrl        = memory.readbyte(0x070d),
 		CrouchingFlag         = memory.readbyte(0x0714),
-
+		EnemyDataOffset       = memory.readbyte(0x0739),
+		EnemyObjectPageLoc    = memory.readbyte(0x073a),
+		EnemyObjectPageSel    = memory.readbyte(0x073b),
+		PlayerSize            = memory.readbyte(0x0754),
+		PlayerStatus          = memory.readbyte(0x0756),
+				
 		ScreenEdge_PageLoc    = memory.readbyte(0x071a),
 		ScreenRight_PageLoc   = memory.readbyte(0x071b),
 		ScreenLeft_X_Pos      = memory.readbyte(0x071c),
@@ -103,17 +130,28 @@ function on_start_new()
 		WorldNumber           = memory.readbyte(0x075f),
 		AreaNumber            = memory.readbyte(0x0760),
 		
-		IntervalTimerControl  = memory.readbyte(0x077f),
-		
-		PseudoRandomBitReg0   = memory.readbyte(0x07a7),
-		PseudoRandomBitReg1   = memory.readbyte(0x07a8),
-		PseudoRandomBitReg2   = memory.readbyte(0x07a9),
-		PseudoRandomBitReg3   = memory.readbyte(0x07aa),
-		PseudoRandomBitReg4   = memory.readbyte(0x07ab),
-		PseudoRandomBitReg5   = memory.readbyte(0x07ac),
-		PseudoRandomBitReg6   = memory.readbyte(0x07ad),
-		PseudoRandomBitReg7   = memory.readbyte(0x07ae), -- One to many I think. Can't think. Too tired.
+		TimerControl          = memory.readbyte(0x0747),
+		IntervalTimerControl  = memory.readbyte(0x077f)
+	}
+end
 
+function read_enemy_ptr_offset()
+	local current = bit.bor(bit.lshift(memory.readbyte(0xea), 8), memory.readbyte(0xe9))
+	return (current - enemy_table_base)
+end
+
+function on_start_new()
+	console.log('Starting new practice target here!')
+	if not client.ispaused() then
+		console.log('Nope. Must be paused.')
+		return
+	end
+	savestate.saveslot(0)
+	state = {
+		name =  string.sub(forms.gettext(txt_name), 0, 16), -- 16 characters at most.
+		frame = memory.readbyte(0x09),
+		enemy_ptr_offset = read_enemy_ptr_offset(),
+		memory = read_memory(),
 		rules = {}
 	}
 
