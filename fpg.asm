@@ -3898,12 +3898,17 @@ GameCoreRoutine:
       sta FpgOldFlags
       and #$1
       bne FpgIsInitialized
-      lda #0
-      sta ScrollFractional
-      lda FpgScrollTo         ;set 1 pixel per frame
-      tay                     ;use as scroll amount
-      jsr ScrollScreen        ;do sub to scroll the screen
-      jsr UpdScrollVar        ;do another sub to update screen and scroll variables
+FpgScrollMore:
+      lda FpgScrollTo
+      beq DoneScrolling
+      ldy #1
+      jsr ScrollScreen
+      jsr UpdScrollVar
+      lda #$28
+      sta Player_X_Position
+      dec FpgScrollTo
+      jmp FpgScrollMore
+DoneScrolling:
       lda #$1
       ora FpgFlags
       sta FpgFlags
