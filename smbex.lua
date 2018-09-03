@@ -77,6 +77,7 @@ function read_memory()
 		YPlatformTopYPos      = read_array(0x0401, 7),
 		YPlatformCenterYPos   = read_array(0x58, 7),
 		
+		BoundingBox_UL_XPos   = read_array(0x04ac, 0x54),
 		Timers                = read_array(0x0780, 21), -- Read all timers... Might as well..
 		
 		EnemyFrenzyBuffer     = memory.readbyte(0x06cb),
