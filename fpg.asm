@@ -3922,6 +3922,9 @@ FpgIsInitialized:
       sta SavedJoypadBits        ;as the master controller bits
       sta FpgLastInput
       jsr EnterFpgValidate
+	  lda FpgFlags
+	  asl
+	  bcs FpgNoPlayerUpdates
       jsr GameRoutines           ;execute one of many possible subs
 FpgNoPlayerUpdates:
       lda OperMode_Task          ;check major task of operating mode
