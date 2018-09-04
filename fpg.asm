@@ -3853,8 +3853,8 @@ WriteA:
 RedrawStatusBar:
     lda FrameCounter
     and #1
-UpdateStatusInput:
     beq UpdateStatusSpeed
+UpdateStatusInput:
     lda #$20
     ldx #$67
     ldy SavedJoypad1Bits
@@ -3915,14 +3915,14 @@ GameCoreRoutine:
       jsr FpgInitialize
 FpgIsInitialized:
       ldx CurrentPlayer          ;get which player is on the screen
+	  lda FpgFlags
+	  asl
+	  bcs FpgNoPlayerUpdates
       lda SavedJoypadBits,x      ;use appropriate player's controller bits
       sta SavedJoypadBits        ;as the master controller bits
       sta FpgLastInput
 	  jsr RedrawStatusBar
       jsr EnterFpgValidate
-	  lda FpgFlags
-	  asl
-	  bcs FpgNoPlayerUpdates
       jsr GameRoutines           ;execute one of many possible subs
 FpgNoPlayerUpdates:
       lda OperMode_Task          ;check major task of operating mode
@@ -3935,7 +3935,6 @@ DoGameEngine:
       and #$82
 	  eor #$02
 	  sta TimerControl
-      jmp GameEngine
 
 GameEngine:
               jsr ProcFireball_Bubble    ;process fireballs and air bubbles
@@ -4124,12 +4123,11 @@ PlayerCtrlRoutine:
             bne ProcessUserInputs
             lda SavedJoypadBits
             and #Left_Dir|Right_Dir
-            beq DontStartFpg
+            beq ExitEntr
             lda FpgFlags
             ora #$02
             sta FpgFlags
-DontStartFpg:
-            rts
+			inc FrameCounter ; We acutally played on this frame, so increment it.
 ProcessUserInputs:
             lda GameEngineSubroutine    ;check task here
             cmp #$0b                    ;if certain value is set, branch to skip controller bit loading

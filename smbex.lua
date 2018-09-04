@@ -13,6 +13,14 @@ function read_frame()
 	return memory.readbyte(0x09)
 end
 
+function read_rule_frame()
+	local rf = read_frame() + 1
+	if 256 == rf then
+		return 0
+	end
+	return rf
+end
+
 function read_player_x()
 	return memory.readbyte(0x86)
 end
@@ -152,7 +160,7 @@ function on_start_new()
 	savestate.saveslot(0)
 	state = {
 		name =  string.sub(forms.gettext(txt_name), 0, 16), -- 16 characters at most.
-		frame = memory.readbyte(0x09),
+		frame = read_frame(),
 		enemy_ptr_offset = read_enemy_ptr_offset(),
 		memory = read_memory(),
 		rules = {}
@@ -165,27 +173,27 @@ function on_start_new()
 end
 
 function on_validate_x()
-	rule[#rule + 1] = { method = 'x', x = read_player_x(), frame = read_frame() }
+	rule[#rule + 1] = { method = 'x', x = read_player_x(), frame = read_rule_frame() }
 	write_rule(read_frame(), 'X rule ' .. tostring(read_player_x()))
 end
 
 function on_validate_y()
-	rule[#rule + 1] = { method = 'y', y = read_player_y(), frame = read_frame() }
+	rule[#rule + 1] = { method = 'y', y = read_player_y(), frame = read_rule_frame() }
 	write_rule(read_frame(), 'Y rule ' .. tostring(read_player_y()))
 end
 
 function on_validate_pixel()
-	rule[#rule + 1] = { method = 'pixel', x = read_player_x(), y = read_player_y(), frame = read_frame() }
+	rule[#rule + 1] = { method = 'pixel', x = read_player_x(), y = read_player_y(), frame = read_rule_frame() }
 	write_rule(read_frame(), 'Pixel rule ' .. tostring(read_player_x()) .. ', ' .. tostring(read_player_y()))
 end
 
 function on_validate_input()
-	rule[#rule + 1] = { method = 'input', input = forms.gettext(txt_input), frame = read_frame() }
+	rule[#rule + 1] = { method = 'input', input = forms.gettext(txt_input), frame = read_rule_frame() }
 	write_rule(read_frame(), 'Input rule ' .. forms.gettext(txt_input))
 end
 
 function on_super_player()
-	rule[#rule + 1] = { method = 'win', frame = read_frame() }
+	rule[#rule + 1] = { method = 'win', frame = read_rule_frame() }
 	write_rule(read_frame(), 'Winner! (if you add anything else it will not count)')
 end
 
