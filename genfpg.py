@@ -211,7 +211,7 @@ for i in range(1, len(sys.argv)):
 	j = json.loads(open(sys.argv[i], 'r').read())
 
 	j['pretty_name'] = j['name']
-	j['name'] = j['name'].replace(' ', '_').replace('-', '_')
+	j['name'] = 'scen_' + j['name'].replace(' ', '_').replace('-', '_')
 
 	make_load_area_function(j)
 	make_reset_attempt_function(j)

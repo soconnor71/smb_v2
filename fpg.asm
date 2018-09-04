@@ -3921,7 +3921,6 @@ FpgIsInitialized:
       lda SavedJoypadBits,x      ;use appropriate player's controller bits
       sta SavedJoypadBits        ;as the master controller bits
       sta FpgLastInput
-	  jsr RedrawStatusBar
       jsr EnterFpgValidate
       jsr GameRoutines           ;execute one of many possible subs
 FpgNoPlayerUpdates:
@@ -3949,6 +3948,7 @@ ProcELoop:    stx ObjectOffset           ;put incremented offset in X as enemy o
               jsr RelativePlayerPosition ;get relative coordinates for player object
               jsr PlayerGfxHandler       ;draw the player
               jsr BlockObjMT_Updater     ;replace block objects with metatiles if necessary
+              jsr RedrawStatusBar
               ldx #$01
               stx ObjectOffset           ;set offset for second
               jsr BlockObjectsCore       ;process second block object
