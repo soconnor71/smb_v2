@@ -1530,8 +1530,8 @@ GameTimerData:
       .db $04, $03, $02
 
 Entrance_GameTimerSetup:
-          lda ScreenLeft_PageLoc      ;set current page for area objects
-          sta Player_PageLoc          ;as page location for player
+          ;lda ScreenLeft_PageLoc      ;set current page for area objects
+          ;sta Player_PageLoc          ;as page location for player
           ;lda #$28                    ;store value here
           ;sta VerticalForceDown       ;for fractional movement downwards if necessary
           ;lda #$01                    ;set high byte of player position and
@@ -3893,22 +3893,7 @@ UpdateStatusSpeed:
 
 ;-------------------------------------------------------------------------------------
 
-GameCoreRoutine:
-      lda FpgFlags
-      sta FpgOldFlags
-      and #$1
-      bne FpgIsInitialized
-FpgScrollMore:
-      lda FpgScrollTo
-      beq DoneScrolling
-      ldy #1
-      jsr ScrollScreen
-      jsr UpdScrollVar
-      lda #$28
-      sta Player_X_Position
-      dec FpgScrollTo
-      jmp FpgScrollMore
-DoneScrolling:
+FpgInitialize:
       lda #$1
       ora FpgFlags
       sta FpgFlags
@@ -3919,31 +3904,38 @@ DoneScrolling:
       jsr EnterFpgReset
       lda #$0
       sta DisableScreenFlag
+DoRenderPassOrSomeShit:
       rts
+
+GameCoreRoutine:
+      lda FpgFlags
+      sta FpgOldFlags
+      and #$1
+      bne FpgIsInitialized
+      jsr FpgInitialize
 FpgIsInitialized:
       ldx CurrentPlayer          ;get which player is on the screen
       lda SavedJoypadBits,x      ;use appropriate player's controller bits
       sta SavedJoypadBits        ;as the master controller bits
       sta FpgLastInput
+	  jsr RedrawStatusBar
+      jsr EnterFpgValidate
+	  lda FpgFlags
+	  asl
+	  bcs FpgNoPlayerUpdates
       jsr GameRoutines           ;execute one of many possible subs
+FpgNoPlayerUpdates:
       lda OperMode_Task          ;check major task of operating mode
       cmp #$03                   ;if we are supposed to be here,
       bcs DoGameEngine             ;branch to the game engine itself
 FpgKeepGoing:
       rts
-
 DoGameEngine:
-      lda FpgOldFlags
-      and #2
-      eor #2
-      sta TimerControl
-      jsr RedrawStatusBar
-      jsr GameEngine
-      jsr EnterFpgValidate
       lda FpgFlags
-      asl
-      bcc FpgKeepGoing
-      jmp WriteFpgError
+      and #$82
+	  eor #$02
+	  sta TimerControl
+      jmp GameEngine
 
 GameEngine:
               jsr ProcFireball_Bubble    ;process fireballs and air bubbles
@@ -6127,7 +6119,7 @@ SetInitNTHigh: sty CurrentNTAddr_High   ;store name table address
                dec AreaObjectLength     ;set area object lengths for all empty
                dec AreaObjectLength+1
                dec AreaObjectLength+2
-               lda #$0b                 ;set value for renderer to update 12 column sets
+               lda #$0f                 ;set value for renderer to update 12 column sets
                sta ColumnSets           ;12 column sets = 24 metatile columns = 1 1/2 screens
                jsr GetAreaDataAddrs     ;get enemy and level addresses and load header
                lda PrimaryHardMode      ;check to see if primary hard mode has been activated

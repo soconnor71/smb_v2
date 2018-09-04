@@ -533,6 +533,10 @@ next_palette_entry:
 		ldx #0
 		jsr EnterSmlSoundInit
 
+		ldx #$00
+		stx PPU_SCROLL_REG ; No scrolling
+		stx PPU_SCROLL_REG
+		
 		;
 		; Enable NMI
 		;

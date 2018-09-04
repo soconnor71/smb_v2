@@ -295,12 +295,7 @@
         "y": 161,
         "x": 202,
         "method": "pixel",
-        "frame": 34
-      },
-      {
-        "input": "rba",
-        "frame": 34,
-        "method": "input"
+        "frame": 35
       },
       {
         "input": "rba",
@@ -325,6 +320,11 @@
       {
         "input": "rba",
         "frame": 39,
+        "method": "input"
+      },
+      {
+        "input": "rba",
+        "frame": 40,
         "method": "input"
       },
       {

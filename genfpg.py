@@ -116,10 +116,6 @@ def make_rules(name, rules):
 		j = 0
 		while j < len(rules[i]):
 			rule = rules[i][j]
-			check_frame = rule['frame']
-			if 'input' == rule['method']:
-				check_frame += 1 # what is this? eh?
-
 			merge = j + 1
 			while merge < len(rules[i]):
 				if not compare_rules(rules[i][j], rules[i][merge]):
@@ -127,7 +123,7 @@ def make_rules(name, rules):
 				merge += 1
 
 			print('%s_ruleset%d_rule%d:' % (name, i, j))
-			print(ind + 'cpy #$%02X' % (check_frame))
+			print(ind + 'cpy #$%02X' % (rule['frame']))
 			next_rule_name = ''
 
 			if (j + 1) == merge:
@@ -139,11 +135,8 @@ def make_rules(name, rules):
 				rule = rules[i][j]
 				next_rule_name = '%s_ruleset%d_rule%d' % (name, i, j + 1)
 				print(ind + 'bmi %s' % (next_rule_name))
-				check_frame = rule['frame']
-				if 'input' == rule['method']:
-					check_frame += 1 # same retardness here i guess.
-				print(ind + 'cpy #$%02X' % (check_frame + 1))
-				print(ind + 'bmi %s' % (next_rule_name))
+				print(ind + 'cpy #$%02X' % (rule['frame']))
+				print(ind + 'bpl %s' % (next_rule_name))
 
 			if 'input' == rule['method']:
 				print(ind + 'cmp #$%02X' % (get_input(rule['input'])))
