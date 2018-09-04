@@ -145,7 +145,7 @@
     "FrameCounter": 238,
     "ScrollAmount": 2,
     "Player_Y_Position": [
-      176,
+      96,
       242,
       122,
       241,
@@ -287,7 +287,7 @@
     "EnemyFrenzyQueue": 0,
     "DiffToHaltJump": 1
   },
-  "name": "1-2G LOW",
+  "name": "1-2G HI",
   "frame": 238,
   "rules": [
     [

@@ -3,7 +3,9 @@ LINK = python idiotlink.py
 AFLAGS = --use-linker
 RM = rm -f
 NESFILE = smbex.nes
-SCENARIOS = scenarios/pipe1-2.json
+SCENARIOS = scenarios/1-2g_hi.json \
+			scenarios/1-2g_lo.json
+
 
 
 all: $(NESFILE)
