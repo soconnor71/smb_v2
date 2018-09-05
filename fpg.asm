@@ -3907,7 +3907,13 @@ FpgInitialize:
 DoRenderPassOrSomeShit:
       rts
 
+FpgSelectScenario:
+      jmp InitMapper
+
 GameCoreRoutine:
+      lda SavedJoypadBits
+      cmp #Start_Button
+      beq FpgSelectScenario
       lda FpgFlags
       sta FpgOldFlags
       and #$1
@@ -3915,16 +3921,19 @@ GameCoreRoutine:
       jsr FpgInitialize
 FpgIsInitialized:
       ldx CurrentPlayer          ;get which player is on the screen
-	  lda FpgFlags
-	  asl
-	  bcs FpgNoPlayerUpdates
-      lda SavedJoypadBits,x      ;use appropriate player's controller bits
-      sta SavedJoypadBits        ;as the master controller bits
+      lda FpgFlags
+      asl
+      bcs FpgNoPlayerUpdates
+      lda SavedJoypadBits
+      cmp #Select_Button
+      bne NoRestartFpg
+      jmp RestartFpg
+NoRestartFpg:
       sta FpgLastInput
       jsr EnterFpgValidate
-	  lda FpgFlags
-	  asl
-	  bcs FpgNoPlayerUpdates
+      lda FpgFlags
+      asl
+      bcs FpgNoPlayerUpdates
       jsr GameRoutines           ;execute one of many possible subs
 FpgNoPlayerUpdates:
       lda OperMode_Task          ;check major task of operating mode
@@ -3933,11 +3942,10 @@ FpgNoPlayerUpdates:
 FpgKeepGoing:
       rts
 DoGameEngine:
-      lda FpgFlags
-      and #$82
-	  eor #$02
-	  sta TimerControl
-
+              lda FpgFlags
+              and #$82
+              eor #$02
+              sta TimerControl
 GameEngine:
               jsr ProcFireball_Bubble    ;process fireballs and air bubbles
               ldx #$00

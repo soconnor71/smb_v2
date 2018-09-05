@@ -288,6 +288,7 @@
     "DiffToHaltJump": 1
   },
   "name": "1-2G LO",
+  "comment": "Pipe clip to warpzone in 1-2 (going low before platform). To reach the scenario setup in a real game, you must not let go of right for even a frame prior.",
   "frame": 238,
   "rules": [
     [
@@ -295,12 +296,14 @@
         "y": 161,
         "x": 202,
         "method": "pixel",
-        "frame": 35
+        "frame": 35,
+        "comment": "Near the end of the platform."
       },
       {
         "input": "rba",
         "frame": 35,
-        "method": "input"
+        "method": "input",
+        "comment": "Do a full jump."
       },
       {
         "input": "rba",
@@ -460,7 +463,8 @@
       {
         "input": "r",
         "frame": 84,
-        "method": "input"
+        "method": "input", 
+        "comment": "Hold R for a single frame to adjust speed."
       },
       {
         "y": 128,
@@ -472,13 +476,15 @@
         "input": "a",
         "opt": "r",
         "frame": 85,
-        "method": "input_opt"
+        "method": "input_opt",
+        "comment": "Make a single frame jump."
       },
       {
         "input": "",
         "opt": "r",
         "frame": 86,
-        "method": "input_opt"
+        "method": "input_opt",
+        "comment": "Hold R if you want to, not required."
       },
       {
         "input": "",
@@ -525,7 +531,8 @@
       {
         "input": "l",
         "frame": 94,
-        "method": "input"
+        "method": "input",
+        "comment": "When you clip the pipe, start holding left."
       },
       {
         "input": "l",

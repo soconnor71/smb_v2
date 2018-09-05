@@ -1493,11 +1493,16 @@ AdvanceToRule:
 		lda #122
 		dex
 		iny
+		dex
+		bne BigMarioPowerup
+		ldx #1
+		jmp SmallFireMario
 		;
 		; Big mario
 		;
 BigMarioPowerup:
 		ldx #0
+SmallFireMario:
 		stx PlayerSize
 		sty PlayerStatus
 

@@ -10,3 +10,5 @@ cp -f ../*.json builds
 cp -f ../*.py builds
 cp -f ../smbex.nes public
 rm -f builds/practice.bin
+python genscenarios.py > public/scenarios.html
+

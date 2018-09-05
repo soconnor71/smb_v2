@@ -101,8 +101,8 @@ def get_text(s):
 	return ', '.join([ '$%02X' % (it) for it in b ])
 
 def compare_rules(a, b):
-    ka = set(a).difference([ 'frame' ])
-    kb = set(b).difference([ 'frame' ])
+    ka = set(a).difference([ 'frame', 'comment' ])
+    kb = set(b).difference([ 'frame', 'comment' ])
     return ka == kb and all(a[k] == b[k] for k in ka)
 
 def make_rules(name, rules):

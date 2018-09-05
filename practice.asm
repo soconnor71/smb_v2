@@ -799,13 +799,13 @@ SaveLevelNotWorld:
 		ldx #$4b ; offset
 		bne RedrawIt
 SavePowerUps:
-		cmp #3
+		cmp #4
 		bne NotThreeLol
 		lda #0
 NotThreeLol:
 		cmp #$ff
 		bne NotNegative
-		lda #2
+		lda #3
 NotNegative:
 		sta PowerUps
 		jmp DrawPowerUps

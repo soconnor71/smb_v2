@@ -373,6 +373,7 @@
     "DiffToHaltJump": 1
   },
   "name": "1-1 D70",
+  "comment": "Flagpole glitch for 1-1 D70. Supports both first and second pixel stairs",
   "frame": 194,
   "rules": [
     [
