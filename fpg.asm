@@ -3897,7 +3897,7 @@ FpgInitialize:
       lda #$1
       ora FpgFlags
       sta FpgFlags
-      ldx #<E_CastleArea1
+      lda #<E_CastleArea1
       sta $2
       lda #>E_CastleArea1
       sta $3

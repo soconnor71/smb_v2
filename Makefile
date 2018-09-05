@@ -4,7 +4,8 @@ AFLAGS = --use-linker
 RM = rm -f
 NESFILE = smbex.nes
 SCENARIOS = scenarios/1-2g_hi.json \
-			scenarios/1-2g_lo.json
+			scenarios/1-2g_lo.json \
+			scenarios/1-1_d70.json
 
 
 
