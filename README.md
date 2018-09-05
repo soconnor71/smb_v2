@@ -4,7 +4,7 @@ Super Mario Bros. practice ROM for advanced players.
 
 # Update v3.0 - 2018-09-06
 
-Changed **FLAGPOLE** renamed to **SCENARIO**, and revamped.
+**FLAGPOLE** renamed to **SCENARIO**, and revamped.
 
 ** Practice Mode **
 - Rework **powerup inputs**; while **paused**:
