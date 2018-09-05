@@ -135,7 +135,7 @@ def make_rules(name, rules):
 				rule = rules[i][j]
 				next_rule_name = '%s_ruleset%d_rule%d' % (name, i, j + 1)
 				print(ind + 'bmi %s' % (next_rule_name))
-				print(ind + 'cpy #$%02X' % (rule['frame']))
+				print(ind + 'cpy #$%02X' % (rule['frame'] + 1))
 				print(ind + 'bpl %s' % (next_rule_name))
 
 			if 'input' == rule['method']:
