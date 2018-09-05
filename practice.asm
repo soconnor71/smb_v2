@@ -130,60 +130,39 @@ DoPowerupChange:
 				lda LastInputBits
 				bne SkipMainOper
 				lda SavedJoypad1Bits
-				cmp #A_Button|B_Button
-				bne NoStarPower
-				lda #$23
-				sta StarInvincibleTimer
-				lda #StarPowerMusic
-				sta AreaMusicQueue
-				jmp SkipMainOper
-NoStarPower:
 				cmp #Down_Dir
-				bne NoToggleFire
-				ldx #2
-				lda PlayerStatus
-				cmp #2
-				bne SetFirePowerup
-				ldx #0
-SetFirePowerup:
-				stx PlayerStatus
-				jsr GetPlayerColors
-				jmp WritePowerupToSavestate
-NoToggleFire:
-				cmp #Left_Dir
 				bne NoToggleSize
-				ldy #0
 				lda PlayerSize
 				eor #1
 				sta PlayerSize
+				beq DrawBigMario
 				bne UpdateMarioGraphics
+NoToggleSize:
+				cmp #Left_Dir
+				bne SkipMainOper
+				lda PlayerStatus
+				cmp #2
+				bne FindMarioState
+				ldx #1
+				stx PlayerSize
+				dex
+				stx PlayerStatus
+				jmp UpdateMarioGraphics 
+FindMarioState:
+				ldx #0
+				ldy #1
+				cmp #1
+				bne MakeFireMarioOrBig
+				iny
+MakeFireMarioOrBig:
+				stx PlayerSize
+				sty PlayerStatus
 DrawBigMario:
 				ldy #6
 UpdateMarioGraphics:
 				jsr GrowPlayer
 				jsr PlayerGfxProcessing
 				jsr GetPlayerColors
-				jmp WritePowerupToSavestate
-NoToggleSize:
-				cmp #Up_Dir
-				bne SkipMainOper
-				lda PlayerStatus
-				cmp #1
-				beq MakeSuper
-				lda #0
-				sta PlayerSize
-				lda #1
-				sta PlayerStatus
-				jmp DrawBigMario
-MakeSuper:
-				lda #1
-				sta PlayerSize
-				lda #0
-				sta PlayerStatus
-				tay
-				jmp UpdateMarioGraphics
-
-WritePowerupToSavestate:
 				lda PlayerStatus
 				asl
 				sta $0
