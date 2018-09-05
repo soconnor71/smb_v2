@@ -1491,22 +1491,20 @@ AdvanceToRule:
 		dex
 		beq BigMarioPowerup
 		lda #122
+    iny 
 		dex
-		iny
-		dex
-		bne BigMarioPowerup
+		beq BigMarioPowerup
 		ldx #1
-		jmp SmallFireMario
+		ldy #2
 		;
 		; Big mario
 		;
 BigMarioPowerup:
-		ldx #0
-SmallFireMario:
 		stx PlayerSize
 		sty PlayerStatus
 
 NoPowerups:
+    ldx #0
 		stx PowerUps
 		sta PowerUpFrames
 		;

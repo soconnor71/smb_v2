@@ -130,15 +130,15 @@ DoPowerupChange:
 				lda LastInputBits
 				bne SkipMainOper
 				lda SavedJoypad1Bits
-				cmp #A_Button
+				cmp #A_Button|B_Button
 				bne NoStarPower
-				lda #$23                ;otherwise set star mario invincibility
-				sta StarInvincibleTimer ;timer, and load the star mario music
-				lda #StarPowerMusic     ;into the area music queue, then leave
+				lda #$23
+				sta StarInvincibleTimer
+				lda #StarPowerMusic
 				sta AreaMusicQueue
 				jmp SkipMainOper
-NoStarPower:	
-				cmp #B_Button
+NoStarPower:
+				cmp #Down_Dir
 				bne NoToggleFire
 				ldx #2
 				lda PlayerStatus
@@ -150,7 +150,7 @@ SetFirePowerup:
 				jsr GetPlayerColors
 				jmp WritePowerupToSavestate
 NoToggleFire:
-				cmp #Down_Dir
+				cmp #Left_Dir
 				bne NoToggleSize
 				ldy #0
 				lda PlayerSize
@@ -165,16 +165,17 @@ UpdateMarioGraphics:
 				jsr GetPlayerColors
 				jmp WritePowerupToSavestate
 NoToggleSize:
-				cmp #Right_Dir
-				bne NoMakeSuper
+				cmp #Up_Dir
+				bne SkipMainOper
+				lda PlayerStatus
+				cmp #1
+				beq MakeSuper
 				lda #0
 				sta PlayerSize
 				lda #1
 				sta PlayerStatus
 				jmp DrawBigMario
-NoMakeSuper:
-				cmp #Left_Dir
-				bne SkipMainOper
+MakeSuper:
 				lda #1
 				sta PlayerSize
 				lda #0
