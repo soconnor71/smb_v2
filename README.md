@@ -2,6 +2,28 @@
 
 Super Mario Bros. practice ROM for advanced players.
 
+# Update v3.0 - 2018-09-06
+
+Changed **FLAGPOLE** renamed to **SCENARIO**, and revamped.
+
+** Practice Mode **
+- Rework **powerup inputs**; while **paused**:
+**Left** cycles between **Small, Super, and Fire Mario**.
+**Down** flips the **size of mario** without changing actual powerup.
+- Make it possible to select **Small Fire Mario** from the **Title screen** (3).
+- If you **change powerup** while paused, it is **committed** to the **save state**.
+- **Bug fix**. Beating a level would forget powerups.
+- **Bug fix**. Resume on rule sometimes broken too (because of above bug).
+- **Bug fix**. Loading would randomly mess up powerup state too.
+
+** Scenario Mode **
+Vastly improved the old FPG-practice engine. All scenarios are now described exactly at http://ud2.eu:5555/scenarios.html
+
+- Reworked **FPG 1-1** to allow for **second stair pixel** too.
+- Added **1-2g** practice scenario.
+- Pressing **Start** returns to scenario select screen.
+- Pressing **Select** restarts the current scenario.
+
 # Update v2.2b - 2018-09-01
 - Fix bug where sound quit working if loading while paused.
 - Fix bug where starting as big on title screen didn't reflect correctly.
@@ -98,12 +120,9 @@ I hope you people had a jolly Christmas; also happy new year! <3
 * Press **Start** as normal to start the game.
 * Press **Up** when Rule is not selected to change to Luigi.
 * Hold **A** while pressing **Start** to start on **Second Quest**.
-- Set **any powerup state** on the fly in **Practice**; while **paused**, press:
-    - **Left**: Small mario, no power-up.
-    - **Right**: Super Mario.
-    - **Down**: Toggle size flag (make big or small, but keep powerup state).
-    - **B**: Toggle fire-mode (ofc possible while small).
-    - **A**: Give star-power.
+- Set **any powerup state** on the fly; while **paused**, press:
+**Left** to cycle between **Small, Super, and Fire Mario**.
+**Down** to flip the **size of Mario** without changing actual powerup.
 
 ## Practice ROM - In-game
 * Press **Select + Up** to restart level at entered Frame Rule.
