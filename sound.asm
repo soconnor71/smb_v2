@@ -1478,6 +1478,8 @@ prac_quick_using_64:
 	stx $01
 	jmp do_quick_resume
 
+SMALL_FIRE_FRAMES = $1b3
+
 AdvanceToRule:
 		;
 		; Regardless if rule, always honor powerups
@@ -1486,17 +1488,17 @@ AdvanceToRule:
 		ldy #0
 		ldx PowerUps
 		beq NoPowerups
-		lda #$3B ; +1?
+		lda #$3B
 		iny
 		dex
 		beq BigMarioPowerup
-		lda #$7A ; +1?
+		lda #$7A
     iny 
 		dex
 		beq BigMarioPowerup
 		ldx #1
 		ldy #2
-    lda #$EC ; +1?
+    lda #<SMALL_FIRE_FRAMES
 		;
 		; Big mario
 		;
@@ -1588,6 +1590,15 @@ AdvanceWithin:
 		; Advance powerup frames
 		;
 		lda PowerUpFrames
+    cmp #<SMALL_FIRE_FRAMES
+    bne StartFramePrecision
+    ldx #0
+CorrectForSmallFire:
+    jsr AdvanceRandom
+    dex
+    bne CorrectForSmallFire
+StartFramePrecision:
+    lda PowerUpFrames
 MorePowerUpFrames:
     beq NoPowerUpFrames
 		jsr AdvanceRandom
@@ -1610,8 +1621,6 @@ SaveFrameCounter:
 		; On the correct framerule, continue with the game.
 		;
 		rts
-
-
 
   .seekoff $bff0 $ea
   .org $fff0
