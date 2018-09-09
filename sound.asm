@@ -1486,16 +1486,17 @@ AdvanceToRule:
 		ldy #0
 		ldx PowerUps
 		beq NoPowerups
-		lda #59
+		lda #$3B ; +1?
 		iny
 		dex
 		beq BigMarioPowerup
-		lda #122
+		lda #$7A ; +1?
     iny 
 		dex
 		beq BigMarioPowerup
 		ldx #1
 		ldy #2
+    lda #$EC ; +1?
 		;
 		; Big mario
 		;
@@ -1586,10 +1587,11 @@ AdvanceWithin:
 		;
 		; Advance powerup frames
 		;
+		lda PowerUpFrames
 MorePowerUpFrames:
-		dec PowerUpFrames
-		bmi NoPowerUpFrames
+    beq NoPowerUpFrames
 		jsr AdvanceRandom
+    dec PowerUpFrames
 		jmp MorePowerUpFrames
 NoPowerUpFrames:
 		;
