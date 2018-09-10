@@ -31,7 +31,6 @@ end
 function on_secondary_game_setup()
 	local w = u8(0x75F)
 	local l = u8(0x75C)
-
 	if world == w and level == l then
 		return
 	end
@@ -44,4 +43,5 @@ function on_secondary_game_setup()
 	print('------------------------------------------------------------')
 end
 
+print('Scripted Loaded!')
 memory.registerexecute(secondary_game_setup, on_secondary_game_setup)

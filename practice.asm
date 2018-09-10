@@ -261,7 +261,8 @@ UpdateFrameRule:
 		lda #$01
 		sta DigitModifier+5
 		ldy #RULE_COUNT_OFFSET
-		jsr DigitsMathRoutine3
+		ldx #2
+		jsr DigitsMathRoutineN
 NotEvenFrameRule:
 		rts
 
@@ -1949,6 +1950,9 @@ ExitOutputN: rts
 ;-------------------------------------------------------------------------------------
 
 DigitsMathRoutine3:
+			ldx #3
+DigitsMathRoutineN:
+			stx $00
             ldx #$05
 AddModLoop3:
             lda DigitModifier,x       ;load digit amount to increment
@@ -1961,7 +1965,7 @@ StoreNewD3:
             sta DisplayDigits,y       ;store as new score or game timer digit
             dey                       ;move onto next digits in score or game timer
             dex                       ;and digit amounts to increment
-            cpx #3
+            cpx $00
             bpl AddModLoop3            ;loop back if we're not done yet
             lda #$00                  ;store zero here
             ldx #$06                  ;start with the last digit
@@ -4958,6 +4962,7 @@ NextArea: inc AreaNumber            ;increment area number used for address load
           inc FetchNewGameTimerFlag ;set flag to load new game timer
           jsr ChgAreaMode           ;do sub to set secondary mode, disable screen and sprite 0
           sta HalfwayPage           ;reset halfway page to 0 (beginning)
+          sta SaveStateFlags
           lda #Silence
           sta EventMusicQueue       ;silence music and leave
 ExitNA:   rts
