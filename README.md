@@ -2,6 +2,15 @@
 
 Super Mario Bros. practice ROM for advanced players.
 
+# Update v3.1 - 2018-09-11
+
+Thank you so much @darpey for all your help with this release :)
+
+** Practice Mode **
+- **Bug fix**. Small fire mario can now resume on a given rule from title screen.
+- **Bug fix**. State not saved correctly when entering a new level.
+- **Bug fix**. Rule-counter would only count to 999 then loop around.
+
 # Update v3.0 - 2018-09-06
 
 **FLAGPOLE** renamed to **SCENARIO**, and revamped.
