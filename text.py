@@ -11,6 +11,8 @@ for it in sys.argv[1].lower():
 		sys.stdout.write('$24, ')
 	elif '-' == it:
 		sys.stdout.write('$28, ')
+	elif '.' == it:
+		sys.stdout.write('$2a, ')
 	elif '!' == it:
 		sys.stdout.write('$2b, ')
 	elif n >= ord('0') and n <= ord('9'):

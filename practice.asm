@@ -1847,19 +1847,19 @@ MushroomRetainerSaved:
 
 PrincessSaved1:
 ;"YOUR QUEST IS OVER."
-  .db $25, $a7, $13
-  .db $22, $18, $1e, $1b, $24
-  .db $1a, $1e, $0e, $1c, $1d, $24
-  .db $12, $1c, $24, $18, $1f, $0e, $1b, $af
+  .db $25, $a3, $1b
+  .db $0a, $17, $0d, $24, $0a, $24, $11, $1e, $10
+  .db $0e, $24, $1d, $11, $0a, $17, $14, $1c, $24
+  .db $1d, $18, $24, $0d, $0a, $1b, $19, $0e, $22
   .db $00
+
 
 PrincessSaved2:
 ;"WE PRESENT YOU A NEW QUEST."
-  .db $25, $e3, $1b
-  .db $20, $0e, $24
-  .db $19, $1b, $0e, $1c, $0e, $17, $1d, $24
-  .db $22, $18, $1e, $24, $0a, $24, $17, $0e, $20, $24
-  .db $1a, $1e, $0e, $1c, $1d, $af
+  .db $25, $e3, $1a
+  .db $0f, $18, $1b, $24, $0a, $15, $15, $24, $11
+  .db $12, $1c, $24, $11, $0e, $15, $19, $24, $20
+  .db $12, $1d, $11, $24, $03, $af, $01, $2b
   .db $00
 
 WorldSelectMessage1:
