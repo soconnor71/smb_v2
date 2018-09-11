@@ -1,4 +1,4 @@
-local secondary_game_setup = 0x8FBF + 3 -- Post jsr (so it works from resume too)
+local secondary_game_setup = 0x8FC5 + 3 -- Post jsr (so it works from resume too)
 local world = 0
 local level = 0
 
