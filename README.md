@@ -4,7 +4,7 @@ Super Mario Bros. practice ROM for advanced players.
 
 # Update Web-UI - 2018-09-14
 
-**Build-times are longer. Please allow for up to 10-second for the shitty raspberry to build your custom roms before clicking the link again. If you just want the default rom with no modifications, please click "Download Standard ROM" at the top of the page.**
+**Build-times are longer. Please allow for up to 20-second for the shitty raspberry to build your custom roms before clicking the link again. If you just want the default rom with no modifications, please click "Download Standard ROM" at the top of the page.**
 
 ** Practice Mode **
 - Customizable Restart-level input
