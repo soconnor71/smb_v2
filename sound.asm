@@ -5,6 +5,9 @@
 	.org $8000
 	.db $ba, BANK_SOUND
 
+ENABLE_SFX ?= 1
+ENABLE_MUSIC ?= 1
+
 SoundEngine:
          lda OperMode              ;are we in title screen mode?
          bne SndOn
@@ -61,10 +64,14 @@ SkipPIn: lda #$00                  ;clear pause sfx buffer
          beq SkipSoundSubroutines
 
 RunSoundSubroutines:
+         .if ENABLE_SFX
          jsr Square1SfxHandler  ;play sfx on square channel 1
          jsr Square2SfxHandler  ; ''  ''  '' square channel 2
          jsr NoiseSfxHandler    ; ''  ''  '' noise channel
+         .endif
+         .if ENABLE_MUSIC
          jsr MusicHandler       ;play music on all channels
+         .endif
          lda #$00               ;clear the music queues
          sta AreaMusicQueue
          sta EventMusicQueue

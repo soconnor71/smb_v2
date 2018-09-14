@@ -1,12 +1,11 @@
 ASM = python badassm/badassm.py
 LINK = python idiotlink.py
-AFLAGS = --use-linker
+AFLAGS = --use-linker $(EXTRA_FLAGS)
 RM = rm -f
 NESFILE = smbex.nes
 SCENARIOS = scenarios/1-2g_hi.json \
 			scenarios/1-2g_lo.json \
 			scenarios/1-1_d70.json
-
 
 
 all: $(NESFILE)

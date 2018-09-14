@@ -10,64 +10,76 @@ app.set('view engine', 'pug')
 
 app.use(express.static('public'))
 
-function write_splits(res, worlds) {
+function write_splits(res, load, reset, music, sfx, worlds) {
 	var world_rules = ''
 	var pup_bytes = '.db '
 
-	for(let i = 0; i < worlds.length; ++i)
+	if(undefined != worlds[0])
 	{
-		let levels = worlds[i]
-		if(!levels || 4 != levels.length)
+		for(let i = 0; i < worlds.length; ++i)
 		{
-			res.status(500).send('Invalid number of levels for world ' + (i + 1))
-			return
-		}
-
-		world_rules += '.dw '
-		let enc_lives = 0
-
-		for(let x = 0; x < levels.length; ++x)
-		{
-			let v = levels[x].split(':')
-			if(2 != v.length)
+			let levels = worlds[i]
+			if(!levels || 4 != levels.length)
 			{
-				res.status(500).send('Invalid level value')
+				res.status(500).send('Invalid number of levels for world ' + (i + 1))
 				return
 			}
 
-			let rules = Number(v[0])
-			let pups = Number(v[1])
+			world_rules += '.dw '
+			let enc_lives = 0
 
-			if(isNaN(rules) || isNaN(pups))
+			for(let x = 0; x < levels.length; ++x)
 			{
-				res.status(500).send('Not an integer')
-				return
+				let v = levels[x].split(':')
+				if(2 != v.length)
+				{
+					res.status(500).send('Invalid level value')
+					return
+				}
+
+				let rules = Number(v[0])
+				let pups = Number(v[1])
+
+				if(isNaN(rules) || isNaN(pups))
+				{
+					res.status(500).send('Not an integer')
+					return
+				}
+
+				if(rules > 9999 || pups > 3)
+				{
+					res.status(500).send('Too high rule, or too many pups')
+					return
+				}
+
+				enc_lives = enc_lives | (pups << (x * 2))
+
+				world_rules += '$' + rules
+
+				if((x + 1) != levels.length)
+				{
+					world_rules += ', '
+				}
+			}
+			
+			pup_bytes += '$' + enc_lives.toString(16)
+			if((i + 1) != worlds.length)
+			{
+				pup_bytes += ', '
 			}
 
-			if(rules > 9999 || pups > 2)
-			{
-				res.status(500).send('Too high rule, or too many pups')
-				return
-			}
-
-			enc_lives = enc_lives | (pups << (x * 2))
-
-			world_rules += '$' + rules
-
-			if((x + 1) != levels.length)
-			{
-				world_rules += ', '
-			}
+			world_rules += '\n'
 		}
-		
-		pup_bytes += '$' + enc_lives.toString(16)
-		if((i + 1) != worlds.length)
-		{
-			pup_bytes += ', '
-		}
-
-		world_rules += '\n'
 	}
+
+	let defines = []
+
+	if(load) { defines.push('-DLOAD_GAME_BUTTONS=' + load) }
+	if(reset) { defines.push('-DRESTART_GAME_BUTTONS=' + reset) }
+	if(music) { defines.push('-DENABLE_MUSIC=' + music )}
+	if(sfx) { defines.push('-DENABLE_SFX=' + sfx) }
+
+	console.log(defines.join(' '))
 
 	// console.log(pup_bytes)
 	// console.log(world_rules)
@@ -79,8 +91,11 @@ function write_splits(res, worlds) {
 			return
 		}
 
-		data = data.replace(/;<BUILD_PATCH_LEVELS>[\s\S]+;<\/BUILD_PATCH_LEVELS>/m, world_rules)
-		data = data.replace(/;<BUILD_PATCH_PUPS>[\s\S]+;<\/BUILD_PATCH_PUPS>/m, pup_bytes)
+		if(world_rules)
+		{
+			data = data.replace(/;<BUILD_PATCH_LEVELS>[\s\S]+;<\/BUILD_PATCH_LEVELS>/m, world_rules)
+			data = data.replace(/;<BUILD_PATCH_PUPS>[\s\S]+;<\/BUILD_PATCH_PUPS>/m, pup_bytes)
+		}
 
 		var practice_name = 'practice-' + (new Date().getTime())
 
@@ -92,7 +107,7 @@ function write_splits(res, worlds) {
 				return
 			}
 
-			execFile('python', [ '../../badassm/badassm.py', practice_name + '.asm', '--use-linker' ], { cwd: 'builds' },
+			execFile('python', [ '../../badassm/badassm.py', practice_name + '.asm', '--use-linker' ].concat(defines), { cwd: 'builds' },
 			(err, stdout, stderr) => {
 				if(err) {
 					console.log('Running: ', err)
@@ -100,21 +115,31 @@ function write_splits(res, worlds) {
 					return
 				}
 				
-				execFile('python', [ 'idiotlink.py',
-						practice_name + '.nes', 'vanilla',
-						'sound', practice_name, 'fpg', 'fpg_data',
-						'smlsound', 'loader', 'main' ], { cwd: 'builds' },
+				execFile('python', [ '../../badassm/badassm.py', 'sound.asm', '--use-linker' ].concat(defines), { cwd: 'builds' },
 				(err, stdout, stderr) => {
 					if(err) {
 						console.log('Running: ', err)
-						res.status(500).send('Link phase exploded <.<')
+						res.status(500).send('Build exploded somehow <.<')
 						return
 					}
 
-					res.setHeader('Content-Disposition', 'attachment; filename=smbex.nes');
-					res.setHeader('Content-Transfer-Encoding', 'binary');
-					res.setHeader('Content-Type', 'application/octet-stream');
-					res.sendFile(path.join(__dirname, 'builds/', practice_name + '.nes'))
+					execFile('python', [ 'idiotlink.py',
+							practice_name + '.nes', 'vanilla',
+							'sound', practice_name, 'fpg', 'fpg_data',
+							'smlsound', 'loader', 'main' ], { cwd: 'builds' },
+						(err, stdout, stderr) => {
+						if(err) {
+							console.log('Running: ', err)
+							res.status(500).send('Link phase exploded <.<')
+							return
+						}
+
+						res.setHeader('Content-Disposition', 'attachment; filename=smbex.nes');
+						res.setHeader('Content-Transfer-Encoding', 'binary');
+						res.setHeader('Content-Type', 'application/octet-stream');
+						res.sendFile(path.join(__dirname, 'builds/', practice_name + '.nes'))
+
+					})
 				})
 			})
 		})
@@ -144,6 +169,10 @@ app.get('/practice', function(req, res) {
 app.get('/build', function(req, res) {
 	console.log('Got build request!')
 	write_splits(res,
+		req.query.load,
+		req.query.reset,
+		req.query.music,
+		req.query.sfx,
 		[
 			req.query.w1,
 			req.query.w2,

@@ -50,11 +50,16 @@ function get_splits_body()
 	return document.getElementById('splits').getElementsByTagName('tbody')[0]
 }
 
-function rebuild_download()
+function get_worlds_param()
 {
+	let worlds = []
+	if(!get_wsplit_input())
+	{
+		return worlds
+	}
+
 	var pups_collected = 0
 	var splits = get_splits_body().rows.length
-	var worlds;
 
 	if(8 == splits)
 	{
@@ -85,11 +90,6 @@ function rebuild_download()
 			worlds.push(v)
 		}
 	}
-	else
-	{
-		set_download('I dont understand anything. I broke really bad <.< ' + splits.length)
-		return
-	}
 
 	var num_pups = 0
 	var prev = 0
@@ -118,9 +118,9 @@ function rebuild_download()
 
 				if(collects_life(rule_index))
 				{
-					if(++num_pups > 2)
+					if(++num_pups > 3)
 					{
-						set_download('You can collect 2 power-ups at most')
+						set_download('You can collect 3 power-ups at most')
 						return
 					}
 				}
@@ -134,8 +134,39 @@ function rebuild_download()
 			}
 		}
 	}
+	return worlds
+}
+
+function capitalize(string)
+{
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+function read_input_for(name)
+{
+	let x = 0
+	const buttons = [ 'up', 'down', 'left', 'right', 'select', 'b', 'a' ]
+	let res = []
+	for(let i = 0; i < buttons.length; ++i)
+	{
+		if(document.getElementById(name + '_' + buttons[i]).checked)
+		{
+			const b = capitalize(buttons[i]) + '_' + ((i < 4) ? "Dir" : "Button")
+			res.push(b)
+		}
+	}
+	return res.join('|')
+}
+
+function rebuild_download()
+{
+	var worlds = get_worlds_param()
 
 	var dl = '/build?'
+	dl += 'load=' + read_input_for('load') + '&'
+	dl += 'reset=' + read_input_for('reset') + '&'
+	dl += 'music=' + (document.getElementById('music').checked ? '1' : '0') + '&'
+	dl += 'sfx=' + (document.getElementById('sfx').checked ? '1' : '0') + '&'
 
 	for(var i = 0; i < worlds.length; ++i)
 	{
@@ -144,7 +175,7 @@ function rebuild_download()
 			dl += 'w' + (i + 1) + '=' + worlds[i][x] + '&'
 		}
 	}
-	set_download('<a href="' + dl +  '">Download Ready!</a>')
+	set_download('<span style="margin-left: 5px"><a href="' + dl +  '">Download Ready!</a></span>')
 }
 
 function rule_entry(name, total, duration, rule)
@@ -185,12 +216,25 @@ function round_time(v)
 	return Math.round(v * 100) / 100
 }
 
+function get_wsplit_input()
+{
+	return document.getElementById('wsplit').value.trim()
+}
+
 function update_splits()
 {
 	try
 	{
+		let wsplit_input = get_wsplit_input()
+
+		if(0 == wsplit_input.length)
+		{
+			rebuild_download();
+			return
+		}
+
 		var index = 0;
-		let lines = document.getElementById('wsplit').value.trim().split('\n')
+		let lines = wsplit_input.split('\n')
 
 		index = wsplit_get_param('Title', lines, index, function(v) {
 			document.getElementById('title_id').innerHTML = v
@@ -263,8 +307,8 @@ function update_splits()
 
 function splits_pasted()
 {
-	$("#info").fadeIn(500)
-	$("#config").fadeIn(500)
+	// $("#info").fadeIn(500)
+	// $("#config").fadeIn(500)
 	update_splits()
 }
 
@@ -274,5 +318,5 @@ function change_split_mode(on_rule)
 	update_splits()
 }
 
-
+rebuild_download()
 

@@ -4,6 +4,10 @@
 	.vars vars.inc
 	.org $8000
 	.db $ba, BANK_PRACTICE
+
+LOAD_GAME_BUTTONS ?= Select_Button|Up_Dir
+RESTART_GAME_BUTTONS ?= Select_Button|Down_Dir
+
 ;
 ; Identity-mapped swap-table
 ;
@@ -500,10 +504,9 @@ ExitRestarts:
 HandleRestarts:
 		lda JoypadBitMask
 		ora SavedJoypadBits
-		eor #Select_Button
-		cmp #Up_Dir
+		cmp #LOAD_GAME_BUTTONS
 		beq LoadGameState
-		cmp #Down_Dir
+		cmp #RESTART_GAME_BUTTONS
 		bne ExitRestarts
 		jmp InitMapper
 

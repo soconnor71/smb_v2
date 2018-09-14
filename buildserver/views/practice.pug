@@ -1,53 +1,96 @@
 html
 	head
 		title SMB Practice ROM - Build Server!
-		link(rel='stylesheet' href='bootstrap-3.3.7-dist/css/bootstrap.min.css')
+		link(rel='stylesheet' href='bootstrap-4.1.3-dist/css/bootstrap.min.css')
 		script(src='jquery-3.2.1.min.js')
-		script(src='bootstrap-3.3.7-dist/js/bootstrap.min.js')
+		script(src='bootstrap-4.1.3-dist/js/bootstrap.min.js')
 	body
 		.container
 			h1 SMB Practice ROM
-			.col-xs-4
-				.row
-					label(for='wsplit') Paste your WSplit file here:
-					.form-group
-						textarea#wsplit.form-control(oninput="splits_pasted()")
-					p.
-						 You can convert to WSplit from virtually all formats at #[a(href='https://splits.io') splits.io]. #[br]...or if you just want the Practice ROM but don't care for pre-defined splits, get it <a href="smbex.nes">here</a>.
-				.row#config(style='display: none;')
-					h4#title_id
-					p
-						span(style='color: red; font-weight: bold;') You must enter all info correctly, including power-ups in the table to the right, or the timing will be wrong.
-					fieldset
+			.row
+				.col-sm-5
+					.row
+						a(href="smbex.nes")
+							h3 Download Standard ROM
 						.form-group
-							label(for='start_rule') Rules waited before pressing start: 
-							input#start_rule.form-control(type='text' size='10' value='0' oninput='update_splits()')
+							label(for='wsplit') Paste your WSplit file here:
+							textarea#wsplit.form-control(oninput="splits_pasted()")
+						p.
+							 You can convert to WSplit from virtually all formats at #[a(href='https://splits.io') splits.io].
+						h4#title_id
+						fieldset
+							.form-group
+								label(for='start_rule') Rules waited before pressing start: 
+								input#start_rule.form-control(type='text' size='10' value='0' oninput='update_splits()')
+							label(for='split_at') Where do you split?
+							.form-group#split_at
+								.btn-group.btn-group-toggle(data-toggle='buttons')
+									label.btn.btn-primary.active(onclick='change_split_mode(true)') Post frame-rule effect
+										input#split_rule(type='radio' name='split_mode' checked)
 
-						label(for='split_at') Where do you split?
-						.form-group#split_at
-							.btn-group(data-toggle='buttons')
-								label.btn.btn-primary.active(onclick='change_split_mode(true)') Post frame-rule effect
-									input#split_rule(type='radio' name='split_mode' checked)
+									label.btn.btn-primary(onclick='change_split_mode(false)') First frame of level 
+										input#split_first(type='radio' name='split_mode')
+							label(for='load_input') Combination to reload level:
+							.form-group#load_input
+								.btn-group-toggle(data-toggle='buttons')
+									label.btn.btn-danger.active Up
+										input#load_up(type='checkbox' name='load_up' onchange='rebuild_download()' checked)
+									label.btn.btn-danger Down
+										input#load_down(type='checkbox' name='load_down' onchange='rebuild_download()')
+									label.btn.btn-danger Left
+										input#load_left(type='checkbox' name='load_left' onchange='rebuild_download()')
+									label.btn.btn-danger Right
+										input#load_right(type='checkbox' name='load_right' onchange='rebuild_download()')
+									label.btn.btn-danger.active Select
+										input#load_select(type='checkbox' name='load_select' onchange='rebuild_download()' checked)
+									label.btn.btn-danger B
+										input#load_b(type='checkbox' name='load_b' onchange='rebuild_download()')
+									label.btn.btn-danger A
+										input#load_a(type='checkbox' name='load_a' onchange='rebuild_download()')
+							label(for='reset_input') Combination to reset practice mode:
+							.form-group#reset_input
+								.btn-group-toggle(data-toggle='buttons')
+									label.btn.btn-warning#hatt Up
+										input#reset_up(type='checkbox' onchange='rebuild_download()' name='reset_up')
+									label.btn.btn-warning.active Down
+										input#reset_down(type='checkbox' onchange='rebuild_download()' name='reset_down' checked)
+									label.btn.btn-warning Left
+										input#reset_left(type='checkbox' onchange='rebuild_download()' name='reset_left')
+									label.btn.btn-warning Right
+										input#reset_right(type='checkbox' onchange='rebuild_download()' name='reset_right')
+									label.btn.btn-warning.active Select
+										input#reset_select(type='checkbox' onchange='rebuild_download()' name='reset_select' checked)
+									label.btn.btn-warning B
+										input#reset_b(type='checkbox' onchange='rebuild_download()' name='reset_b')
+									label.btn.btn-warning A
+										input#reset_a(type='checkbox' onchange='rebuild_download()' name='reset_a')
+							label(for='sound_settings') Sound settings:
+							.form-group#sound_settings
+								.btn-group-toggle(data-toggle='buttons')
+									label.btn.btn-success.active Enable Music
+										input#music(type='checkbox' onchange='rebuild_download()' name='music' checked)
+									label.btn.btn-success.active Enable SFX
+										input#sfx(type='checkbox' onchange='rebuild_download()' name='sfx' checked)
 
-								label.btn.btn-primary(onclick='change_split_mode(false)') First frame of level 
-									input#split_first(type='radio' name='split_mode')
+							p
+								label(for='download') Download: 
+								span#download
+							p
+								label(for='attempts_id') Attempts: 
+								span#attempts_id
+
+				.col-sm-7#info
+					.row
 						p
-							label(for='download') Download: 
-							span#download
-						p
-							label(for='attempts_id') Attempts: 
-							span#attempts_id
-
-
-			.col-xs-7#info(style='display: none;')
-				table#splits.table.table-hover.table-striped
-					thead
-						tr
-							th Split name
-							th Total
-							th Duration
-							th Rule
-							th Power-up
-					tbody
+							span(style='color: red; font-weight: bold;') You must enter all info correctly, including what level(s) power-ups were collected, or the timing will be wrong.
+						table#splits.table.table-hover.table-striped
+							thead
+								tr
+									th Split name
+									th Total
+									th Duration
+									th Rule
+									th Power-up
+							tbody
 
 		script(src="splits.js")
