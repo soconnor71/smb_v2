@@ -74,10 +74,10 @@ function write_splits(res, load, reset, music, sfx, worlds) {
 
 	let defines = []
 
-	if(load) { defines.push('-DLOAD_GAME_BUTTONS=' + load) }
-	if(reset) { defines.push('-DRESTART_GAME_BUTTONS=' + reset) }
-	if(music) { defines.push('-DENABLE_MUSIC=' + music )}
-	if(sfx) { defines.push('-DENABLE_SFX=' + sfx) }
+	if(undefined !== load) { defines.push('-DLOAD_GAME_BUTTONS=' + load) }
+	if(undefined !== reset) { defines.push('-DRESTART_GAME_BUTTONS=' + reset) }
+	if(undefined !== music) { defines.push('-DENABLE_MUSIC=' + music )}
+	if(undefined !== sfx) { defines.push('-DENABLE_SFX=' + sfx) }
 
 	console.log(defines.join(' '))
 
@@ -169,10 +169,10 @@ app.get('/practice', function(req, res) {
 app.get('/build', function(req, res) {
 	console.log('Got build request!')
 	write_splits(res,
-		req.query.load,
-		req.query.reset,
-		req.query.music,
-		req.query.sfx,
+		parseInt(req.query.load),
+		parseInt(req.query.reset),
+		parseInt(req.query.music),
+		parseInt(req.query.sfx),
 		[
 			req.query.w1,
 			req.query.w2,

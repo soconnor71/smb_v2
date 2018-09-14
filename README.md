@@ -2,6 +2,19 @@
 
 Super Mario Bros. practice ROM for advanced players.
 
+# Update Web-UI - 2018-09-14
+
+**Build-times are longer. Please allow for up to 10-second for the shitty raspberry to build your custom roms before clicking the link again. If you just want the default rom with no modifications, please click "Download Standard ROM" at the top of the page.**
+
+** Practice Mode **
+- Customizable Restart-level input
+- Customizable Reset-ROM input
+- **Allow 3-powerups** to be collected (Check the third on the **level you become small fire mario**).
+
+** All Modes **
+- Allow disable Music
+- Allow disable SFX
+
 # Update v3.1 - 2018-09-11
 
 Thank you so much @darpey for all your help with this release :)
@@ -104,8 +117,8 @@ Aligned "RM" and "TIME" to match "WORLD" and "TIME" in original SMB, so that vis
 I hope you people had a jolly Christmas; also happy new year! <3
 
 * No bugs! Resuming on a frame-rule in any mode should work, regardless of level! Please let me know if you find any resume-issues.
-* Save-state re-enabled (completely untested). Select+B to re-load level @ entered frame-rule.
-* Select+A to return to title-screen.
+* Save-state re-enabled (completely untested). Select+Up to re-load level @ entered frame-rule.
+* Select+Down to return to title-screen.
 * Buildserver running on _ATROCIOUSLY slow_ rPI. Takes like 15 sec to build (and thus download) a tailored ROMs.
 
 # Features

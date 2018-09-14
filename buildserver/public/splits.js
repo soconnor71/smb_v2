@@ -134,7 +134,7 @@ function get_worlds_param()
 			}
 		}
 	}
-	return worlds
+	return world
 }
 
 function capitalize(string)
@@ -145,17 +145,21 @@ function capitalize(string)
 function read_input_for(name)
 {
 	let x = 0
-	const buttons = [ 'up', 'down', 'left', 'right', 'select', 'b', 'a' ]
-	let res = []
-	for(let i = 0; i < buttons.length; ++i)
+	const buttons = { 'a': 0x80, 'b': 0x40, 'select': 0x20,
+		'up': 0x08, 'down': 0x04, 'left': 0x02, 'right': 0x01 }
+
+	for(var k in buttons)
 	{
-		if(document.getElementById(name + '_' + buttons[i]).checked)
+		if(buttons.hasOwnProperty(k))
 		{
-			const b = capitalize(buttons[i]) + '_' + ((i < 4) ? "Dir" : "Button")
-			res.push(b)
+			if(document.getElementById(name + '_' + k).checked)
+			{
+				x |= buttons[k]
+			}
 		}
 	}
-	return res.join('|')
+
+	return x
 }
 
 function rebuild_download()
