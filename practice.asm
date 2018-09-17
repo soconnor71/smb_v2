@@ -95,7 +95,7 @@ SkipExpTimer:  dex                       ;move onto next timer
                jsr UpdateFrameRule
 NoDecTimers:   inc FrameCounter          ;increment frame counter
                jmp NotPaused
-PauseSkip:     jsr RedrawAll
+PauseSkip:     jsr RedrawFrameNumbers
 NotPaused:
                jsr AdvanceRandom
                lda Sprite0HitDetectFlag  ;check for flag here
@@ -283,8 +283,7 @@ RedrawRemaining:
 
 RedrawAll:
 		jsr RedrawRemaining
-		jsr RedrawFrameNumbers
-		rts
+		jmp RedrawFrameNumbers
 
 ;-------------------------------------------------------------------------------------
 
