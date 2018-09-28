@@ -134,7 +134,7 @@ function get_worlds_param()
 			}
 		}
 	}
-	return world
+	return worlds
 }
 
 function capitalize(string)
