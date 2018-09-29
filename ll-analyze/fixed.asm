@@ -86,24 +86,13 @@ VRAM_AddrTable_DW_NEW:
 VRAM_Buffer_Offset:
 		.db 0
 		.db $40
-NonMaskableInterrupt:
 
+NonMaskableInterrupt:
 		lda Mirror_PPU_CTRL_REG1
 		and #$7E
 		sta Mirror_PPU_CTRL_REG1
 		sta PPU_CTRL_REG1
-		sei
-		lda Sprite0HitDetectFlag
-		beq loc_60C3
-		lda #$58
-		sta FDS_IRQ_RELOAD_LOW
-		lda #$16
-		sta FDS_IRQ_RELOAD_HIGH
-		lda #2
-		sta FDS_IRQ_CONTROL
-		; inc WaitForIRQ
-loc_60C3:
-
+		; sei
 		lda Mirror_PPU_CTRL_REG2
 		and #$E6
 		ldy DisableScreenFlag
@@ -201,47 +190,53 @@ RotPRandomBit:
 		lda Sprite0HitDetectFlag
 		beq SkipSprite0
 
-
+Sprite0Clr:
+		lda PPU_STATUS
+		and #$40
+		bne Sprite0Clr
 
 		lda GamePauseStatus
 		lsr
-		bcs SkipMainOper
-		lda Sprite0HitDetectFlag
-		beq SkipSprite0
+		bcs Sprite0Hit
+
 		jsr loc_6289+1
 		jsr SpriteShuffler
+
 Sprite0Hit:
 		lda PPU_STATUS
-		and #%01000000
+		and #$40
 		beq Sprite0Hit
-
-		ldy #$14
+		ldy #$8
 HBlankDelay:
 		dey
 		bne HBlankDelay
 
 SkipSprite0:
+		lda PPU_STATUS
+		lda HorizontalScroll
+		sta PPU_SCROLL_REG
+		lda VerticalScroll
+		sta PPU_SCROLL_REG
+		lda Mirror_PPU_CTRL_REG1
+		and #$F7
+		ora UseNtBase2400
+		sta Mirror_PPU_CTRL_REG1
+		sta PPU_CTRL_REG1
+
 		lda WorldNumber
 		cmp #9
 		bcc NotWorld9Something
 		jsr sub_708D
 NotWorld9Something:
-		;
-		;
-		;
-		lda HorizontalScroll
-		sta PPU_SCROLL_REG
-		lda VerticalScroll
-		sta PPU_SCROLL_REG
 
-
+		lda GamePauseStatus
+		lsr
+		bcs SkipMainOper
 
 		jsr OperModeExecutionTree
 SkipMainOper:
 		lda PPU_STATUS
 		lda Mirror_PPU_CTRL_REG1
-		and #$F7
-		ora UseNtBase2400
 		ora #$80
 		sta Mirror_PPU_CTRL_REG1
 		sta PPU_CTRL_REG1
@@ -4715,14 +4710,18 @@ GameMode:
 		.dw SecondaryGameSetup
 		.dw GameCoreRoutine_RW
 GameCoreRoutine_RW:
-
 		jsr GameRoutines
 		lda OperMode_Task
 		cmp #4
 		bcs GameEngine
 		rts
-GameEngine:
 
+GameEngine:
+lda GamePauseStatus
+lsr
+bcc FUCKHACK
+rts
+FUCKHACK:
 		jsr ProcFireball_Bubble
 		ldx #0
 ProcELoop:

@@ -33,7 +33,8 @@ def fix_instruction(inst, comment):
 	mnem = tokens[0].lower()
 	s = '\t\t' + mnem
 	if mnem in [ 'lsr', 'asl', 'rol', 'ror' ]:
-		tokens.pop()
+		if 'a' == tokens[1].lower():
+			tokens.pop()
 	if 2 == len(tokens):
 		tokens[1] = fix_argument(tokens[1], comment)
 		m = re.match(r'\$[0-9a-fA-F]{4}.*', tokens[1])
