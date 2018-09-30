@@ -5,9 +5,9 @@
 		nop
 Start:
 
-		lda FdsLastWrite4025
-		and #$F7
-		sta FDS_CONTROL
+		; lda FdsLastWrite4025
+		; and #$F7
+		; sta FDS_CONTROL
 		lda WorldNumber
 		pha
 		ldy #$FE
@@ -199,7 +199,7 @@ Sprite0Clr:
 		lsr
 		bcs Sprite0Hit
 
-		jsr loc_6289+1
+		jsr MoveSpritesOffscreen
 		jsr SpriteShuffler
 
 Sprite0Hit:
@@ -212,6 +212,10 @@ HBlankDelay:
 		bne HBlankDelay
 
 SkipSprite0:
+		;
+		; XXX - In smb2j-fds, this is effectively done AFTER the OperModeExecTree has ran.
+		;       If vert-/horizontalscroll is changed (and they are) in OperMode, we are showing wrong px i think
+		;
 		lda PPU_STATUS
 		lda HorizontalScroll
 		sta PPU_SCROLL_REG
@@ -245,50 +249,44 @@ OnIRQ:
 
 
 PauseRoutine:
-
 		lda OperMode
-		cmp #2
-		beq loc_61FB
-		cmp #1
-		bne locret_622C
+		cmp #VictoryModeValue
+		beq ChkPauseTimer
+		cmp #GameModeValue
+		bne ExitPause
 		lda OperMode_Task
 		cmp #4
-		bne locret_622C
-loc_61FB:
-
+		bne ExitPause
+ChkPauseTimer:
 		lda GamePauseTimer
-		beq loc_6204
+		beq ChkStart
 		dec GamePauseTimer
 		rts
-loc_6204:
-
+ChkStart:
 		lda SavedJoypad1Bits
-		and #$10
-		beq loc_6224
+		and #Start_Button
+		beq ClrPauseTimer
 		lda GamePauseStatus
 		and #$80
-		bne locret_622C
+		bne ExitPause
 		lda #$2B
 		sta GamePauseTimer
 		lda GamePauseStatus
 		tay
 		iny
-		sty FdsLastWrite4025
+		sty SkipSoundSubroutines
 		eor #1
 		ora #$80
-		bne loc_6229
-loc_6224:
-
+		bne SetPause
+ClrPauseTimer:
 		lda GamePauseStatus
 		and #$7F
-loc_6229:
-
+SetPause:
 		sta GamePauseStatus
-locret_622C:
-
+ExitPause:
 		rts
-SpriteShuffler:
 
+SpriteShuffler:
 		ldy AreaType
 		lda #$28
 		sta TMP_0
@@ -348,9 +346,9 @@ OperModeExecutionTree:
 MoveAllSpritesOffscreen:
 
 		ldy #0
-loc_6289:
-
-		bit Fireball_BoundBoxCtrl
+		.db $2c
+MoveSpritesOffscreen:
+		ldy #4
 		lda #$F8
 SprInitLoop:
 
@@ -794,7 +792,7 @@ GetBackgroundColor:
 
 		ldy BackgroundColorCtrl
 		beq loc_654A
-		lda BGColorCtrl_Addr-4
+		lda BGColorCtrl_Addr-4,y
 		sta VRAM_Buffer_AddrCtrl
 loc_654A:
 
@@ -1478,30 +1476,28 @@ BlockGfxData:
 		.db $26
 		.db $26
 		.db $26
-sub_692A:
 
+RemoveCoin_Axe:
 		ldy #$41
 		lda #3
 		ldx AreaType
-		bne loc_6935
+		bne WriteBlankMT
 		lda #4
-loc_6935:
-
-		jsr sub_6974
+WriteBlankMT:
+		jsr PutBlockMetatile
 		lda #6
 		sta VRAM_Buffer_AddrCtrl
 		rts
-sub_693E:
 
-		jsr loc_694A
+ReplaceBlockMetatile:
+		jsr WriteBlockMetatile
 		inc Block_ResidualCounter
-		dec $3EC,x
+		dec Block_RepFlag,x
 		rts
-sub_6948:
+DestroyBlockMetatile:
 
 		lda #0
-loc_694A:
-
+WriteBlockMetatile:
 		ldy #3
 		cmp #0
 		beq loc_6964
@@ -1521,7 +1517,7 @@ loc_6964:
 		tya
 		ldy VRAM_Buffer1_Offset
 		iny
-		jsr sub_6974
+		jsr PutBlockMetatile
 loc_696C:
 
 		dey
@@ -1529,7 +1525,7 @@ loc_696C:
 		clc
 		adc #$A
 		jmp WriteWRAMBufferOffset1
-sub_6974:
+PutBlockMetatile:
 
 		stx TMP_0
 		sty TMP_1
@@ -1568,11 +1564,11 @@ loc_69AA:
 
 		lda BlockGfxData,x
 		sta $303,y
-		lda BlockGfxData+1
+		lda BlockGfxData+1,x
 		sta $304,y
-		lda BlockGfxData+2
+		lda BlockGfxData+2,x
 		sta $308,y
-		lda BlockGfxData+3
+		lda BlockGfxData+3,x
 		sta $309,y
 		lda byte_4
 		sta $301,y
@@ -6955,13 +6951,13 @@ sub_88AE:
 loc_88BB:
 
 		sta $26,x
-		jsr sub_6948
+		jsr DestroyBlockMetatile
 		ldx SprDataOffset_Ctrl
 		lda byte_2
 		sta $3E4,x
 		tay
 		lda byte_6
-		sta $3E6,x
+		sta Block_BBuf_Low,x
 		lda (6),y
 		jsr BlockBumpedChk
 		sta TMP_0
@@ -7151,7 +7147,7 @@ CheckTopOfBlock:
 		bne locret_8A11
 		lda #0
 		sta (6),y
-		jsr sub_692A
+		jsr RemoveCoin_Axe
 		ldx SprDataOffset_Ctrl
 		jsr sub_871C
 locret_8A11:
@@ -7253,7 +7249,7 @@ loc_8AA7:
 		bne loc_8ACF
 		lda $3EC,x
 		beq loc_8ACF
-		lda $3E6,x
+		lda Block_BBuf_Low,x
 		sta byte_6
 		lda #5
 		sta unk_7
@@ -7262,7 +7258,7 @@ loc_8AA7:
 		tay
 		lda $3E8,x
 		sta (6),y
-		jsr sub_693E
+		jsr ReplaceBlockMetatile
 		lda #0
 		sta $3EC,x
 loc_8ACF:
@@ -12489,7 +12485,7 @@ sub_AA8D:
 		ldy byte_2
 		lda #0
 		sta (6),y
-		jmp sub_692A
+		jmp RemoveCoin_Axe
 ClimbXPosAdder:
 		.db $F9
 		.db 7
@@ -16420,32 +16416,29 @@ PrepareFdsLoad:
 		lda #$1A
 		sta VRAM_Buffer_AddrCtrl
 		jmp TitleNextTask
-WaitFDSReady:
 
+WaitFDSReady:
+		;
+		; TODO: This entire callback can be killed.
+		;
 		lda #0
 		sta UseNtBase2400
 		sta DisableScreenFlag
-		lda FDS_DRIVE_STATUS
-		lsr
-		bcc TitleExitNow
 TitleNextTask:
-
 		inc TitleOperTask
 TitleExitNow:
-
 		rts
+
 MoreFDSStuff:
+		; used to wait for drive status
+		jmp TitleNextTask
 
-		lda FDS_DRIVE_STATUS
-		lsr
-		bcc TitleNextTask
-		bcs TitleExitNow
 FDSResetZero:
-
 		lda #0
 		sta TitleOperTask
 		sta LoadListIndex
 		rts
+
 byte_C149:
 		.db $21
 		.db $E6
@@ -20431,29 +20424,27 @@ unk_D242:
 		.db $FF
 VOLDST_NumberOfStarsSaveData:
 		.db 0
-SoundEngine:
 
+SoundEngine:
 		lda OperMode
-		bne loc_D2A9
+		bne SndOn
 		sta SND_MASTERCTRL_REG
 		rts
-loc_D2A9:
-
+SndOn:
 		lda #$FF
 		sta JOYPAD_PORT2
 		lda #$F
 		sta SND_MASTERCTRL_REG
 		lda PauseModeFlag
-		bne loc_D2BE
-		lda FdsLastWrite4025
+		bne InPause
+		lda PauseSoundQueue
 		cmp #1
-		bne loc_D31B
-loc_D2BE:
-
+		bne RunSoundSubroutines
+InPause:
 		lda PauseSoundBuffer
-		bne loc_D2E6
-		lda FdsLastWrite4025
-		beq loc_D32D
+		bne ContPau
+		lda PauseSoundQueue
+		beq SkipSoundSubroutines
 		sta PauseSoundBuffer
 		sta PauseModeFlag
 		lda #0
@@ -20469,7 +20460,7 @@ loc_D2E2:
 
 		lda #$44
 		bne loc_D2F7
-loc_D2E6:
+ContPau:
 
 		lda Squ1_SfxLenCounter
 		cmp #$24
@@ -20489,7 +20480,7 @@ loc_D2F7:
 loc_D2FE:
 
 		dec Squ1_SfxLenCounter
-		bne loc_D32D
+		bne SkipSoundSubroutines
 		lda #0
 		sta SND_MASTERCTRL_REG
 		lda PauseSoundBuffer
@@ -20503,23 +20494,21 @@ loc_D314:
 		sta PauseSoundBuffer
 loc_D319:
 
-		beq loc_D32D
-loc_D31B:
-
+		beq SkipSoundSubroutines
+RunSoundSubroutines:
 		jsr sub_D3EB
 		jsr sub_D54C
 		jsr sub_D677
-		jsr sub_D6D0
+		jsr MusicHandler
 		lda #0
 		sta AreaMusicQueue
 		sta EventMusicQueue
-loc_D32D:
-
+SkipSoundSubroutines:
 		lda #0
 		sta Square1SoundQueue
 		sta Square2SoundQueue
 		sta NoiseSoundQueue
-		sta FdsLastWrite4025
+		sta PauseSoundQueue
 		ldy DAC_Counter
 		lda AreaMusicBuffer
 		and #3
@@ -21204,20 +21193,18 @@ loc_D6AF:
 		ora #$10
 		bne loc_D6A6
 loc_D6CD:
-
 		jmp loc_D776
-sub_D6D0:
 
+MusicHandler:
 		lda EventMusicQueue
-		bne loc_D6E0
+		bne LoadEventMusic
 		lda AreaMusicQueue
 		bne loc_D704
 		lda EventMusicBuffer
 		ora AreaMusicBuffer
 		bne loc_D6CD
 		rts
-loc_D6E0:
-
+LoadEventMusic:
 		sta EventMusicBuffer
 		cmp #1
 		bne loc_D6ED
@@ -21231,10 +21218,10 @@ loc_D6ED:
 		sty NoteLengthTblAdder
 		sty AreaMusicBuffer
 		cmp #$40
-		bne loc_D72D
+		bne FindEventMusicHeader
 		ldx #8
 		stx NoteLengthTblAdder
-		bne loc_D72D
+		bne FindEventMusicHeader
 loc_D704:
 
 		cmp #4
@@ -21252,24 +21239,21 @@ loc_D710:
 		sty EventMusicBuffer
 		sta AreaMusicBuffer
 		cmp #1
-		bne loc_D729
+		bne FindAreaMusicHeader
 		inc GroundMusicHeaderOfs
 		ldy GroundMusicHeaderOfs
 		cpy #$32
-		bne loc_D731
+		bne LoadHeader
 		ldy #$11
 		bne loc_D70D
-loc_D729:
-
+FindAreaMusicHeader:
 		ldy #8
 		sty MusicOffset_Square2
-loc_D72D:
-
+FindEventMusicHeader:
 		iny
 		lsr
-		bcc loc_D72D
-loc_D731:
-
+		bcc FindEventMusicHeader
+LoadHeader:
 		lda MusicHeaderData-1,y
 		tay
 		lda MusicHeaderData,y
@@ -21316,8 +21300,8 @@ loc_D787:
 		bne loc_D7B0
 loc_D793:
 
-		and #4
-		bne loc_D7B3
+		and #VictoryMusic
+		bne VictoryMLoopBack
 		lda AreaMusicBuffer
 		and #$5F
 		bne loc_D7B0
@@ -21332,9 +21316,8 @@ loc_D793:
 loc_D7B0:
 
 		jmp loc_D710
-loc_D7B3:
-
-		jmp loc_D6E0
+VictoryMLoopBack:
+		jmp LoadEventMusic
 loc_D7B6:
 
 		jsr ProcessLengthData
@@ -21641,48 +21624,102 @@ MusicHeaderData:
 		.db $8E
 		.db $9A
 		.db 8
-		.db $A9
-		.db $DC
+		.dw unk_DCA9
 		.db $27
 		.db $18
 		.db $20
-		.db $EF
-		.db $D9
+		.dw byte_D9EF
 		.db $2E
 		.db $1A
 		.db $40
 		.db $20
-		.db $E7
-		.db $DC
+		.dw byte_DCE7
 		.db $3D
 		.db $21
 		.db $20
-		.db $FB
-		.db $DC
+		.dw unk_DCFB
 		.db $3F
 		.db $1D
 		.db $18
-		.db $48
-		.db $DD
+		.dw unk_DD48
 		.db 0
 		.db 0
 		.db 8
-		.db $53
-		.db $DA
+		.dw unk_DA53
 		.db 0
 		.db 0
-		.db $DB
-		.db $DB
+		.dw unk_DBDB
 		.db $93
-		.db $62, $18,	$7C, $DC, $1E, $14, 8, $89, $DD, $A0, $70
-		.db $68, 8, $88, $DE,	$4C, $24, $18, $38, $DA, $2D, $1C
-		.db $B8, $18,	$80, $DA, $20, $12, $70, $18, $AC, $DA
-		.db $1B, $10,	$44, $18, $D4, $DA, $11, $A, $1C, $18
-		.db $F9, $DA,	$2D, $10, $58, $18, $12, $DB, $14, $D
-		.db $3F, $18,	$30, $DB, $15, $D, $21,	$18, $5C, $DB
-		.db $18, $10,	$7A, $18, $82, $DB, $19, $F, $54, $18
-		.db $AB, $DB,	$1E, $12, $2B, $18, $A9, $DB, $1E, $F
+		.db $62
+		.db $18
+		.dw unk_DC7C
+		.db $1E
+		.db $14
+		.db 8
+		.dw unk_DD89
+		.db $A0
+		.db $70
+		.db $68
+		.db 8
+		.dw unk_DE88
+		.db $4C
+		.db $24
+		.db $18
+		.dw unk_DA38
 		.db $2D
+		.db $1C
+		.db $B8
+		.db $18
+		.dw unk_DA80
+		.db $20
+		.db $12
+		.db $70
+		.db $18
+		.dw unk_DAAC
+		.db $1B
+		.db $10
+		.db $44
+		.db $18
+		.dw unk_DAD4
+		.db $11
+		.db $A
+		.db $1C
+		.db $18
+		.dw unk_DAF9
+		.db $2D
+		.db $10
+		.db $58
+		.db $18
+		.dw unk_DB12
+		.db $14
+		.db $D
+		.db $3F
+		.db $18
+		.dw unk_DB30
+		.db $15
+		.db $D
+		.db $21
+		.db $18
+		.dw unk_DB5C
+		.db $18
+		.db $10
+		.db $7A
+		.db $18
+		.dw unk_DB82
+		.db $19
+		.db $F
+		.db $54
+		.db $18
+		.dw unk_DBAB
+		.db $1E
+		.db $12
+		.db $2B
+		.db $18
+		.dw unk_DBA9
+		.db $1E
+		.db $F
+		.db $2D
+byte_D9EF:
 		.db $84
 		.db $2C
 		.db $2C
@@ -21756,6 +21793,7 @@ MusicHeaderData:
 		.db $C4
 		.db $D0
 		.db 0
+unk_DA38:
 		.db $85
 		.db $2C
 		.db $22
@@ -21783,6 +21821,7 @@ MusicHeaderData:
 		.db $30
 		.db $85
 		.db $2A
+unk_DA53:
 		.db 0
 		.db $5D
 		.db $55
@@ -21828,6 +21867,7 @@ MusicHeaderData:
 		.db $2A
 		.db $85
 		.db $22
+unk_DA80:
 		.db $84
 		.db 4
 		.db $82
@@ -21872,6 +21912,7 @@ MusicHeaderData:
 		.db $84
 		.db $2C
 		.db $1E
+unk_DAAC:
 		.db $84
 		.db 4
 		.db $82
@@ -21912,6 +21953,7 @@ MusicHeaderData:
 		.db $84
 		.db $4E
 		.db $22
+unk_DAD4:
 		.db $84
 		.db 4
 		.db $85
@@ -21949,6 +21991,7 @@ MusicHeaderData:
 		.db $C4
 		.db $D0
 		.db 0
+unk_DAF9:
 		.db $82
 		.db $2C
 		.db $84
@@ -21974,6 +22017,7 @@ MusicHeaderData:
 		.db $1D
 		.db $9C
 		.db $95
+unk_DB12:
 		.db $82
 		.db $2C
 		.db $2C
@@ -22004,6 +22048,7 @@ MusicHeaderData:
 		.db $14
 		.db $84
 		.db $C
+unk_DB30:
 		.db $82
 		.db $34
 		.db $84
@@ -22048,6 +22093,7 @@ MusicHeaderData:
 		.db $90
 		.db $90
 		.db 0
+unk_DB5C:
 		.db $82
 		.db $34
 		.db $84
@@ -22086,6 +22132,7 @@ MusicHeaderData:
 		.db $2C
 		.db $1E
 		.db 4
+unk_DB82:
 		.db $87
 		.db $2A
 		.db $40
@@ -22125,8 +22172,10 @@ MusicHeaderData:
 		.db $2C
 		.db $22
 		.db 4
+unk_DBA9:
 		.db $86
 		.db 4
+unk_DBAB:
 		.db $82
 		.db $2A
 		.db $36
@@ -22175,6 +22224,7 @@ MusicHeaderData:
 		.db $31
 		.db $11
 		.db 0
+unk_DBDB:
 		.db $80
 		.db $22
 		.db $28
@@ -22279,77 +22329,697 @@ MusicHeaderData:
 		.db $6C
 		.db $6E
 		.db $70
-		.db $72, $70,	$6E, $70, $6E, $6C, $6E, $70, $72, $70
-		.db $6E, $6E,	$6C, $6E, $70, $6E, $70, $6E, $6C, $6E
-		.db $6C, $6E,	$70, $6E, $70, $6E, $6C, $76, $78, $76
-		.db $74, $76,	$74, $72, $74, $76, $78, $76, $74, $76
-		.db $74, $72,	$74, $84, $1A, $83, $18, $20, $84, $1E
-		.db $83, $1C,	$28, $26, $1C, $1A, $1C, $82, $2C, 4, 4
-		.db $22, 4, 4, $84, $1C, $87,	$26, $2A, $26, $84, $24
-		.db $28, $24,	$80, $22, 0, $9C, 5, $94, 5, $D, $9F, $1E
-		.db $9C, $98,	$9D, $82, $22, 4, 4, $1C, 4, 4,	$84, $14
-		.db $86, $1E,	$80, $16, $80, $14, $81, $1C, $30, 4, $30
-		.db $30, 4, $1E, $32,	4, $32,	$32, 4,	$20, $34, 4, $34
-		.db $34, 4, $36, 4, $84, $36,	0, $46,	$A4, $64, $A4
-		.db $48, $A6,	$66, $A6, $4A, $A8, $68, $A8, $6A, $44
-		.db $2B, $81,	$2A, $42, 4, $42, $42, 4, $2C, $64, 4
-		.db $64, $64,	4, $2E,	$46, 4,	$46, $46, 4, $22, 4, $84
+byte_DC43:
+		.db $72
+		.db $70
+		.db $6E
+		.db $70
+		.db $6E
+		.db $6C
+		.db $6E
+		.db $70
+		.db $72
+		.db $70
+		.db $6E
+		.db $6E
+		.db $6C
+		.db $6E
+		.db $70
+		.db $6E
+		.db $70
+		.db $6E
+		.db $6C
+		.db $6E
+		.db $6C
+		.db $6E
+		.db $70
+		.db $6E
+		.db $70
+		.db $6E
+		.db $6C
+		.db $76
+		.db $78
+		.db $76
+		.db $74
+		.db $76
+		.db $74
+		.db $72
+		.db $74
+		.db $76
+		.db $78
+		.db $76
+		.db $74
+		.db $76
+		.db $74
+		.db $72
+		.db $74
+		.db $84
+		.db $1A
+		.db $83
+		.db $18
+		.db $20
+		.db $84
+		.db $1E
+		.db $83
+		.db $1C
+		.db $28
+		.db $26
+		.db $1C
+		.db $1A
+		.db $1C
+unk_DC7C:
+		.db $82
+		.db $2C
+		.db 4
+		.db 4
 		.db $22
+		.db 4
+		.db 4
+		.db $84
+		.db $1C
+		.db $87
+		.db $26
+		.db $2A
+		.db $26
+		.db $84
+		.db $24
+		.db $28
+		.db $24
+		.db $80
+		.db $22
+		.db 0
+		.db $9C
+		.db 5
+		.db $94
+		.db 5
+		.db $D
+		.db $9F
+		.db $1E
+		.db $9C
+		.db $98
+		.db $9D
+		.db $82
+		.db $22
+		.db 4
+		.db 4
+		.db $1C
+		.db 4
+		.db 4
+		.db $84
+		.db $14
+		.db $86
+		.db $1E
+		.db $80
+		.db $16
+		.db $80
+		.db $14
+unk_DCA9:
+		.db $81
+		.db $1C
+		.db $30
+		.db 4
+		.db $30
+		.db $30
+		.db 4
+		.db $1E
+		.db $32
+		.db 4
+		.db $32
+		.db $32
+		.db 4
+		.db $20
+		.db $34
+		.db 4
+		.db $34
+		.db $34
+		.db 4
+		.db $36
+		.db 4
+		.db $84
+		.db $36
+		.db 0
+		.db $46
+		.db $A4
+		.db $64
+		.db $A4
+		.db $48
+		.db $A6
+		.db $66
+		.db $A6
+		.db $4A
+		.db $A8
+		.db $68
+		.db $A8
+		.db $6A
+		.db $44
+		.db $2B
+		.db $81
+		.db $2A
+		.db $42
+		.db 4
+		.db $42
+		.db $42
+		.db 4
+		.db $2C
+		.db $64
+		.db 4
+		.db $64
+		.db $64
+		.db 4
+		.db $2E
+		.db $46
+		.db 4
+		.db $46
+		.db $46
+		.db 4
+		.db $22
+		.db 4
+		.db $84
+		.db $22
+byte_DCE7:
 		.db $87
 		.db 4
 		.db 6
 		.db $C
 		.db $14
 		.db $1C
-		.db $22, $86,	$2C, $22, $87, 4, $60, $E, $14,	$1A, $24
-		.db $86, $2C,	$24, $87, 4, 8,	$10, $18, $1E, $28, $86
-		.db $30, $30,	$80, $64, 0, $CD, $D5, $DD, $E3, $ED, $F5
-		.db $BB, $B5,	$CF, $D5, $DB, $E5, $ED, $F3, $BD, $B3
-		.db $D1, $D9,	$DF, $E9, $F1, $F7, $BF, $FF, $FF, $FF
-		.db $34, 0, $86, 4, $87, $14,	$1C, $22, $86, $34, $84
-		.db $2C, 4, 4, 4, $87, $14, $1A, $24,	$86, $32, $84
-		.db $2C, 4, $86, 4, $87, $18,	$1E, $28, $86, $36, $87
-		.db $30, $30,	$30, $80, $2C, $82, $14, $2C, $62, $26
-		.db $10, $28,	$80, 4,	$82, $14, $2C, $62, $26, $10, $28
-		.db $80, 4, $82, 8, $1E, $5E,	$18, $60, $1A, $80, 4
-		.db $82, 8, $1E, $5E,	$18, $60, $1A, $86, 4, $83, $1A
-		.db $18, $16,	$84, $14, $1A, $18, $E,	$C, $16, $83, $14
-		.db $20, $1E,	$1C, $28, $26, $87, $24, $1A, $12, $10
-		.db $62, $E, $80, 4, 4, 0, $82, $18, $1C, $20, $22, $26
-		.db $28, $81,	$2A, $2A, $2A, 4, $2A, 4, $83, $2A, $82
-		.db $22, $86,	$34, $32, $34, $81, 4, $22, $26, $2A, $2C
-		.db $30, $86,	$34, $83, $32, $82, $36, $84, $34, $85
-		.db 4, $81, $22, $86,	$30, $2E, $30, $81, 4, $22, $26
-		.db $2A, $2C,	$2E, $86, $30, $83, $22, $82, $36, $84
-		.db $34, $85,	4, $81,	$22, $86, $3A, $3A, $3A, $82, $3A
-		.db $81, $40,	$82, 4,	$81, $3A, $86, $36, $36, $36, $82
-		.db $36, $81,	$3A, $82, 4, $81, $36, $86, $34, $82, $26
-		.db $2A, $36,	$81, $34, $34, $85, $34, $81, $2A, $86
-		.db $2C, 0, $84, $90,	$B0, $84, $50, $50, $B0, 0, $98
-		.db $96, $94,	$92, $94, $96, $58, $58, $58, $44, $5C
-		.db $44, $9F,	$A3, $A1, $A3, $85, $A3, $E0, $A6, $23
-		.db $C4, $9F,	$9D, $9F, $85, $9F, $D2, $A6, $23, $C4
-		.db $B5, $B1,	$AF, $85, $B1, $AF, $AD, $85, $95, $9E
-		.db $A2, $AA,	$6A, $6A, $6B, $5E, $9D, $84, 4, 4, $82
-		.db $22, $86,	$22, $82, $14, $22, $2C, $12, $22, $2A
-		.db $14, $22,	$2C, $1C, $22, $2C, $14, $22, $2C, $12
-		.db $22, $2A,	$14, $22, $2C, $1C, $22, $2C, $18, $22
-		.db $2A, $16,	$20, $28, $18, $22, $2A, $12, $22, $2A
-		.db $18, $22,	$2A, $12, $22, $2A, $14, $22, $2C, $C
-		.db $22, $2C,	$14, $22, $34, $12, $22, $30, $10, $22
-		.db $2E, $16,	$22, $34, $18, $26, $36, $16, $26, $36
-		.db $14, $26,	$36, $12, $22, $36, $5C, $22, $34, $C
-		.db $22, $22,	$81, $1E, $1E, $85, $1E, $81, $12, $86
-		.db $14, $81,	$2C, $22, $1C, $2C, $22, $1C, $85, $2C
-		.db 4, $81, $2E, $24,	$1E, $2E, $24, $1E, $85, $2E, 4
-		.db $81, $32,	$28, $22, $32, $28, $22, $85, $32, $87
-		.db $36, $36,	$36, $84, $3A, 0, $5C, $54, $4C, $5C, $54
-		.db $4C, $5C,	$1C, $1C, $5C, $5C, $5C, $5C, $5E, $56
-		.db $4E, $5E,	$56, $4E, $5E, $1E, $1E, $5E, $5E, $5E
-		.db $5E, $62,	$5A, $50, $62, $5A, $50, $62, $22, $22
-		.db $62, $E7,	$E7, $E7, $2B, $86, $14, $81, $14, $80
-		.db $14, $14,	$81, $14, $14, $14, $14, $86, $16, $81
-		.db $16, $80,	$16, $16, $81, $16, $16, $16, $16, $81
+byte_DCED:
+		.db $22
+		.db $86
+		.db $2C
+		.db $22
+		.db $87
+		.db 4
+		.db $60
+		.db $E
+		.db $14
+		.db $1A
+		.db $24
+		.db $86
+		.db $2C
+		.db $24
+unk_DCFB:
+		.db $87
+		.db 4
+		.db 8
+		.db $10
+		.db $18
+		.db $1E
+		.db $28
+		.db $86
+		.db $30
+		.db $30
+		.db $80
+		.db $64
+		.db 0
+		.db $CD
+		.db $D5
+		.db $DD
+		.db $E3
+		.db $ED
+		.db $F5
+		.db $BB
+		.db $B5
+		.db $CF
+		.db $D5
+		.db $DB
+		.db $E5
+		.db $ED
+		.db $F3
+		.db $BD
+		.db $B3
+		.db $D1
+		.db $D9
+		.db $DF
+		.db $E9
+		.db $F1
+		.db $F7
+		.db $BF
+		.db $FF
+		.db $FF
+		.db $FF
+		.db $34
+		.db 0
+		.db $86
+		.db 4
+		.db $87
+		.db $14
+		.db $1C
+		.db $22
+		.db $86
+		.db $34
+		.db $84
+		.db $2C
+		.db 4
+		.db 4
+		.db 4
+		.db $87
+		.db $14
+		.db $1A
+		.db $24
+		.db $86
+		.db $32
+		.db $84
+		.db $2C
+		.db 4
+		.db $86
+		.db 4
+		.db $87
+		.db $18
+		.db $1E
+		.db $28
+		.db $86
+		.db $36
+		.db $87
+		.db $30
+		.db $30
+		.db $30
+		.db $80
+		.db $2C
+unk_DD48:
+		.db $82
+		.db $14
+		.db $2C
+		.db $62
+		.db $26
+		.db $10
+		.db $28
+		.db $80
+		.db 4
+		.db $82
+		.db $14
+		.db $2C
+		.db $62
+		.db $26
+		.db $10
+		.db $28
+		.db $80
+		.db 4
+		.db $82
+		.db 8
+		.db $1E
+		.db $5E
+		.db $18
+		.db $60
+		.db $1A
+		.db $80
+		.db 4
+		.db $82
+		.db 8
+		.db $1E
+		.db $5E
+		.db $18
+		.db $60
+		.db $1A
+		.db $86
+		.db 4
+		.db $83
+		.db $1A
+		.db $18
+		.db $16
+		.db $84
+		.db $14
+		.db $1A
+		.db $18
+		.db $E
+		.db $C
+		.db $16
+		.db $83
+		.db $14
+		.db $20
+		.db $1E
+		.db $1C
+		.db $28
+		.db $26
+		.db $87
+		.db $24
+		.db $1A
+		.db $12
+		.db $10
+		.db $62
+		.db $E
+		.db $80
+		.db 4
+		.db 4
+		.db 0
+unk_DD89:
+		.db $82
+		.db $18
+		.db $1C
+		.db $20
+		.db $22
+		.db $26
+		.db $28
+		.db $81
+		.db $2A
+		.db $2A
+		.db $2A
+		.db 4
+		.db $2A
+		.db 4
+		.db $83
+		.db $2A
+		.db $82
+		.db $22
+		.db $86
+		.db $34
+		.db $32
+		.db $34
+		.db $81
+		.db 4
+		.db $22
+		.db $26
+		.db $2A
+		.db $2C
+		.db $30
+		.db $86
+		.db $34
+		.db $83
+		.db $32
+		.db $82
+		.db $36
+		.db $84
+		.db $34
+		.db $85
+		.db 4
+		.db $81
+		.db $22
+		.db $86
+		.db $30
+		.db $2E
+		.db $30
+		.db $81
+		.db 4
+		.db $22
+		.db $26
+		.db $2A
+		.db $2C
+		.db $2E
+		.db $86
+		.db $30
+		.db $83
+		.db $22
+		.db $82
+		.db $36
+		.db $84
+		.db $34
+		.db $85
+		.db 4
+		.db $81
+		.db $22
+		.db $86
+		.db $3A
+		.db $3A
+		.db $3A
+		.db $82
+		.db $3A
+		.db $81
+		.db $40
+		.db $82
+		.db 4
+		.db $81
+		.db $3A
+		.db $86
+		.db $36
+		.db $36
+		.db $36
+		.db $82
+		.db $36
+		.db $81
+		.db $3A
+		.db $82
+		.db 4
+		.db $81
+		.db $36
+		.db $86
+		.db $34
+		.db $82
+		.db $26
+		.db $2A
+		.db $36
+		.db $81
+		.db $34
+		.db $34
+		.db $85
+		.db $34
+		.db $81
+		.db $2A
+		.db $86
+		.db $2C
+		.db 0
+		.db $84
+		.db $90
+		.db $B0
+		.db $84
+		.db $50
+		.db $50
+		.db $B0
+		.db 0
+		.db $98
+		.db $96
+		.db $94
+		.db $92
+		.db $94
+		.db $96
+		.db $58
+		.db $58
+		.db $58
+		.db $44
+		.db $5C
+		.db $44
+		.db $9F
+		.db $A3
+		.db $A1
+		.db $A3
+		.db $85
+		.db $A3
+		.db $E0
+		.db $A6
+		.db $23
+		.db $C4
+		.db $9F
+		.db $9D
+		.db $9F
+		.db $85
+		.db $9F
+		.db $D2
+		.db $A6
+		.db $23
+		.db $C4
+		.db $B5
+		.db $B1
+		.db $AF
+		.db $85
+		.db $B1
+		.db $AF
+		.db $AD
+		.db $85
+		.db $95
+		.db $9E
+		.db $A2
+		.db $AA
+		.db $6A
+		.db $6A
+		.db $6B
+		.db $5E
+		.db $9D
+		.db $84
+		.db 4
+		.db 4
+		.db $82
+		.db $22
+		.db $86
+		.db $22
+		.db $82
+		.db $14
+		.db $22
+		.db $2C
+		.db $12
+		.db $22
+		.db $2A
+		.db $14
+		.db $22
+		.db $2C
+		.db $1C
+		.db $22
+		.db $2C
+		.db $14
+		.db $22
+		.db $2C
+		.db $12
+		.db $22
+		.db $2A
+		.db $14
+		.db $22
+		.db $2C
+		.db $1C
+		.db $22
+		.db $2C
+		.db $18
+		.db $22
+		.db $2A
+		.db $16
+		.db $20
+		.db $28
+		.db $18
+		.db $22
+		.db $2A
+		.db $12
+		.db $22
+		.db $2A
+		.db $18
+		.db $22
+		.db $2A
+		.db $12
+		.db $22
+		.db $2A
+		.db $14
+		.db $22
+		.db $2C
+		.db $C
+		.db $22
+		.db $2C
+		.db $14
+		.db $22
+		.db $34
+		.db $12
+		.db $22
+		.db $30
+		.db $10
+		.db $22
+		.db $2E
+		.db $16
+		.db $22
+		.db $34
+		.db $18
+		.db $26
+		.db $36
+		.db $16
+		.db $26
+		.db $36
+		.db $14
+		.db $26
+		.db $36
+		.db $12
+		.db $22
+		.db $36
+		.db $5C
+		.db $22
+		.db $34
+		.db $C
+		.db $22
+		.db $22
+		.db $81
+		.db $1E
+		.db $1E
+		.db $85
+		.db $1E
+		.db $81
+		.db $12
+		.db $86
+		.db $14
+unk_DE88:
+		.db $81
+		.db $2C
+		.db $22
+		.db $1C
+		.db $2C
+		.db $22
+		.db $1C
+		.db $85
+		.db $2C
+		.db 4
+		.db $81
+		.db $2E
+		.db $24
+		.db $1E
+		.db $2E
+		.db $24
+		.db $1E
+		.db $85
+		.db $2E
+		.db 4
+		.db $81
+		.db $32
+		.db $28
+		.db $22
+		.db $32
+		.db $28
+		.db $22
+		.db $85
+		.db $32
+		.db $87
+		.db $36
+		.db $36
+		.db $36
+		.db $84
+		.db $3A
+		.db 0
+		.db $5C
+		.db $54
+		.db $4C
+		.db $5C
+		.db $54
+		.db $4C
+		.db $5C
+		.db $1C
+		.db $1C
+		.db $5C
+		.db $5C
+		.db $5C
+		.db $5C
+		.db $5E
+		.db $56
+		.db $4E
+		.db $5E
+		.db $56
+		.db $4E
+		.db $5E
+		.db $1E
+		.db $1E
+		.db $5E
+		.db $5E
+		.db $5E
+		.db $5E
+		.db $62
+		.db $5A
+		.db $50
+		.db $62
+		.db $5A
+		.db $50
+		.db $62
+		.db $22
+		.db $22
+		.db $62
+		.db $E7
+		.db $E7
+		.db $E7
+		.db $2B
+		.db $86
+		.db $14
+		.db $81
+		.db $14
+		.db $80
+		.db $14
+		.db $14
+		.db $81
+		.db $14
+		.db $14
+		.db $14
+		.db $14
+		.db $86
+		.db $16
+		.db $81
+		.db $16
+		.db $80
+		.db $16
+		.db $16
+		.db $81
+		.db $16
+		.db $16
+		.db $16
+		.db $16
+		.db $81
 		.db $28
 		.db $22
 		.db $1A
@@ -22627,6 +23297,7 @@ unk_DFEA:
 		.db $1E
 		.db $1E
 		.db $1F
+
 	.seekoff $FFFA $EA
 		.dw NonMaskableInterrupt
 		.dw Start
