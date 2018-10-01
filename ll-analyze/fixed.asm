@@ -1,10 +1,35 @@
 	.org $8000
 	.vars vars.inc
+	.vars ramvars.inc
+
 	FDS_Delay132:
 	FDS_LoadFiles:
-		nop
-Start:
+		jmp FDS_LoadFiles
 
+WRAM_DefaultState:
+		.db $22, $16, $27, $18, $22, $37, $27, $16, $20, $20, $1E, $28, $28, $0D, $04, $70
+		.db $70, $60, $90, $90, $0A, $09, $E4, $98, $D0, $66, $60, $88, $60, $66, $70, $77
+		.db $60, $D6, $00, $77, $80, $70, $B0, $00, $00, $00, $00, $25, $48, $10, $1D, $11
+		.db $0A, $17, $14, $24, $22, $18, $1E, $24, $16, $0A, $1B, $12, $18, $2B, $00, $20
+		.db $43, $05, $16, $0A, $1B, $12, $18, $20, $52, $0B, $20, $18, $1B, $15, $0D, $24
+		.db $24, $1D, $12, $16, $0E, $20, $68, $05, $00, $24, $24, $2E, $29, $23, $C0, $7F
+		.db $AA, $23, $C2, $01, $EA, $FF, $21, $CD, $07, $24, $24, $29, $24, $24, $24, $24
+		.db $21, $4B, $09, $20, $18, $1B, $15, $0D, $24, $24, $28, $24, $22, $0C, $47, $24
+		.db $23, $DC, $01, $BA, $FF, $22, $0C, $07, $1D, $12, $16, $0E, $24, $1E, $19, $FF
+		.db $21, $6B, $09, $10, $0A, $16, $0E, $24, $18, $1F, $0E, $1B, $21, $EB, $08, $0C
+		.db $18, $17, $1D, $12, $17, $1E, $0E, $22, $0C, $47, $24, $22, $4B, $05, $1B, $0E
+		.db $1D, $1B, $22, $FF
+
+Initialize_WRAM:
+		ldx #Initialize_WRAM-WRAM_DefaultState
+InitMoreWRAM:
+		lda WRAM_DefaultState - 1, x
+		sta WRAM_StartAddress - 1, x
+		dex
+		bne InitMoreWRAM
+		rts
+
+Start:
 		; lda FdsLastWrite4025
 		; and #$F7
 		; sta FDS_CONTROL
@@ -24,7 +49,7 @@ loc_600F:
 		bne loc_6022
 		ldy #$D6
 loc_6022:
-
+		jsr Initialize_WRAM
 		jsr InitializeMemory
 		sta SND_DELTA_REG+1
 		sta OperMode
@@ -64,7 +89,7 @@ VRAM_AddrTable_DW_NEW:
 		.dw word_6C1D
 		.dw unk_6C25
 		.dw unk_6C2D
-		.dw unk_6C3D
+		.dw WRAM_ThankYouMario
 		.dw unk_6C51
 		.dw SWAPDATA_C876
 		.dw SWAPDATA_C87F
@@ -163,7 +188,6 @@ SkipExpTimer:
 		dex
 		bpl DecTimersLoop
 NoDecTimers:
-
 		inc FrameCounter
 PauseSkip:
 
@@ -766,30 +790,12 @@ loc_6528:
 
 		jmp IncSubtask
 BGColorCtrl_Addr:
-		.db 0
-		.db 9
-		.db $A
-		.db 4
-unk_652F:
-		.db $22
-		.db $22
-		.db $F
-		.db $F
-		.db $F
-		.db $22
-		.db $F
-		.db $F
-VOLDST_6537:
-		.db $22
-		.db $16
-		.db $27
-		.db $18
-		.db $22
-		.db $37
-		.db $27
-		.db $16
-GetBackgroundColor:
+		.db $00, $09, $0A, $04
+BackgroundColors:
+		.db $22, $22, $0F, $0F
+		.db $0F, $22, $0F, $0F
 
+GetBackgroundColor:
 		ldy BackgroundColorCtrl
 		beq loc_654A
 		lda BGColorCtrl_Addr-4,y
@@ -803,45 +809,41 @@ GetPlayerColors_RW:
 		ldy #0
 		lda PlayerStatus
 		cmp #2
-		bne loc_655B
+		bne StartClrGet
 		ldy #4
-loc_655B:
-
+StartClrGet:
 		lda #3
 		sta TMP_0
-loc_655F:
-
-		lda VOLDST_6537,y
-		sta $304,x
+ClrGetLoop:
+		lda WRAM_PlayerColors,y
+		sta VRAM_Buffer1+3,x
 		iny
 		inx
 		dec TMP_0
-		bpl loc_655F
+		bpl ClrGetLoop
 		ldx VRAM_Buffer1_Offset
 		ldy BackgroundColorCtrl
-		bne loc_6576
+		bne SetBGColor
 		ldy AreaType
-loc_6576:
-
-		lda unk_652F,y
-		sta $304,x
+SetBGColor:
+		lda BackgroundColors,y
+		sta VRAM_Buffer1+3,x
 		lda #$3F
-		sta $301,x
+		sta VRAM_Buffer1,x
 		lda #$10
-		sta $302,x
+		sta VRAM_Buffer1+1,x
 		lda #4
-		sta $303,x
+		sta VRAM_Buffer1+2,x
 		lda #0
-		sta $308,x
+		sta VRAM_Buffer1+7,x
 		txa
 		clc
 		adc #7
-WriteWRAMBufferOffset1:
-
+SetVRAMOffset:
 		sta VRAM_Buffer1_Offset
 		rts
-GetAlternatePalette1:
 
+GetAlternatePalette1:
 		lda AreaStyle
 		cmp #1
 		bne NoAltPal
@@ -970,125 +972,7 @@ loc_666C:
 		lda #6
 		sta VRAM_Buffer_AddrCtrl
 		rts
-GameText:
-		.db $20
-		.db $43
-		.db 5
-VOLDST_6675:
-		.db $16
-		.db $A
-		.db $1B
-		.db $12
-		.db $18
-		.db $20
-		.db $52
-		.db $B
-		.db $20
-		.db $18
-		.db $1B
-		.db $15
-		.db $D
-		.db $24
-		.db $24
-		.db $1D
-		.db $12
-		.db $16
-		.db $E
-		.db $20
-		.db $68
-		.db 5
-		.db 0
-		.db $24
-		.db $24
-		.db $2E
-		.db $29
-		.db $23
-		.db $C0
-		.db $7F
-		.db $AA
-		.db $23
-		.db $C2
-		.db 1
-		.db $EA
-		.db $FF
-		.db $21
-		.db $CD
-		.db 7
-		.db $24
-		.db $24
-		.db $29
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $21
-		.db $4B
-		.db 9
-		.db $20
-		.db $18
-		.db $1B
-		.db $15
-		.db $D
-		.db $24
-		.db $24
-		.db $28
-		.db $24
-		.db $22
-		.db $C
-		.db $47
-		.db $24
-		.db $23
-		.db $DC
-		.db 1
-		.db $BA
-		.db $FF
-		.db $22
-		.db $C
-		.db 7
-		.db $1D
-		.db $12
-		.db $16
-		.db $E
-		.db $24
-		.db $1E
-		.db $19
-		.db $FF
-		.db $21
-		.db $6B
-		.db 9
-		.db $10
-		.db $A
-		.db $16
-		.db $E
-		.db $24
-		.db $18
-		.db $1F
-		.db $E
-		.db $1B
-		.db $21
-		.db $EB
-		.db 8
-		.db $C
-		.db $18
-		.db $17
-		.db $1D
-		.db $12
-		.db $17
-		.db $1E
-		.db $E
-		.db $22
-		.db $C
-		.db $47
-		.db $24
-		.db $22
-		.db $4B
-		.db 5
-		.db $1B
-		.db $E
-		.db $1D
-		.db $1B
-		.db $22
-		.db $FF
+
 unk_66E7:
 		.db $25
 		.db $84
@@ -1152,7 +1036,7 @@ WriteGameText_NEW:
 		ldy #0
 loc_6722:
 
-		lda GameText,x
+		lda WRAM_GameText,x
 		cmp #$FF
 		beq loc_6730
 		sta $301,y
@@ -1204,7 +1088,7 @@ loc_6761:
 		lda NEW_WarpZoneNumbers_MAYBE,x
 		sta byte_31C
 		lda #$24
-		jmp WriteWRAMBufferOffset1
+		jmp SetVRAMOffset
 ResetSpritesAndScreenTimer:
 
 		lda ScreenTimer
@@ -1524,7 +1408,7 @@ loc_696C:
 		tya
 		clc
 		adc #$A
-		jmp WriteWRAMBufferOffset1
+		jmp SetVRAMOffset
 PutBlockMetatile:
 
 		stx TMP_0
@@ -2199,28 +2083,6 @@ unk_6C35:
 		.db $30
 		.db $27
 		.db 0
-unk_6C3D:
-		.db $25
-		.db $48
-		.db $10
-		.db $1D
-		.db $11
-		.db $A
-		.db $17
-		.db $14
-		.db $24
-		.db $22
-		.db $18
-		.db $1E
-		.db $24
-VOLDST_6C4A:
-		.db $16
-		.db $A
-		.db $1B
-		.db $12
-		.db $18
-		.db $2B
-		.db 0
 unk_6C51:
 		.db $25
 		.db $C5
@@ -2856,27 +2718,9 @@ loc_6FF8:
 		lda #7
 		sta GameEngineSubroutine
 		rts
-VOLDST_6FFD:
-		.db $66
-		.db $60
-		.db $88
-		.db $60
-		.db $66
-		.db $70
-		.db $77
-		.db $60
-		.db $D6
-		.db 0
-		.db $77
-		.db $80
-		.db $70
-		.db $B0
-		.db 0
-		.db 0
-		.db 0
-		.db 0
-PlayerLoseLife:
 
+
+PlayerLoseLife:
 		inc DisableScreenFlag
 		lda #0
 		sta Sprite0HitDetectFlag
@@ -2900,7 +2744,7 @@ StillInGame:
 		inx
 loc_7038:
 
-		ldy VOLDST_6FFD,x
+		ldy WRAM_HalfwayPageNybbles,x
 		lda LevelNumber
 		lsr
 		tya
@@ -5526,26 +5370,7 @@ InitCSTimer:
 
 		sta ClimbSideTimer
 		rts
-VOLDST_JumpMForceData:
-		.db $20
-		.db $20
-		.db $1E
-		.db $28
-		.db $28
-		.db $D
-		.db 4
-FallMForceData:
-		.db $70
-		.db $70
-		.db $60
-		.db $90
-		.db $90
-		.db $A
-		.db 9
-FrictionData:
-		.db $E4
-		.db $98
-		.db $D0
+
 PlayerYSpdData:
 		.db $FC
 		.db $FC
@@ -5666,9 +5491,9 @@ ChkWtr:
 		iny
 GetYPhy:
 
-		lda VOLDST_JumpMForceData,y
+		lda WRAM_JumpMForceData,y
 		sta VerticalForce
-		lda FallMForceData,y
+		lda WRAM_FallMForceData,y
 		sta VerticalForceDown
 		lda InitMForceData,y
 		sta Player_Y_MoveForce
@@ -5747,20 +5572,26 @@ GetXPhy2:
 		lda MaxRightXSpdData,y
 		sta MaximumRightSpeed
 		ldy TMP_0
-		lda FrictionData,y
+		lda WRAM_FrictionData,y
 		sta FrictionAdderLow
 		lda #0
 		sta FrictionAdderHigh
 		lda PlayerFacingDir
 		cmp Player_MovingDir
-		beq locret_80F7
-VOLDST_PatchMovementFriction:
+		beq DoneWithFriction
+;VOLDST_PatchMovementFriction:
+;
+; XXX Reimplemented.
+;     Original SMB2J patches asl for retn if Luigi
+;
+		lda IsPlayingLuigi
+		bne DoneWithFriction
 
 		asl FrictionAdderLow
 		rol FrictionAdderHigh
-locret_80F7:
-
+DoneWithFriction:
 		rts
+
 PlayerAnimTmrData:
 		.db 2, 4, 7
 GetPlayerAnimSpeed:
@@ -8758,9 +8589,9 @@ loc_939A:
 loc_93B2:
 
 		lda TMP_0
-		sta byte_B517
+		sta VOLDST_B517
 		lda TMP_1
-		sta byte_9FFE
+		sta VOLDST_9FFE
 		lda #1
 		sta Enemy_X_Speed,x
 		lsr
@@ -10788,8 +10619,8 @@ MovePiranhaPlant:
 loc_9FFB:
 
 		lda TMP_0
-		.db $C9
-byte_9FFE:
+		.db $C9 ; CMP #$13/$21
+VOLDST_9FFE:
 		.db $21
 		bcc loc_A03D
 loc_A001:
@@ -10809,7 +10640,7 @@ loc_A00C:
 loc_A016:
 
 		sta TMP_0
-		lda byte_B517
+		lda VOLDST_B517
 		cmp #$22
 		beq loc_A024
 		lda FrameCounter
@@ -14402,15 +14233,15 @@ EnemyAttributeData:
 		.db 1
 		.db 2
 		.db 2
-byte_B517:
+VOLDST_B517:
 		.db $21
 		.db 1
 		.db 2, 1, 1, 2, $FF, 2, 2, 1,	1
-byte_B522:
+VOLDST_B522:
 		.db 2
-byte_B523:
+VOLDST_B523:
 		.db 2
-byte_B524:
+VOLDST_B524:
 		.db 2
 EnemyAnimTimingBMask:
 		.db 8
@@ -14436,9 +14267,9 @@ loc_B53D:
 		lsr
 loc_B53E:
 
-		sta byte_B522
-		sta byte_B523
-		sta byte_B524
+		sta VOLDST_B522
+		sta VOLDST_B523
+		sta VOLDST_B524
 		lda $CF,x
 		sta byte_2
 		lda Enemy_Rel_XPos
@@ -14870,7 +14701,7 @@ loc_B826:
 		cmp #$18
 		bcc loc_B83F
 		lda #$80
-		ora byte_B522
+		ora VOLDST_B522
 		sta $20A,y
 		sta $212,y
 		ora #$40
@@ -16459,9 +16290,9 @@ VOLDST_C14C:
 		.db $1B
 		.db $1B
 		.db $24
-byte_C15B:
+VOLDST_C15B:
 		.db 0
-byte_C15C:
+VOLDST_C15C:
 		.db 1
 		.db 0
 NEW_LengthOfVolatilePatch:
@@ -16503,17 +16334,16 @@ VOLSRC_C162:
 		.db $D
 		.db $E
 DrawStuffOrSomething:
-
 		pha
 		and #$F
-		sta byte_C15C
+		sta VOLDST_C15C
 		pla
 		pha
 		lsr
 		lsr
 		lsr
 		lsr
-		sta byte_C15B
+		sta VOLDST_C15B
 		ldy #3
 		pla
 		cmp #7
@@ -16597,40 +16427,39 @@ loc_C213:
 		bpl loc_C213
 		inc Hidden1UpFlag
 		jmp loc_709D
-VOLSRC_MarioOrLuigiPhysicsPatch:
-		.db $20
-		.db $20
-		.db $1E
-		.db $28
-		.db $28
-		.db $D
-		.db 4
-		.db $70
-		.db $70
-		rts
-		.db $90
-		.db $90
-		.db $A
-		.db 9, $E4, $98, $D0,	$18, $18, $18, $22, $22, $D, 4
-		.db $42, $42,	$3E, $5D, $5D, $A, 9, $B4, $68,	$A0
-PatchLuigiOrMarioPhysics_NEW:
 
-		ldx #$60
+MarioOrLuigiPhysics:
+		;
+		; Mario Physics
+		;
+		.db $20, $20, $1E, $28
+		.db $28, $0D, $04, $70
+		.db $70, $60, $90, $90
+		.db $0A, $09, $E4, $98
+		.db $D0
+		;
+		; Luigi Physics
+		;
+		.db $18, $18, $18, $22
+		.db $22, $0D, $04, $42
+		.db $42, $3E, $5D, $5D
+		.db $0A, $09, $B4, $68
+		.db $A0
+
+PatchLuigiOrMarioPhysics_NEW:
+		; ldx #$60
 		ldy #$21
 		lda IsPlayingLuigi
 		bne PlayerIsLuigiPath
 PlayerIsMarioPatch:
-
-		ldx #$E
+		; ldx #$E
 		ldy #$10
 PlayerIsLuigiPath:
-
-		stx VOLDST_PatchMovementFriction
+		; stx VOLDST_PatchMovementFriction
 		ldx #$10
 loc_C253:
-
-		lda VOLSRC_MarioOrLuigiPhysicsPatch,y
-		sta VOLDST_JumpMForceData,x
+		lda MarioOrLuigiPhysics,y
+		sta WRAM_JumpMForceData,x
 		dey
 		dex
 		bpl loc_C253
@@ -17254,35 +17083,21 @@ PrimaryGameSetup:
 		lda #2
 		sta NumberofLives
 		jmp SecondaryGameSetup
-VOLSRC_C5EB:
-		.db $16
-		.db $A
-byte_C5ED:
-		.db $1B
-		.db $12
-		.db $18
-		.db $15
-		.db $1E
-		.db $12
-		.db $10
-		.db $12
-VOLSRC_C5F5:
-		.db $22
-		.db $16
-		.db $27
-		.db $18
-		.db $22
-		.db $30
-		.db $27
-		.db $19
-unk_C5FD:
+MarioOrLuigiNames:
+		.db $16, $0A, $1B, $12, $18 ; Mario
+		.db $15, $1E, $12, $10, $12 ; Luigi
+MarioOrLuigiColors:
+		.db $22, $16, $27, $18 ; Mario
+		.db $22, $30, $27, $19 ; Luigi
+NameOffsets:
 		.db 4
 AlternateInitScreen:
 		.db 9
-loc_C5FF:
 
+loc_C5FF:
+PatchToMarioOrLuigi:
 		ldy IsPlayingLuigi
-		lda unk_C5FD,y
+		lda NameOffsets,y
 		pha
 		iny
 		sty TMP_0
@@ -17292,9 +17107,9 @@ loc_C609:
 		ldx #4
 loc_C60C:
 
-		lda VOLSRC_C5EB,y
-		sta VOLDST_6675,x
-		sta VOLDST_6C4A,x
+		lda MarioOrLuigiNames,y
+		sta WRAM_PatchMarioName0,x
+		sta WRAM_PatchMarioName1,x
 		dey
 		dex
 		bpl loc_C60C
@@ -17305,8 +17120,8 @@ loc_C60C:
 		ldx #3
 loc_C620:
 
-		lda VOLSRC_C5F5,y
-		sta VOLDST_6537,x
+		lda MarioOrLuigiColors,y
+		sta WRAM_PlayerColors,x
 		dey
 		dex
 		bpl loc_C620
