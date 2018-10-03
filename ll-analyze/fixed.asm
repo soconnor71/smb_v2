@@ -297,7 +297,7 @@ ChkStart:
 		lda GamePauseStatus
 		tay
 		iny
-		sty SkipSoundSubroutines
+		sty PauseSoundQueue
 		eor #1
 		ora #$80
 		bne SetPause
