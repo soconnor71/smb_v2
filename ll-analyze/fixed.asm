@@ -7,18 +7,20 @@
 		jmp FDS_LoadFiles
 
 WRAM_DefaultState:
-		.db $22, $16, $27, $18, $22, $37, $27, $16, $20, $20, $1E, $28, $28, $0D, $04, $70
-		.db $70, $60, $90, $90, $0A, $09, $E4, $98, $D0, $66, $60, $88, $60, $66, $70, $77
-		.db $60, $D6, $00, $77, $80, $70, $B0, $00, $00, $00, $00, $25, $48, $10, $1D, $11
-		.db $0A, $17, $14, $24, $22, $18, $1E, $24, $16, $0A, $1B, $12, $18, $2B, $00, $20
-		.db $43, $05, $16, $0A, $1B, $12, $18, $20, $52, $0B, $20, $18, $1B, $15, $0D, $24
-		.db $24, $1D, $12, $16, $0E, $20, $68, $05, $00, $24, $24, $2E, $29, $23, $C0, $7F
-		.db $AA, $23, $C2, $01, $EA, $FF, $21, $CD, $07, $24, $24, $29, $24, $24, $24, $24
-		.db $21, $4B, $09, $20, $18, $1B, $15, $0D, $24, $24, $28, $24, $22, $0C, $47, $24
-		.db $23, $DC, $01, $BA, $FF, $22, $0C, $07, $1D, $12, $16, $0E, $24, $1E, $19, $FF
-		.db $21, $6B, $09, $10, $0A, $16, $0E, $24, $18, $1F, $0E, $1B, $21, $EB, $08, $0C
-		.db $18, $17, $1D, $12, $17, $1E, $0E, $22, $0C, $47, $24, $22, $4B, $05, $1B, $0E
-		.db $1D, $1B, $22, $FF
+		.db $08, $22, $16, $27, $18, $22, $37, $27, $16, $20, $20, $1E, $28, $28, $0D, $04
+		.db $70, $70, $60, $90, $90, $0A, $09, $E4, $98, $D0, $01, $02, $03, $02, $22, $01
+		.db $03, $03, $03, $01, $01, $02, $02, $21, $01, $02, $01, $01, $02, $FF, $02, $02
+		.db $01, $01, $02, $02, $02, $22, $4B, $83, $CE, $24, $24, $00, $21, $66, $60, $88
+		.db $60, $66, $70, $77, $60, $D6, $00, $77, $80, $70, $B0, $00, $00, $00, $00, $25
+		.db $48, $10, $1D, $11, $0A, $17, $14, $24, $22, $18, $1E, $24, $16, $0A, $1B, $12
+		.db $18, $2B, $00, $20, $43, $05, $16, $0A, $1B, $12, $18, $20, $52, $0B, $20, $18
+		.db $1B, $15, $0D, $24, $24, $1D, $12, $16, $0E, $20, $68, $05, $00, $24, $24, $2E
+		.db $29, $23, $C0, $7F, $AA, $23, $C2, $01, $EA, $FF, $21, $CD, $07, $24, $24, $29
+		.db $24, $24, $24, $24, $21, $4B, $09, $20, $18, $1B, $15, $0D, $24, $24, $28, $24
+		.db $22, $0C, $47, $24, $23, $DC, $01, $BA, $FF, $22, $0C, $07, $1D, $12, $16, $0E
+		.db $24, $1E, $19, $FF, $21, $6B, $09, $10, $0A, $16, $0E, $24, $18, $1F, $0E, $1B
+		.db $21, $EB, $08, $0C, $18, $17, $1D, $12, $17, $1E, $0E, $22, $0C, $47, $24, $22
+		.db $4B, $05, $1B, $0E, $1D, $1B, $22, $FF
 
 Initialize_WRAM:
 		ldx #Initialize_WRAM-WRAM_DefaultState
@@ -53,7 +55,7 @@ loc_6022:
 		jsr InitializeMemory
 		sta SND_DELTA_REG+1
 		sta OperMode
-		sta TitleOperTask
+		sta FdsOperTask
 		pla
 		sta WorldNumber
 		lda #$A5
@@ -73,9 +75,9 @@ loc_6022:
 		ora #$80
 		jsr WritePPUReg1
 EndlessLoop:
-
 		lda TMP_0
 		jmp EndlessLoop
+
 VRAM_AddrTable_DW_NEW:
 		.dw $301
 		.dw unk_6B8D
@@ -102,10 +104,10 @@ VRAM_AddrTable_DW_NEW:
 		.dw SWAPDATA_C913
 		.dw SWAPDATA_C92B
 		.dw SWAPDATA_C943
-		.dw byte_C149
+		.dw $FFFF
 		.dw byte_C10B
 		.dw SWAPDATA_C95C
-		.dw SWAPDATA_C511
+		.dw WRAM_MushroomSelection
 		.dw SWAPDATA_C97D
 		.dw SWAPDATA_C9C0
 VRAM_Buffer_Offset:
@@ -125,7 +127,6 @@ NonMaskableInterrupt:
 		lda Mirror_PPU_CTRL_REG2
 		ora #$1E
 ScreenOff:
-
 		sta Mirror_PPU_CTRL_REG2
 		and #$E7
 		sta PPU_CTRL_REG2
@@ -150,7 +151,6 @@ ScreenOff:
 		bne InitBuffer
 		iny
 InitBuffer:
-
 		ldx VRAM_Buffer_Offset,y
 		lda #0
 		sta VRAM_Buffer1_Offset,x
@@ -171,7 +171,6 @@ InitBuffer:
 		dec TimerControl
 		bne NoDecTimers
 DecTimers:
-
 		ldx #$14
 		dec IntervalTimerControl
 		bpl DecTimersLoop
@@ -241,15 +240,15 @@ SkipSprite0:
 		;       If vert-/horizontalscroll is changed (and they are) in OperMode, we are showing wrong px i think
 		;
 		lda PPU_STATUS
-		lda HorizontalScroll
-		sta PPU_SCROLL_REG
-		lda VerticalScroll
-		sta PPU_SCROLL_REG
 		lda Mirror_PPU_CTRL_REG1
 		and #$F7
 		ora UseNtBase2400
 		sta Mirror_PPU_CTRL_REG1
 		sta PPU_CTRL_REG1
+		lda HorizontalScroll
+		sta PPU_SCROLL_REG
+		lda VerticalScroll
+		sta PPU_SCROLL_REG
 
 		lda WorldNumber
 		cmp #9
@@ -463,21 +462,19 @@ SetupVictoryMode:
 		lda #7
 		sta WorldNumber
 loc_6322:
-
 		lda #8
 		sta EventMusicQueue
 Next_OperMode_Task:
-
 		inc OperMode_Task
 		rts
-XXX_NotMuch:
 
+DrawTitleScreen:
 		lda OperMode
 		bne Next_OperMode_Task
 		lda #5
 		jmp loc_65A1
-PlayerVictoryWalk:
 
+PlayerVictoryWalk:
 		ldy #0
 		sty VictoryWalkControl
 		lda Player_PageLoc
@@ -487,11 +484,9 @@ PlayerVictoryWalk:
 		cmp #$60
 		bcs loc_6347
 loc_6344:
-
 		inc VictoryWalkControl
 		iny
 loc_6347:
-
 		tya
 		jsr AutoControlPlayer
 		lda ScreenLeft_PageLoc
@@ -508,12 +503,11 @@ loc_6347:
 		jsr sub_7ACB
 		inc VictoryWalkControl
 loc_6368:
-
 		lda VictoryWalkControl
 		beq loc_63AB
 		rts
-PrintVictoryMessages:
 
+PrintVictoryMessages:
 		lda SecondaryMsgCounter
 		bne loc_6391
 		lda PrimaryMsgCounter
@@ -523,7 +517,6 @@ PrintVictoryMessages:
 		cmp #1
 		bcc loc_6391
 loc_637F:
-
 		tay
 		beq loc_638A
 		cpy #3
@@ -531,13 +524,11 @@ loc_637F:
 		cpy #2
 		bcs loc_6391
 loc_638A:
-
 		tya
 		clc
 		adc #$C
 		sta VRAM_Buffer_AddrCtrl
 loc_6391:
-
 		lda SecondaryMsgCounter
 		clc
 		adc #4
@@ -547,18 +538,15 @@ loc_6391:
 		sta PrimaryMsgCounter
 		cmp #6
 loc_63A4:
-
 		bcc locret_63AE
 		lda #8
 		sta WorldEndTimer
 loc_63AB:
-
 		inc OperMode_Task
 locret_63AE:
-
 		rts
-PlayerEndWorld_MAYBE_NEW:
 
+PlayerEndWorld_MAYBE_NEW:
 		lda WorldEndTimer
 		cmp #6
 		bcs locret_63D1
@@ -573,10 +561,9 @@ PlayerEndWorld_MAYBE_NEW:
 		sta WorldEndTimer
 		inc OperMode_Task
 locret_63D1:
-
 		rts
-PlayerEndWorld_2_MAYBE_NEW:
 
+PlayerEndWorld_2_MAYBE_NEW:
 		lda WorldEndTimer
 		bne locret_63FC
 		lda #0
@@ -728,8 +715,8 @@ loc_6495:
 		sta $205,y
 		ldx ObjectOffset
 		rts
-ScreenRoutines:
 
+ScreenRoutines:
 		lda ScreenRoutineTask
 		jsr JumpEngine
 		.dw InitScreen
@@ -745,11 +732,11 @@ ScreenRoutines:
 		.dw GetAreaPalette
 		.dw GetBackgroundColor
 		.dw GetAlternatePalette1
-		.dw XXX_NotMuch
+		.dw DrawTitleScreen
 		.dw ClearBuffersDrawIcon
-		.dw XXX_RedrawSomeNumbers
-InitScreen:
+		.dw WriteTopScore
 
+InitScreen:
 		jsr MoveAllSpritesOffscreen
 		jsr InitializeNameTables
 		lda OperMode
@@ -765,6 +752,7 @@ SetupIntermediate:
 		lda PlayerStatus
 		pha
 		lda #0
+		sta UseNtBase2400
 		sta PlayerStatus
 		lda #2
 		sta BackgroundColorCtrl
@@ -779,8 +767,8 @@ AreaPalette:
 		.db 2
 		.db 3
 		.db 4
-GetAreaPalette:
 
+GetAreaPalette:
 		ldy AreaType
 		ldx AreaPalette,y
 loc_6525:
@@ -801,10 +789,9 @@ GetBackgroundColor:
 		lda BGColorCtrl_Addr-4,y
 		sta VRAM_Buffer_AddrCtrl
 loc_654A:
-
 		inc ScreenRoutineTask
-GetPlayerColors_RW:
 
+GetPlayerColors_RW:
 		ldx VRAM_Buffer1_Offset
 		ldy #0
 		lda PlayerStatus
@@ -849,18 +836,15 @@ GetAlternatePalette1:
 		bne NoAltPal
 		lda #$B
 loc_65A1:
-
 		sta VRAM_Buffer_AddrCtrl
 NoAltPal:
-
 		jmp IncSubtask
-WriteTopStatusLine:
 
+WriteTopStatusLine:
 		lda #0
 		jsr WriteGameText_NEW
 		jmp IncSubtask
 WriteBottomStatusLine:
-
 		jsr GetSBNybbles_RW
 		ldx VRAM_Buffer1_Offset
 		lda #$20
@@ -869,7 +853,7 @@ WriteBottomStatusLine:
 		sta $302,x
 		lda #3
 		sta $303,x
-		jsr sub_65E6
+		jsr GetWorldNumber
 		sta $304,x
 		lda #$28
 		sta $305,x
@@ -884,8 +868,8 @@ WriteBottomStatusLine:
 		adc #6
 		sta VRAM_Buffer1_Offset
 		jmp IncSubtask
-sub_65E6:
 
+GetWorldNumber:
 		ldy WorldNumber
 		lda byte_7FB
 		beq loc_65F5
@@ -895,33 +879,29 @@ sub_65E6:
 		adc #9
 		tay
 loc_65F5:
-
 		iny
 		tya
 		rts
-DisplayTimeUp:
 
+DisplayTimeUp:
 		lda GameTimerExpiredFlag
 		beq NoTimeUp
 		lda #0
 		sta GameTimerExpiredFlag
 		lda #2
-sub_6604:
-
+WriteTextAndResetTimers:
 		jsr WriteGameText_NEW
 		jsr ResetScreenTimer
 		lda #0
 		sta DisableScreenFlag
 		rts
 NoTimeUp:
-
 		inc ScreenRoutineTask
 IncSubtask:
-
 		inc ScreenRoutineTask
 		rts
-DisplayIntermediate:
 
+DisplayIntermediate:
 		lda OperMode
 		beq loc_6653
 		cmp #3
@@ -934,17 +914,15 @@ DisplayIntermediate:
 		lda DisableIntermediate
 		bne loc_6653
 loc_6631:
-
 		jsr DrawPlayer_Intermediate
 		lda #1
-		jsr sub_6604
+		jsr WriteTextAndResetTimers
 		lda WorldNumber
 		cmp #8
 		bne IncSubtask
 		inc DisableScreenFlag
 		rts
 loc_6644:
-
 		lda #3
 		jsr WriteGameText_NEW
 		lda WorldNumber
@@ -952,15 +930,13 @@ loc_6644:
 		beq IncSubtask
 		jmp Next_OperMode_Task
 loc_6653:
-
 		lda #9
 		sta ScreenRoutineTask
 		rts
-AreaParserTaskControl:
 
+AreaParserTaskControl:
 		inc DisableScreenFlag
 loc_665C:
-
 		jsr AreaParserTaskHandler
 		lda AreaParserTaskNum
 		bne loc_665C
@@ -968,7 +944,6 @@ loc_665C:
 		bpl loc_666C
 		inc ScreenRoutineTask
 loc_666C:
-
 		lda #6
 		sta VRAM_Buffer_AddrCtrl
 		rts
@@ -1028,14 +1003,13 @@ GameTextOffsets:
 		.db $27
 		.db $46
 		.db $51
-WriteGameText_NEW:
 
+WriteGameText_NEW:
 		pha
 		tay
 		ldx GameTextOffsets,y
 		ldy #0
 loc_6722:
-
 		lda WRAM_GameText,x
 		cmp #$FF
 		beq loc_6730
@@ -1044,35 +1018,32 @@ loc_6722:
 		iny
 		bne loc_6722
 loc_6730:
-
 		lda #0
 		sta $301,y
 		pla
-		beq locret_675D
+		beq EndOfWriteGameText
 		tax
 		dex
-		bne locret_675D
+		bne EndOfWriteGameText
 		lda NumberofLives
 		clc
 		adc #1
 		cmp #$A
-		bcc loc_674D
+		bcc LessThan10Lives
 		sbc #$A
 		ldy #$9F
 		sty byte_308
-loc_674D:
-
+LessThan10Lives:
 		sta byte_309
-		jsr sub_65E6
+		jsr GetWorldNumber
 		sta byte_314
 		ldy LevelNumber
 		iny
 		sty byte_316
-locret_675D:
-
+EndOfWriteGameText:
 		rts
-sub_675E:
 
+sub_675E:
 		pha
 		ldy #$FF
 loc_6761:
@@ -2218,8 +2189,8 @@ loc_6D06:
 		pla
 		sta JoypadBitMask,x
 		rts
-WriteBufferToScreen:
 
+WriteBufferToScreen:
 		sta PPU_ADDRESS
 		iny
 		lda (0),y
@@ -2233,7 +2204,6 @@ WriteBufferToScreen:
 		bcs loc_6D22
 		and #$FB
 loc_6D22:
-
 		jsr WritePPUReg1
 		pla
 		asl
@@ -2241,16 +2211,13 @@ loc_6D22:
 		ora #2
 		iny
 loc_6D2C:
-
 		lsr
 		lsr
 		tax
 loc_6D2F:
-
 		bcs loc_6D32
 		iny
 loc_6D32:
-
 		lda (0),y
 		sta PPU_DATA
 		dex
@@ -2269,21 +2236,19 @@ loc_6D32:
 		sta PPU_ADDRESS
 		sta PPU_ADDRESS
 UpdateScreen:
-
 		ldx PPU_STATUS
 		ldy #0
 		lda (0),y
 		bne WriteBufferToScreen
 InitScroll:
-
 		sta PPU_SCROLL_REG
 		sta PPU_SCROLL_REG
 		rts
 WritePPUReg1:
-
 		sta PPU_CTRL_REG1
 		sta Mirror_PPU_CTRL_REG1
 		rts
+
 StatusBarData:
 		.db $EF
 unk_6D6E:
@@ -3563,7 +3528,7 @@ loc_7470:
 		.dw ExitPipe
 		.dw FlagBalls_Residual
 		.dw GameMenuRoutine_NEW+2
-		.dw VerticalPipeUpsideDown_4
+		.dw GameMenuRoutineInner_NEW
 		.dw QuestionBlock
 		.dw QuestionBlock
 		.dw QuestionBlock
@@ -3592,9 +3557,14 @@ loc_7470:
 		.dw AreaFrenzy
 		.dw AreaFrenzy
 		.dw LoopCmdE
-		.dw loc_C5BE
-		.dw loc_C5C1+1
+		.dw UNBANKED_FIX_ME_0
+		.dw UNBANKED_FIX_ME_1
 		.dw AlterAreaAttributes
+
+UNBANKED_FIX_ME_0:
+UNBANKED_FIX_ME_1:
+		jmp UNBANKED_FIX_ME_0
+
 AlterAreaAttributes:
 
 		ldy AreaObjOffsetBuffer,x
@@ -8589,9 +8559,9 @@ loc_939A:
 loc_93B2:
 
 		lda TMP_0
-		sta VOLDST_B517
+		sta WRAM_PiranhaPlantAttributeData
 		lda TMP_1
-		sta VOLDST_9FFE
+		sta WRAM_PiranhaPlantDist
 		lda #1
 		sta Enemy_X_Speed,x
 		lsr
@@ -10619,9 +10589,7 @@ MovePiranhaPlant:
 loc_9FFB:
 
 		lda TMP_0
-		.db $C9 ; CMP #$13/$21
-VOLDST_9FFE:
-		.db $21
+		cmp WRAM_PiranhaPlantDist
 		bcc loc_A03D
 loc_A001:
 
@@ -10640,7 +10608,7 @@ loc_A00C:
 loc_A016:
 
 		sta TMP_0
-		lda VOLDST_B517
+		lda WRAM_PiranhaPlantAttributeData
 		cmp #$22
 		beq loc_A024
 		lda FrameCounter
@@ -10783,7 +10751,7 @@ loc_A0E1:
 		lda $3A2,x
 		bmi loc_A0F7
 		tax
-		jsr loc_A895+1
+		jsr PositionPlayerOnVPlat
 loc_A0F7:
 
 		ldy ObjectOffset
@@ -10943,7 +10911,7 @@ loc_A1F5:
 		lda $3A2,x
 		bmi loc_A20A
 		tax
-		jsr loc_A895+1
+		jsr PositionPlayerOnVPlat
 loc_A20A:
 
 		ldx ObjectOffset
@@ -10978,7 +10946,7 @@ ChkYPCollision:
 
 		lda $3A2,x
 		bmi locret_A240
-		jsr loc_A895+1
+		jsr PositionPlayerOnVPlat
 locret_A240:
 
 		rts
@@ -11007,21 +10975,19 @@ loc_A262:
 
 		sta Player_PageLoc
 		sty Platform_X_Scroll
-		jsr loc_A895+1
+		jsr PositionPlayerOnVPlat
 locret_A26A:
-
 		rts
-DropPlatform:
 
+DropPlatform:
 		lda HammerThrowingTimer,x
 		bmi locret_A276
 		jsr MoveDropPlatform
-		jsr loc_A895+1
+		jsr PositionPlayerOnVPlat
 locret_A276:
-
 		rts
-RightPlatform:
 
+RightPlatform:
 		jsr MoveEnemyHorizontally
 		sta TMP_0
 		lda HammerThrowingTimer,x
@@ -11030,18 +10996,17 @@ RightPlatform:
 		sta Enemy_X_Speed,x
 		jsr PositionPlayerOnHPlat
 locret_A288:
-
 		rts
-MoveLargeLiftPlat:
 
+MoveLargeLiftPlat:
 		jsr MoveLiftPlatforms
 		jmp ChkYPCollision
-MoveSmallPlatform:
 
+MoveSmallPlatform:
 		jsr MoveLiftPlatforms
 		jmp ChkSmallPlatCollision
-MoveLiftPlatforms:
 
+MoveLiftPlatforms:
 		lda TimerControl
 		bne locret_A2B3
 		lda $417,x
@@ -11052,16 +11017,15 @@ MoveLiftPlatforms:
 		adc $A0,x
 		sta $CF,x
 		rts
-ChkSmallPlatCollision:
 
+ChkSmallPlatCollision:
 		lda $3A2,x
 		beq locret_A2B3
 		jsr PositionPlayerOnS_Plat
 locret_A2B3:
-
 		rts
-OffscreenBoundsCheck:
 
+OffscreenBoundsCheck:
 		lda $16,x
 		cmp #$14
 		beq locret_A317
@@ -11074,10 +11038,8 @@ OffscreenBoundsCheck:
 		cpy #$D
 		bne loc_A2CD
 loc_A2CB:
-
 		adc #$38
 loc_A2CD:
-
 		sbc #$48
 		sta TMP_1
 		lda ScreenLeft_PageLoc
@@ -11392,7 +11354,7 @@ PlayerEnemyCollision:
 		lda FrameCounter
 		lsr
 		bcs locret_A4A4
-		jsr sub_A8B6
+		jsr CheckPlayerVertical
 		bcs locret_A4D8
 		lda $3D8,x
 		bne locret_A4D8
@@ -11690,7 +11652,6 @@ ClearBitsMask:
 		.db $FB
 		.db $FD
 EnemiesCollision:
-
 		lda FrameCounter
 		lsr
 		bcc locret_A68D
@@ -11711,7 +11672,6 @@ EnemiesCollision:
 		dex
 		bmi loc_A722
 loc_A6C3:
-
 		stx TMP_1
 		tya
 		pha
@@ -11749,27 +11709,22 @@ loc_A6C3:
 		ora SetBitsMask,x
 		sta Enemy_CollisionBits,y
 loc_A70C:
-
 		jsr sub_A725
 		jmp loc_A71B
 loc_A712:
-
 		lda Enemy_CollisionBits,y
 		and ClearBitsMask,x
 		sta Enemy_CollisionBits,y
 loc_A71B:
-
 		pla
 		tay
 		ldx TMP_1
 		dex
 		bpl loc_A6C3
 loc_A722:
-
 		ldx ObjectOffset
 		rts
 sub_A725:
-
 		lda $1E,y
 		ora $1E,x
 		and #$20
@@ -11788,7 +11743,6 @@ sub_A725:
 		jsr loc_A3D6
 		ldy TMP_1
 loc_A74A:
-
 		tya
 		tax
 		jsr loc_A3D6
@@ -11801,10 +11755,8 @@ loc_A74A:
 		ldx ObjectOffset
 		inc $125,x
 locret_A761:
-
 		rts
 loc_A762:
-
 		lda $1E,y
 		cmp #6
 		bcc loc_A786
@@ -11822,13 +11774,11 @@ loc_A762:
 		inc $125,x
 		rts
 loc_A786:
-
 		tya
 		tax
 		jsr sub_A78D
 		ldx ObjectOffset
 sub_A78D:
-
 		lda $16,x
 		cmp #$D
 		beq locret_A7B9
@@ -11845,7 +11795,6 @@ sub_A78D:
 		cmp #7
 		bcs locret_A7B9
 loc_A7AB:
-
 		lda $58,x
 		eor #$FF
 		tay
@@ -11855,10 +11804,9 @@ loc_A7AB:
 		eor #3
 		sta $46,x
 locret_A7B9:
-
 		rts
-LargePlatformCollision:
 
+LargePlatformCollision:
 		lda #$FF
 		sta HammerThrowingTimer,x
 		lda TimerControl
@@ -11872,8 +11820,7 @@ LargePlatformCollision:
 		tax
 		jsr ChkForPlayerC_LargeP
 ChkForPlayerC_LargeP:
-
-		jsr sub_A8B6
+		jsr CheckPlayerVertical
 		bcs loc_A7ED
 		txa
 		jsr loc_A8C2
@@ -11887,20 +11834,18 @@ ChkForPlayerC_LargeP:
 		bcc loc_A7ED
 		jsr loc_A831
 loc_A7ED:
-
 		ldx ObjectOffset
 		rts
-SmallPlatformCollision:
 
+SmallPlatformCollision:
 		lda TimerControl
 		bne loc_A82C
 		sta $3A2,x
-		jsr sub_A8B6
+		jsr CheckPlayerVertical
 		bcs loc_A82C
 		lda #2
 		sta TMP_0
 loc_A801:
-
 		ldx ObjectOffset
 		jsr sub_A8C0
 		and #2
@@ -11911,7 +11856,6 @@ loc_A801:
 		jsr sub_AFC3
 		bcs loc_A82F
 loc_A816:
-
 		lda $4AD,y
 		clc
 		adc #$80
@@ -11923,14 +11867,11 @@ loc_A816:
 		dec TMP_0
 		bne loc_A801
 loc_A82C:
-
 		ldx ObjectOffset
 		rts
 loc_A82F:
-
 		ldx ObjectOffset
 loc_A831:
-
 		lda $4AF,y
 		sec
 		sbc BoundingBox_UL_YPos
@@ -11941,7 +11882,6 @@ loc_A831:
 		lda #1
 		sta Player_Y_Speed
 loc_A844:
-
 		lda BoundingBox_DR_YPos
 		sec
 		sbc $4AD,y
@@ -11985,18 +11925,19 @@ loc_A889:
 
 		ldx ObjectOffset
 		rts
+
 PlayerPosSPlatData:
 		.db $80
 		.db 0
-PositionPlayerOnS_Plat:
 
+PositionPlayerOnS_Plat:
 		tay
 		lda Enemy_Y_Position,x
 		clc
 		adc PlayerPosSPlatData-1,y
-loc_A895:
-
-		bit byte_CFB5
+		.db $2c ; BIT $ABS
+PositionPlayerOnVPlat:
+		lda Enemy_Y_Position,x 
 		ldy GameEngineSubroutine
 		cpy #$B
 		beq locret_A8B5
@@ -12013,23 +11954,20 @@ loc_A895:
 		sta Player_Y_Speed
 		sta Player_Y_MoveForce
 locret_A8B5:
-
 		rts
-sub_A8B6:
 
+CheckPlayerVertical:
 		lda Player_OffscreenBits
 		and #$F0
 		clc
 		beq locret_A8BF
 		sec
 locret_A8BF:
-
 		rts
-sub_A8C0:
 
+sub_A8C0:
 		lda ObjectOffset
 loc_A8C2:
-
 		asl
 		asl
 		clc
@@ -14219,30 +14157,6 @@ EnemyGfxTableOffsets:
 		.db $F0
 		.db $F6
 		.db $FC
-EnemyAttributeData:
-		.db 1
-		.db 2
-		.db 3
-		.db 2
-		.db $22
-		.db 1
-		.db 3
-		.db 3
-		.db 3
-		.db 1
-		.db 1
-		.db 2
-		.db 2
-VOLDST_B517:
-		.db $21
-		.db 1
-		.db 2, 1, 1, 2, $FF, 2, 2, 1,	1
-VOLDST_B522:
-		.db 2
-VOLDST_B523:
-		.db 2
-VOLDST_B524:
-		.db 2
 EnemyAnimTimingBMask:
 		.db 8
 		.db $18
@@ -14263,13 +14177,11 @@ EnemyGfxHandler:
 		cpy #6
 		bne loc_B53E
 loc_B53D:
-
 		lsr
 loc_B53E:
-
-		sta VOLDST_B522
-		sta VOLDST_B523
-		sta VOLDST_B524
+		sta WRAM_UnknownAttributeData0
+		sta WRAM_UnknownAttributeData1
+		sta WRAM_UnknownAttributeData2
 		lda $CF,x
 		sta byte_2
 		lda Enemy_Rel_XPos
@@ -14369,7 +14281,7 @@ loc_B5DA:
 		sta byte_3
 loc_B5ED:
 
-		lda EnemyAttributeData,y
+		lda WRAM_EnemyAttributeData,y
 		ora byte_4
 		sta byte_4
 		lda EnemyGfxTableOffsets,y
@@ -14701,7 +14613,7 @@ loc_B826:
 		cmp #$18
 		bcc loc_B83F
 		lda #$80
-		ora VOLDST_B522
+		ora WRAM_UnknownAttributeData0
 		sta $20A,y
 		sta $212,y
 		ora #$40
@@ -16018,14 +15930,14 @@ TitleScreenMode:
 		lda OperMode_Task
 		jsr JumpEngine
 		.dw TitleInitializeFdsLoads
-		.dw InitializeGame_NEW
+		.dw PrepareDrawTitleScreen
 		.dw ScreenRoutines
 		.dw PrimaryGameSetup
 		.dw GameMenuRoutine_NEW
 		.dw FinalizeTitleScreen
 FinalizeTitleScreen:
 
-		lda TitleOperTask
+		lda FdsOperTask
 		jsr JumpEngine
 		.dw PrepareFdsLoad
 		.dw SwapToGameData
@@ -16054,21 +15966,21 @@ loc_BFF1:
 		inc FetchNewGameTimerFlag
 		inc OperMode
 		lda #0
-		sta TitleOperTask
+		sta FdsOperTask
 		sta OperMode_Task
 		sta DemoTimer
 		rts
-TitleInitializeFdsLoads:
 
-		lda TitleOperTask
+TitleInitializeFdsLoads:
+		lda FdsOperTask
 		jsr JumpEngine
 		.dw PrepareFdsLoad
 		.dw LoadCorrectWorldFiles
 		.dw WaitFDSReady
 		.dw MoreFDSStuff
 		.dw FDSResetZero
-LoadCorrectWorldFiles:
 
+LoadCorrectWorldFiles:
 		lda ContinueWorld
 		beq loc_C03E
 		lda byte_7FB
@@ -16089,8 +16001,10 @@ loc_C036:
 		lda #$40
 loc_C038:
 
-		inc TitleOperTask
-		jmp DrawStuffOrSomething
+		inc FdsOperTask
+REMOVEME_DiskError:
+		jmp REMOVEME_DiskError
+
 loc_C03E:
 
 		lda #1
@@ -16101,7 +16015,7 @@ loc_C03E:
 		jmp TitleMenuDone
 LoadCorrectData:
 
-		lda TitleOperTask
+		lda FdsOperTask
 		jsr JumpEngine
 		.dw PrepareFdsLoad
 		.dw LoadBaseOnWorld
@@ -16124,7 +16038,7 @@ LoadBaseOnWorld:
 TitleMenuDone:
 
 		lda #0
-		sta TitleOperTask
+		sta FdsOperTask
 Increase_OperMode_Task:
 
 		inc OperMode_Task
@@ -16141,7 +16055,7 @@ CheckWorldEndTimer:
 		rts
 FdsLoadFile_SM2DATA3:
 
-		lda TitleOperTask
+		lda FdsOperTask
 		jsr JumpEngine
 		.dw PrepareFdsLoad
 		.dw LoadFdsFileIndex2
@@ -16157,77 +16071,32 @@ LoadFdsFileIndex2:
 		jsr sub_C0CA
 		beq loc_C0B2
 		lda #0
-		sta VOLDST_NumberOfStarsSaveData
+		sta WRAM_NumberOfStars
 loc_C0B2:
 
-		lda VOLDST_NumberOfStarsSaveData
+		lda WRAM_NumberOfStars
 		clc
 		adc #1
 		cmp #$19
 		bcc loc_C0BE
 		lda #$18
 loc_C0BE:
-
-		sta VOLDST_NumberOfStarsSaveData
+		sta WRAM_NumberOfStars
 		jsr InitializeNameTables
 		jsr TitleMenuDone
 		jmp byte_C858
 sub_C0CA:
-
 		tya
 		ldy LoadListIndex
 		cmp word_C0F0,y
 		rts
-DiskId:
-		.db 1
-		.db $53
-		.db $4D
-		.db $42
-		.db $20
-		.db 0
-		.db 0
-		.db 0
-		.db 0
-		.db 0
-PtrLoadLists_Low:
-		.db $E4
-		.db $E8
-		.db $EA
-		.db $EE
-PtrLoadLists_High:
-		.db $C0
-		.db $C0
-		.db $C0
-		.db $C0
-LoadLists:
-		.db 1
-		.db 5
-		.db $F
-		.db $FF
-		.db $20
-		.db $FF
-		.db $10
-		.db $30
-		.db $F
-		.db $FF
-		.db $40
-		.db $FF
+
 word_C0F0:
 		.dw $103
 		.dw $103
 LoadFilesFromFDS:
+		jmp LoadFilesFromFDS
 
-		ldx LoadListIndex
-		lda PtrLoadLists_Low,x
-		sta FdsParamLoadList
-		lda PtrLoadLists_High,x
-		sta FdsParamLoadList+1
-		jsr FDS_LoadFiles
-FdsParamDiskId:
-		.dw DiskId
-FdsParamLoadList:
-		.dw LoadLists
-		rts
 byte_C10B:
 		.db $3F
 		.db 0
@@ -16237,8 +16106,8 @@ byte_C10B:
 		.db $30
 		.db $F
 		.db 0
-PrepareFdsLoad:
 
+PrepareFdsLoad:
 		lda #0
 		sta Mirror_PPU_CTRL_REG2
 		sta PPU_CTRL_REG2
@@ -16256,7 +16125,7 @@ WaitFDSReady:
 		sta UseNtBase2400
 		sta DisableScreenFlag
 TitleNextTask:
-		inc TitleOperTask
+		inc FdsOperTask
 TitleExitNow:
 		rts
 
@@ -16266,110 +16135,11 @@ MoreFDSStuff:
 
 FDSResetZero:
 		lda #0
-		sta TitleOperTask
+		sta FdsOperTask
 		sta LoadListIndex
 		rts
 
-byte_C149:
-		.db $21
-		.db $E6
-		.db 8
-VOLDST_C14C:
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $21
-		.db $F4
-		.db 6
-		.db $E
-		.db $1B
-		.db $1B
-		.db $24
-VOLDST_C15B:
-		.db 0
-VOLDST_C15C:
-		.db 1
-		.db 0
-NEW_LengthOfVolatilePatch:
-		.db 7
-		.db $F
-		.db $17
-		.db $1F
-VOLSRC_C162:
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $24
-		.db $D
-		.db $12
-		.db $1C
-		.db $14
-		.db $24
-		.db $1C
-		.db $E
-		.db $1D
-		.db $B
-		.db $A
-		.db $1D
-		.db $1D
-		.db $E
-		.db $1B
-		.db $22
-		.db $24
-		.db $A
-		.db $24
-		.db $B
-		.db $24
-		.db $1C
-		.db $12
-		.db $D
-		.db $E
-DrawStuffOrSomething:
-		pha
-		and #$F
-		sta VOLDST_C15C
-		pla
-		pha
-		lsr
-		lsr
-		lsr
-		lsr
-		sta VOLDST_C15B
-		ldy #3
-		pla
-		cmp #7
-		beq loc_C1A3
-		dey
-		cmp #2
-		beq loc_C1A3
-		dey
-		cmp #1
-		beq loc_C1A3
-		dey
-loc_C1A3:
 
-		ldx NEW_LengthOfVolatilePatch,y
-		ldy #7
-loc_C1A8:
-
-		lda VOLSRC_C162,x
-		sta VOLDST_C14C,y
-		dex
-		dey
-		bpl loc_C1A8
-		lda #$19
-		sta VRAM_Buffer_AddrCtrl
-		jsr MoveAllSpritesOffscreen
-		jmp InitializeNameTables
 byte_C1BD:
 		.db $5B
 		.db 2
@@ -16830,17 +16600,16 @@ AreaDataAddrLow:
 		.dw unk_CBDA
 		.dw $FFFF
 GameMenuRoutine_NEW:
-
 		lda SavedJoypad1Bits
 		and #$10
 		beq loc_C494
-VerticalPipeUpsideDown_4:
+GameMenuRoutineInner_NEW:
 
 		lda #0
 		sta byte_7FA
-		sta TitleOperTask
+		sta FdsOperTask
 		sta byte_7FB
-		lda VOLDST_NumberOfStarsSaveData
+		lda WRAM_NumberOfStars
 		cmp #8
 		bcc loc_C491
 		lda SavedJoypad1Bits
@@ -16903,7 +16672,7 @@ loc_C4EC:
 		lda DemoTimer
 		beq loc_C4DD
 		inc OperMode_Task
-		jsr loc_C5FF
+		jsr PatchToMarioOrLuigi
 		lda #0
 		sta WorldNumber
 		lda #0
@@ -16922,34 +16691,24 @@ loc_C50A:
 locret_C510:
 
 		rts
-SWAPDATA_C511:
-		.db $22
-		.db $4B
-		.db $83
-VOLDST_MarioSelectIcon:
-		.db $CE
-		.db $24
-VOLDST_LuigiSelectIcon:
-		.db $24
-		.db 0
+
 NothingOrMushroomTile:
 		.db $CE
 		.db $24
 		.db $CE
-MoveTitlescreenMushroom_NEW:
 
+MoveTitlescreenMushroom_NEW:
 		lda #$1C
 		sta VRAM_Buffer_AddrCtrl
-loc_C520:
-
+MoveTitlescreenMushroomCurrAddr_NEW:
 		ldy IsPlayingLuigi
 loc_C523:
-
 		lda NothingOrMushroomTile,y
-		sta VOLDST_MarioSelectIcon
+		sta WRAM_SelectMario
 		lda NothingOrMushroomTile+1,y
-		sta VOLDST_LuigiSelectIcon
+		sta WRAM_SelectLuigi
 		rts
+
 DemoActionData:
 		.db 1
 		.db $81
@@ -17022,67 +16781,93 @@ loc_C57A:
 		jsr MoveTitlescreenMushroom_NEW
 		inc ScreenRoutineTask
 		rts
-XXX_RedrawSomeNumbers:
 
+WriteTopScore:
 		lda #$FA
 		jsr UpdateNumber
+		jsr RenderStars
 loc_C58F:
-
 		jmp Next_OperMode_Task
-InitializeGame_NEW:
 
+PrepareDrawTitleScreen:
 		lda #0
 		sta byte_7FA
 		sta byte_7FB
 		sta IsPlayingLuigi
-		jsr loc_C5FF
-		jsr loc_C520
-		ldy #$33
-		lda #$C
-		sta TMP_0
-		ldx #0
-loc_C5AB:
-
-		lda #$26
-		cpx VOLDST_NumberOfStarsSaveData
-		bcs loc_C5B4
-		lda #$F1
-loc_C5B4:
-
-		sta SWAPDATA_C62B,y
-		iny
-		dec TMP_0
-		bne loc_C5BE
-		ldy #$4D
-loc_C5BE:
-
-		inx
-		cpx #$18
-loc_C5C1:
-
-		bne loc_C5AB
+		jsr PatchToMarioOrLuigi
+		jsr MoveTitlescreenMushroomCurrAddr_NEW
 		ldy #$6F
 		jsr InitializeMemory
 		ldy #$1F
 loc_C5CA:
-
 		sta $7B0,y
 		dey
 		bpl loc_C5CA
-PrepareInitializeArea:
 
+PrepareInitializeArea:
 		lda #$18
 		sta DemoTimer
 		jsr LoadAreaPointer
 		jmp InitializeArea
-PrimaryGameSetup:
 
+RenderStars:
+		;
+		; Also add stars to title screen.
+		; This is orignally done in PrepareDrawTitleScreen,
+		; but reqiures volatile title screen and I can't
+		; be arsed with that.
+		;
+		lda OperMode
+		bne NotOnTitleScreen
+
+		ldx VRAM_Buffer1_Offset
+		lda #$20
+		sta VRAM_Buffer1, x
+		inx
+		lda #$D0
+		sta VRAM_Buffer1, x
+		inx
+		lda #$0C
+		sta VRAM_Buffer1, x 
+		inx
+		lda #$C
+		ldy #$0
+		sta TMP_0
+WriteMoreStars:
+		lda #$26
+		cpy WRAM_NumberOfStars
+		bcs DontWriteAStar
+		lda #$F1
+DontWriteAStar:
+		sta VRAM_Buffer1,x
+		inx
+		dec TMP_0
+		bne StarRowNotFull
+		lda #$20
+		sta VRAM_Buffer1, x
+		inx
+		lda #$F0
+		sta VRAM_Buffer1, x
+		inx
+		lda #$0C
+		sta VRAM_Buffer1, x
+		inx
+StarRowNotFull:
+		iny
+		cpy #$18
+		bne WriteMoreStars
+		stx VRAM_Buffer1_Offset
+NotOnTitleScreen:
+		rts
+
+PrimaryGameSetup:
 		lda #1
 		sta FetchNewGameTimerFlag
 		sta PlayerSize
 		lda #2
 		sta NumberofLives
 		jmp SecondaryGameSetup
+
 MarioOrLuigiNames:
 		.db $16, $0A, $1B, $12, $18 ; Mario
 		.db $15, $1E, $12, $10, $12 ; Luigi
@@ -17094,7 +16879,6 @@ NameOffsets:
 AlternateInitScreen:
 		.db 9
 
-loc_C5FF:
 PatchToMarioOrLuigi:
 		ldy IsPlayingLuigi
 		lda NameOffsets,y
@@ -20237,8 +20021,6 @@ unk_D242:
 		.db $FF
 		.db $FF
 		.db $FF
-VOLDST_NumberOfStarsSaveData:
-		.db 0
 
 SoundEngine:
 		lda OperMode

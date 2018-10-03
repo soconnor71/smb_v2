@@ -5,7 +5,7 @@ FDS_CONTROL  = $4024
 FDS_DISK_STATUS = $4030
 FDS_DRIVE_STATUS = $4032
 
-TitleOperTask = $07FC		; SMB2J
+FdsOperTask = $07FC			; SMB2J
 WaitForIRQ = $077B			; SMB2J
 LoadListIndex = $07f7		; SMB2J
 IsPlayingLuigi = $0753		; SMB2J

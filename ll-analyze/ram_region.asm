@@ -1,6 +1,13 @@
 		.org $6000
 
 WRAM_StartAddress:
+
+;
+; Number of stars collected
+;
+WRAM_NumberOfStars:
+		.db $08
+
 ;
 ; Player palette colors
 ;
@@ -15,6 +22,44 @@ WRAM_FallMForceData:
 WRAM_FrictionData:
 		.db $E4, $98, $D0
 
+WRAM_EnemyAttributeData:
+		.db $01, $02, $03, $02
+		.db $22, $01, $03, $03
+		.db $03, $01, $01, $02
+		.db $02
+WRAM_PiranhaPlantAttributeData:
+		.db $21
+		.db $01, $02, $01, $01
+		.db $02, $FF, $02, $02
+		.db $01, $01
+WRAM_UnknownAttributeData0:
+		.db $02
+WRAM_UnknownAttributeData1:
+		.db $02
+WRAM_UnknownAttributeData2:
+		.db $02
+
+;
+; Draw buffer for title screen with mushroom
+;
+WRAM_MushroomSelection:
+		.db $22
+		.db $4B
+		.db $83
+WRAM_SelectMario:
+		.db $CE
+		.db $24
+WRAM_SelectLuigi:
+		.db $24
+		.db $00
+
+;
+; Originally patched the immediate byte of the
+; cmp instruction, but that was too much of a hack, so
+; now we just store it here directly
+;
+WRAM_PiranhaPlantDist:
+		.db $21
 ;
 ; Halway stuff
 ;
@@ -69,6 +114,9 @@ WRAM_PatchMarioName0:
 		.db 1
 		.db $EA
 		.db $FF
+		;
+		; Display lifes left and mario screen
+		;
 		.db $21
 		.db $CD
 		.db 7
