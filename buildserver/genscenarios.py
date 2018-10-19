@@ -46,6 +46,9 @@ for it in files:
 		i = 0
 		while i < len(route):
 			rule = route[i]
+			if 'lock' == rule['method']:
+				i += 1
+				continue
 			n = i + 1
 			while n < len(route):
 				if not compare_rules(rule, route[n]):
