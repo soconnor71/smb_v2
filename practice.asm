@@ -571,7 +571,7 @@ SaveMoreRandom:
 		dex
 		bpl SaveMoreRandom
 
-		ldx $3
+		ldx #$3
 SaveNextRule:
 		lda FrameRuleData, x
 		sta SaveFrameRuleData, x

@@ -1489,7 +1489,7 @@ SMALL_FIRE_FRAMES = $1b3
 
 AdvanceToRule:
 		;
-		; Regardless if rule, always honor powerups
+		; Regardless of rule, always honor powerups
 		;
 		lda #0
 		ldy #0
