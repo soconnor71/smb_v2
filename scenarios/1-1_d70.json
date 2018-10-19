@@ -389,6 +389,10 @@
         "method": "input"
       },
       {
+        "method": "lock",
+        "frame": 28
+      },
+      {
         "input": "rb",
         "frame": 28,
         "method": "input"

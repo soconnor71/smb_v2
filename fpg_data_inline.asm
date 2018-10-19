@@ -64,6 +64,12 @@ fpg_copy_more:
 ; 
 ;
 fpg_check_true_over:
+		lda FpgFlags
+		and #$20
+		beq fpg_not_locked
+		lda #0
+		rts
+fpg_not_locked:
 		lda FpgSelected
 		asl
 		asl

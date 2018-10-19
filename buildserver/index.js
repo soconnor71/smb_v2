@@ -1,7 +1,11 @@
 const express = require('express')
 const fs = require('fs')
-const { execFile } = require('child_process');
 const path = require('path')
+const util = require('util')
+
+const execFile = util.promisify(require('child_process').execFile);
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
 
 const app = express()
 const port = 8888
@@ -10,7 +14,7 @@ app.set('view engine', 'pug')
 
 app.use(express.static('public'))
 
-function write_splits(res, load, reset, music, sfx, worlds) {
+async function write_splits(res, load, reset, music, sfx, worlds) {
 	var world_rules = ''
 	var pup_bytes = '.db '
 
@@ -83,13 +87,8 @@ function write_splits(res, load, reset, music, sfx, worlds) {
 
 	// console.log(pup_bytes)
 	// console.log(world_rules)
-
-	fs.readFile('../practice.asm', 'utf8', (err, data) => {
-		if(err) {
-			console.log('Reading:' + err)
-			res.status(500).send('Something broke horribly')
-			return
-		}
+	try {
+		let data = await readFile('../practice.asm', 'utf8')
 
 		if(world_rules)
 		{
@@ -99,51 +98,43 @@ function write_splits(res, load, reset, music, sfx, worlds) {
 
 		var practice_name = 'practice-' + (new Date().getTime())
 
-		fs.writeFile('builds/' + practice_name + '.asm', data,
-		(err) => {
-			if(err) {
-				console.log('Writing: ' + err)
-				res.status(500).send('Something broke horribly')
-				return
-			}
+		await writeFile('builds/' + practice_name + '.asm', data)
+		await execFile('python', [
+				'../../badassm/badassm.py',
+				practice_name + '.asm',
+				'--use-linker' ].concat(defines),
+				{ cwd: 'builds' })
 
-			execFile('python', [ '../../badassm/badassm.py', practice_name + '.asm', '--use-linker' ].concat(defines), { cwd: 'builds' },
-			(err, stdout, stderr) => {
-				if(err) {
-					console.log('Running: ', err)
-					res.status(500).send('Build exploded somehow <.<')
-					return
-				}
-				
-				execFile('python', [ '../../badassm/badassm.py', 'sound.asm', '--use-linker' ].concat(defines), { cwd: 'builds' },
-				(err, stdout, stderr) => {
-					if(err) {
-						console.log('Running: ', err)
-						res.status(500).send('Build exploded somehow <.<')
-						return
-					}
+		await execFile('python', [
+			'../../badassm/badassm.py',
+			'sound.asm',
+			'--use-linker' ].concat(defines),
+			{ cwd: 'builds' })
 
-					execFile('python', [ 'idiotlink.py',
-							practice_name + '.nes', 'vanilla',
-							'sound', practice_name, 'fpg', 'fpg_data',
-							'smlsound', 'loader', 'main' ], { cwd: 'builds' },
-						(err, stdout, stderr) => {
-						if(err) {
-							console.log('Running: ', err)
-							res.status(500).send('Link phase exploded <.<')
-							return
-						}
+		await execFile('python', [ 'idiotlink.py',
+			practice_name + '.nes', 'vanilla',
+			'sound', practice_name, 'fpg', 'fpg_data',
+			'smlsound', 'loader', 'main' ],
+			{ cwd: 'builds' })
 
-						res.setHeader('Content-Disposition', 'attachment; filename=smbex.nes');
-						res.setHeader('Content-Transfer-Encoding', 'binary');
-						res.setHeader('Content-Type', 'application/octet-stream');
-						res.sendFile(path.join(__dirname, 'builds/', practice_name + '.nes'))
+		await execFile('../ips/flips-linux', [
+				'--create',
+				'--ips',
+				'../ips/smborg.nes',
+				practice_name + '.nes',
+				practice_name + '.ips'
+			],
+			{ cwd: 'builds' })
 
-					})
-				})
-			})
-		})
-	})
+		res.setHeader('Content-Disposition', 'attachment; filename=smbex.ips');
+		res.setHeader('Content-Transfer-Encoding', 'binary');
+		res.setHeader('Content-Type', 'application/octet-stream');
+		res.sendFile(path.join(__dirname, 'builds/', practice_name + '.ips'))
+
+	} catch(e) {
+		console.log(e)
+		res.status(500).send('Build exploded somehow <.<')
+	}
 }
 
 app.get('/', function(req, res) {
@@ -166,9 +157,9 @@ app.get('/practice', function(req, res) {
 	res.render('practice')
 })
 
-app.get('/build', function(req, res) {
+app.get('/build', async (req, res) => {
 	console.log('Got build request!')
-	write_splits(res,
+	await write_splits(res,
 		parseInt(req.query.load),
 		parseInt(req.query.reset),
 		parseInt(req.query.music),

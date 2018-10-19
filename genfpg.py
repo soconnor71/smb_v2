@@ -138,7 +138,13 @@ def make_rules(name, rules):
 				print(ind + 'cpy #$%02X' % (rule['frame'] + 1))
 				print(ind + 'bpl %s' % (next_rule_name))
 
-			if 'input' == rule['method']:
+			if 'lock' == rule['method']:
+				print(ind + 'pha')
+				print(ind + 'lda FpgFlags')
+				print(ind + 'ora #$20')
+				print(ind + 'sta FpgFlags')
+				print(ind + 'pla')
+			elif 'input' == rule['method']:
 				print(ind + 'cmp #$%02X' % (get_input(rule['input'])))
 				print(ind + 'beq %s_ruleset%d_rule%d' % (name, i, j + 1))
 				print(ind + 'lda #$%02X' % (get_input(rule['input'])))
